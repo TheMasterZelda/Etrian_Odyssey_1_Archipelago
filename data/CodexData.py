@@ -148,7 +148,7 @@ ALL_CODEX_ENTRIES: list[CodexData] = [
     CodexData(EO1Enemies.TLACHTGA, 0x77, 2119, 5, CodexEncounterType.BOSS),
     CodexData(EO1Enemies.ETREANT, 0x78, 2120, 6, CodexEncounterType.BOSS), # Not a check for stratum 5 goals.
     CodexData(EO1Enemies.GOLEM, 0x79, 2121, 7, CodexEncounterType.BOSS), # Is in stratum 1 but require stratum 3.
-    CodexData(EO1Enemies.WYVERN, 0x7A, 2122, 3, CodexEncounterType.BOSS), # Is in stratum 2, but is absurdly unreasonable to accomplish then.
+    CodexData(EO1Enemies.WYVERN, 0x7A, 2122, 4, CodexEncounterType.BOSS), # Is in stratum 2, but is stronger than the stratum 3 boss.
     CodexData(EO1Enemies.MANTICOR, 0x7B, 2123, 7, CodexEncounterType.BOSS),
     CodexData(EO1Enemies.ALRAUNE, 0x7C, 2124, 7, CodexEncounterType.BOSS), # Is in stratum 2 but require stratum 5.
     CodexData(EO1Enemies.WYRM, 0x7D, 2125, 7, CodexEncounterType.BOSS),# Quest enemies not considered for now.

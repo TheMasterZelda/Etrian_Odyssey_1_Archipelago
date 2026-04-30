@@ -105,6 +105,7 @@ class LogicManager:
             self.logic_data.set_battle_stale()
         elif item.item_type == EtrianOdysseyItemType.PROGRESSIVE_FLOOR_LIMIT:
             self.logic_data.current_floor_limit += ALL_PROGRESSIVE_FLOOR_BY_ITEM_ID[item.code].floor_amount
+            self.logic_data.set_battle_stale()
             self.logic_data.set_location_stale()
         elif item.item_type == EtrianOdysseyItemType.CLASS:
             self.logic_data.set_battle_stale()
@@ -169,6 +170,7 @@ class LogicManager:
         elif item.item_type == EtrianOdysseyItemType.CLASS:
             recalculate_battle()
         elif item.item_type == EtrianOdysseyItemType.PROGRESSIVE_FLOOR_LIMIT:
+            recalculate_battle()
             recalculate_location()
         elif item.item_type == EtrianOdysseyItemType.INVENTORY:
             item_type = ITEM_PER_AP_ITEM_ID[item.code].type

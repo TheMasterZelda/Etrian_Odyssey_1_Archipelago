@@ -8,14 +8,19 @@ from .SimplifiedEnemyValues import *
 
 
 class SimplifiedSingleEnemyBattleProcessor(SingleEnemyBattleProcessor):
-    def __level_requirement_met(self, enemy_data: EnemyData, logic_data: AllLogicData) -> bool:
+    def __survive_level_requirement_met(self, enemy_data: EnemyData, logic_data: AllLogicData) -> bool:
         # For now, just use the raw level.
         effective_enemy_level = enemy_data.level
         return logic_data.current_level_cap >= max(1, effective_enemy_level)
 
+    def __defeat_level_requirement_met(self, enemy_data: EnemyData, logic_data: AllLogicData) -> bool:
+        # For now, just use the raw level.
+        effective_enemy_level = enemy_data.level
+        return self.max_level_for_defeat(logic_data) >= max(1, effective_enemy_level)
+    
     def can_survive_enemy(self, enemy_id: int, state: CollectionState, logic_data: AllLogicData) -> bool:
         enemy_data = self.get_enemy_data(enemy_id)
-        if not self.__level_requirement_met(enemy_data, logic_data):
+        if not self.__survive_level_requirement_met(enemy_data, logic_data):
             return False
 
         # TODO Temporary
@@ -35,7 +40,7 @@ class SimplifiedSingleEnemyBattleProcessor(SingleEnemyBattleProcessor):
 
     def can_defeat_enemy(self, enemy_id: int, state: CollectionState, logic_data: AllLogicData) -> bool:
         enemy_data = self.get_enemy_data(enemy_id)
-        if not self.__level_requirement_met(enemy_data, logic_data):
+        if not self.__defeat_level_requirement_met(enemy_data, logic_data):
             return False
 
         # TODO Temporary
