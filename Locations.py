@@ -146,6 +146,10 @@ def create_compendium_locations(world: EtrianOdysseyWorld) -> None:
         if not compendium_entry_is_in_goal(compendium_data):
             continue
 
+        if compendium_data.conditional_drop:
+            if not bool(world.options.compendium_sanity_include_conditional_drops):
+                continue
+
         create_location(compendium_data)
 
 def create_treasure_locations(world: EtrianOdysseyWorld) -> None:

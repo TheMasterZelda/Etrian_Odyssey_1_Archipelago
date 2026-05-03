@@ -58,28 +58,29 @@ class CompendiumProcessor:
 
     def __can_fill_monster_entry(self, compendium_data: CompendiumData, state: CollectionState, logic_data: AllLogicData) -> bool:
         for enemy_id in ENEMY_BY_DROP_ID[compendium_data.item_id]:
-            if enemy_id in logic_data.codex_logic_data.fillable_codex_entries:
-                enemy_data = ENEMY_BY_ID[enemy_id]
-                has_conditional_drop = enemy_data.item_drop_3 != 0
-                if has_conditional_drop:
-                    has_conditional_drop = enemy_data.drop_condition != DropCondition.NONE # Handles "Rare drop" conditionals.
+            if enemy_id not in logic_data.codex_logic_data.fillable_codex_entries:
+                continue
+            enemy_data = ENEMY_BY_ID[enemy_id]
+            has_conditional_drop = enemy_data.item_drop_3 != 0
+            if has_conditional_drop:
+                has_conditional_drop = enemy_data.drop_condition != DropCondition.NONE # Handles "Rare drop" conditionals.
 
-                # If the monster has no conditional drop, then all its drops are fillable.
-                if not has_conditional_drop:
+            # If the monster has no conditional drop, then all its drops are fillable.
+            if not has_conditional_drop:
+                return True
+
+            # Otherwise, conditional drops can nullify regular drops.
+            if enemy_data.item_drop_1 == compendium_data.item_id:
+                if self.conditional_drop_processor.can_defeat_without_fulfilling_drop_condition(enemy_id, logic_data):
                     return True
-
-                # Otherwise, conditional drops can nullify regular drops.
-                if enemy_data.item_drop_1 == compendium_data.item_id:
-                    if self.conditional_drop_processor.can_defeat_without_fulfilling_drop_condition(enemy_id, logic_data):
-                        return True
-                elif enemy_data.item_drop_2 == compendium_data.item_id:
-                    if self.conditional_drop_processor.can_defeat_without_fulfilling_drop_condition(enemy_id, logic_data):
-                        return True
-                elif enemy_data.item_drop_3 == compendium_data.item_id:
-                    if self.conditional_drop_processor.can_fulfill_drop_condition(enemy_id, logic_data):
-                        return True
-                else:
-                    raise Exception(f"Enemy {enemy_id} cannot drop item {compendium_data.item_id}.")
+            elif enemy_data.item_drop_2 == compendium_data.item_id:
+                if self.conditional_drop_processor.can_defeat_without_fulfilling_drop_condition(enemy_id, logic_data):
+                    return True
+            elif enemy_data.item_drop_3 == compendium_data.item_id:
+                if self.conditional_drop_processor.can_fulfill_drop_condition(enemy_id, logic_data, state):
+                    return True
+            else:
+                raise Exception(f"Enemy {enemy_id} cannot drop item {compendium_data.item_id}.")
 
         return False
 
@@ -96,6 +97,10 @@ class CompendiumProcessor:
                 continue
 
             # If player can both use the gathering skill and reach the region.
+            # Optimization: Doing a floor number check is much, much faster than doing a "can_reach_region" check.
+            region_data = ALL_REGION_DATA_BY_NAME[gathering_spot_data.region]
+            if region_data.floor_number > logic_data.current_floor_limit:
+                continue
             if state.can_reach_region(gathering_spot_data.region, self.player_id):
                 return True
 

@@ -63,7 +63,7 @@ class EtrianOdysseyWorld(World):
     options: EtrianOdysseyOptions
     settings: typing.ClassVar[EtrianOdysseySettings]
     topology_present = True
-    #explicit_indirect_conditions = False
+    explicit_indirect_conditions = False
 
     location_name_to_id = ALL_LOCATIONS_ID_BY_NAME
     item_name_to_id = ITEMS_ID_BY_NAME
@@ -115,6 +115,8 @@ class EtrianOdysseyWorld(World):
         return change
 
     def generate_early(self) -> None:
+        # TODO Options validation.
+
         starting_classes = get_starting_classes(self)
         self.starting_classes = [class_data.name for class_data in starting_classes]
 

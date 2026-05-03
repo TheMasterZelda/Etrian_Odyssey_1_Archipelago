@@ -11,6 +11,7 @@ BASE_OPTIONS = {
     **OptionSets.NO_CLASS_SHUFFLING,
     **OptionSets.NO_SKILL_SHUFFLING,
     **OptionSets.DISABLE_ALL_OPTIONAL_LOCATIONS,
+    **OptionSets.ENABLE_ALL_OPTIONAL_LOGIC_OPTIONS,
 }
 
 class FloorLimitFixedIncreaseTest(EtrianOdysseyTestBase):

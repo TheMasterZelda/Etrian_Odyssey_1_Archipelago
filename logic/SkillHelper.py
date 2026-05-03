@@ -74,4 +74,61 @@ def is_battle_active_skill(skill_data: EO1SkillData) -> bool:
 def is_enemy_targeting_skill(skill_data: EO1SkillData) -> bool:
     return _ENEMY_TARGETING_SKILL[skill_data.skill_type]
 
+def can_inflict_ailment(skill_data: EO1SkillData, ailment: EO1Ailment) -> bool:
+    if not is_battle_skill(skill_data):
+        return False
+    if not is_battle_active_skill(skill_data):
+        return False
+    if not is_enemy_targeting_skill(skill_data):
+        return False
+
+    return skill_data.ailment == ailment
+
+def is_damage_type(skill_data: EO1SkillData, damage_type: EO1Element) -> bool:
+    if not is_battle_skill(skill_data):
+        return False
+    if not is_battle_active_skill(skill_data):
+        return False
+    if not is_enemy_targeting_skill(skill_data):
+        return False
+
+    if skill_data.primary_element == damage_type:
+        return True
+    if skill_data.secondary_element == damage_type:
+        return True
+    return False
+
+def is_not_damage_type(skill_data: EO1SkillData, damage_type: EO1Element) -> bool:
+    return not is_damage_type(skill_data, damage_type)
+
+def is_any_damage_type(skill_data: EO1SkillData, damage_types: list[EO1Element]) -> bool:
+    if not is_battle_skill(skill_data):
+        return False
+    if not is_battle_active_skill(skill_data):
+        return False
+    if not is_enemy_targeting_skill(skill_data):
+        return False
+
+    for damage_type in damage_types:
+        if skill_data.primary_element == damage_type:
+            return True
+        if skill_data.secondary_element == damage_type:
+            return True
+    return False
+
+def is_not_physical_damage_type(skill_data: EO1SkillData) -> bool:
+    if not is_battle_skill(skill_data):
+        return False
+    if not is_battle_active_skill(skill_data):
+        return False
+    if not is_enemy_targeting_skill(skill_data):
+        return False
+
+    if skill_data.primary_element in EO1ElementGroup.PHYSICAL:
+        return False
+    if skill_data.secondary_element in EO1ElementGroup.PHYSICAL:
+        return False
+
+    return True
+
 

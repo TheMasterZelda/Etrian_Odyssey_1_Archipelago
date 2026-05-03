@@ -9,6 +9,7 @@ BASE_OPTIONS = {
     **OptionSets.NO_LEVEL_SHUFFLING,
     **OptionSets.NO_FLOOR_SHUFFLING,
     **OptionSets.NO_CLASS_SHUFFLING,
+    **OptionSets.ENABLE_ALL_OPTIONAL_LOGIC_OPTIONS,
 }
 
 
@@ -22,6 +23,20 @@ class SkillSanityIndividualShuffleTest(EtrianOdysseyTestBase):
         OptionKeys.SKILL_SANITY_MODE: SkillSanityType.shuffle_individually.value,
         OptionKeys.SHUFFLE_GENERIC_STATS_INCREASE_SKILLS: False,
         OptionKeys.SHUFFLE_GATHERING_SKILLS: False,
+        OptionKeys.STARTING_SKILL_ITEM_COUNT: 0,
+    }
+
+class SkillSanityIndividualShuffleWithStartingItemTest(EtrianOdysseyTestBase):
+    options = {
+        OptionKeys.GOAL: EO1Goal.defeat_etreant.value,
+        **BASE_OPTIONS,
+        **OptionSets.ENABLE_ALL_LOCATIONS, # Individual Shuffling need more locations.
+
+        # Skills
+        OptionKeys.SKILL_SANITY_MODE: SkillSanityType.shuffle_individually.value,
+        OptionKeys.SHUFFLE_GENERIC_STATS_INCREASE_SKILLS: False,
+        OptionKeys.SHUFFLE_GATHERING_SKILLS: False,
+        OptionKeys.STARTING_SKILL_ITEM_COUNT: 10,
     }
 
 class SkillSanityAllIndividualShuffleTest(EtrianOdysseyTestBase):
@@ -34,6 +49,20 @@ class SkillSanityAllIndividualShuffleTest(EtrianOdysseyTestBase):
         OptionKeys.SKILL_SANITY_MODE: SkillSanityType.shuffle_individually.value,
         OptionKeys.SHUFFLE_GENERIC_STATS_INCREASE_SKILLS: True,
         OptionKeys.SHUFFLE_GATHERING_SKILLS: True,
+        OptionKeys.STARTING_SKILL_ITEM_COUNT: 0,
+    }
+
+class SkillSanityAllIndividualShuffleWithStartingItemTest(EtrianOdysseyTestBase):
+    options = {
+        OptionKeys.GOAL: EO1Goal.defeat_etreant.value,
+        **BASE_OPTIONS,
+        **OptionSets.ENABLE_ALL_LOCATIONS,  # Individual Shuffling need more locations.
+
+        # Skills
+        OptionKeys.SKILL_SANITY_MODE: SkillSanityType.shuffle_individually.value,
+        OptionKeys.SHUFFLE_GENERIC_STATS_INCREASE_SKILLS: True,
+        OptionKeys.SHUFFLE_GATHERING_SKILLS: True,
+        OptionKeys.STARTING_SKILL_ITEM_COUNT: 15,
     }
 
 class SkillSanityGroupShuffleTest(EtrianOdysseyTestBase):
@@ -46,6 +75,20 @@ class SkillSanityGroupShuffleTest(EtrianOdysseyTestBase):
         OptionKeys.SKILL_SANITY_MODE: SkillSanityType.shuffle_group.value,
         OptionKeys.SHUFFLE_GENERIC_STATS_INCREASE_SKILLS: False,
         OptionKeys.SHUFFLE_GATHERING_SKILLS: False,
+        OptionKeys.STARTING_SKILL_ITEM_COUNT: 0,
+    }
+
+class SkillSanityGroupShuffleWithStartingItemTest(EtrianOdysseyTestBase):
+    options = {
+        OptionKeys.GOAL: EO1Goal.defeat_etreant.value,
+        **BASE_OPTIONS,
+        **OptionSets.DISABLE_ALL_OPTIONAL_LOCATIONS,
+
+        # Skills
+        OptionKeys.SKILL_SANITY_MODE: SkillSanityType.shuffle_group.value,
+        OptionKeys.SHUFFLE_GENERIC_STATS_INCREASE_SKILLS: False,
+        OptionKeys.SHUFFLE_GATHERING_SKILLS: False,
+        OptionKeys.STARTING_SKILL_ITEM_COUNT: 10,
     }
 
 class SkillSanityAllGroupShuffleTest(EtrianOdysseyTestBase):
@@ -58,6 +101,7 @@ class SkillSanityAllGroupShuffleTest(EtrianOdysseyTestBase):
         OptionKeys.SKILL_SANITY_MODE: SkillSanityType.shuffle_group.value,
         OptionKeys.SHUFFLE_GENERIC_STATS_INCREASE_SKILLS: True,
         OptionKeys.SHUFFLE_GATHERING_SKILLS: True,
+        OptionKeys.STARTING_SKILL_ITEM_COUNT: 0,
     }
 
 class SkillSanityNoSkillsRequirementsTest(EtrianOdysseyTestBase):

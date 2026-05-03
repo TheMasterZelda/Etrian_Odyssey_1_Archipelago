@@ -58,3 +58,54 @@ class SimplifiedSingleEnemyBattleProcessor(SingleEnemyBattleProcessor):
             return True
 
         return sv_enemy.defeat_criteria.evaluate_criteria(sv_enemy.attributes, logic_data.class_data.unlocked_classes, logic_data)
+
+    def can_defeat_with_condition(self, enemy_id: int, condition: DropCondition, state: CollectionState, logic_data: AllLogicData) -> bool:
+        enemy_data = self.get_enemy_data(enemy_id)
+        if not self.__defeat_level_requirement_met(enemy_data, logic_data):
+            return False
+        # TODO Temporary
+        if enemy_id not in SIMPLIFIED_ENEMY_VALUES_BY_ID:
+            return False
+
+        sv_enemy = SIMPLIFIED_ENEMY_VALUES_BY_ID[enemy_id]
+
+        if sv_enemy.defeat_criteria is None:
+            return True
+
+        enemy_attributes = sv_enemy.attributes.copy()
+        sv_criteria = sv_enemy.defeat_criteria
+
+        if condition == DropCondition.STAB:
+            raise Exception(f"Not implemented DropCondition {condition}")
+        elif condition == DropCondition.FIRE:
+            raise Exception(f"Not implemented DropCondition {condition}")
+        elif condition == DropCondition.ICE:
+            raise Exception(f"Not implemented DropCondition {condition}")
+        elif condition == DropCondition.NOT_BASH:
+            # Handle this condition by treating it as a damage type immunity.
+            enemy_attributes.damage_type_immunity.append(EO1Element.BASH)
+        elif condition == DropCondition.NOT_STAB:
+            # Handle this condition by treating it as a damage type immunity.
+            enemy_attributes.damage_type_immunity.append(EO1Element.STAB)
+        elif condition == DropCondition.NOT_PHYSICAL:
+            # Handle this condition by treating it as a damage type immunity.
+            enemy_attributes.damage_type_immunity.extend(EO1ElementGroup.PHYSICAL)
+        elif condition == DropCondition.NOT_FIRE:
+            # Handle this condition by treating it as a damage type immunity.
+            enemy_attributes.damage_type_immunity.append(EO1Element.FIRE)
+        elif condition == DropCondition.KILL_1_TURNS:
+            raise Exception(f"Not implemented DropCondition {condition}")
+        elif condition == DropCondition.KILL_2_TURNS:
+            raise Exception(f"Not implemented DropCondition {condition}")
+        elif condition == DropCondition.KILL_3_TURNS:
+            raise Exception(f"Not implemented DropCondition {condition}")
+        elif condition == DropCondition.KILL_7_TURNS:
+            raise Exception(f"Not implemented DropCondition {condition}")
+        elif condition == DropCondition.FULL_BIND:
+            raise Exception(f"Not implemented DropCondition {condition}")
+        elif condition == DropCondition.INSTANT_DEATH:
+            raise Exception(f"Not implemented DropCondition {condition}")
+        else:
+            raise Exception(f"Unknown DropCondition {condition}")
+
+        return sv_criteria.evaluate_criteria(enemy_attributes, logic_data.class_data.unlocked_classes, logic_data)

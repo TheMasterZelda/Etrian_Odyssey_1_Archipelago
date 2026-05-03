@@ -104,8 +104,8 @@ class CanSurviveRegion(Rule["EtrianOdysseyWorld"], game=GAME_NAME):
         @override
         def item_dependencies(self) -> dict[str, set[int]]:
             return {
-                **{item_name: {id(self)} for item_name in get_battle_item_dependencies()}
-                # todo handle sustain calculation, mostly once skills get shuffled.
+                **{item_name: {id(self)} for item_name in get_battle_item_dependencies()},
+                **{item_name: {id(self)} for item_name in get_location_item_dependencies()},
             }
 
 @dataclasses.dataclass()
@@ -173,7 +173,6 @@ class CanFillCodexEntry(Rule["EtrianOdysseyWorld"], game=GAME_NAME):
             return {
                 **{item_name: {id(self)} for item_name in get_battle_item_dependencies()},
                 **{item_name: {id(self)} for item_name in get_location_item_dependencies()},
-                # TODO add Quest items
             }
 
 @dataclasses.dataclass()
@@ -198,7 +197,6 @@ class CanFillCompendiumEntry(Rule["EtrianOdysseyWorld"], game=GAME_NAME):
             return {
                 **{item_name: {id(self)} for item_name in get_battle_item_dependencies()},
                 **{item_name: {id(self)} for item_name in get_location_item_dependencies()},
-                # TODO add Quest items
             }
 
 @dataclasses.dataclass()
@@ -261,7 +259,6 @@ def resolve_entrance_rule(world: EtrianOdysseyWorld, source_region: EO1RegionDat
     elif exit_data.entrance_type == EntranceType.StairsUp:
         entrance_rule = True_() # Nothing restrict going up.
     elif exit_data.entrance_type == EntranceType.Elevator:
-        # todo add the elevator activation event and/or item.
         entrance_rule = And(
             FloorUnlocked(destination_data.floor_number),
             Has(EVENT_ELEVATOR_ACTIVATED.item_name))
@@ -278,7 +275,6 @@ def resolve_entrance_rule(world: EtrianOdysseyWorld, source_region: EO1RegionDat
     elif exit_data.entrance_type == EntranceType.CardKeyDoor:
         # Currently not randomized, but will be eventually.
         entrance_rule = Has(EVENT_CARD_KEY_OBTAINED.item_name)
-        #entrance_rule = Has(EO1ItemNames.CARD_KEY)
     elif exit_data.entrance_type == EntranceType.EventLockedShortcut:
         event_info = EVENT_BY_NAME[exit_data.event_name]
         entrance_rule = Has(event_info.item_name)

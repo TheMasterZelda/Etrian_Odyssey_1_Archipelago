@@ -20,6 +20,7 @@ class SustainUseType(IntEnum):
     FIELD_ONLY = 1
     ANYWHERE = 2
     END_OF_BATTLE = 3
+    BATTLE_ONLY_END_OF_TURN_BUFF = 4
 
 class SustainTarget(IntEnum):
     SINGLE = 0
@@ -79,13 +80,13 @@ SUSTAIN_SKILLS: list[SustainData] = [
     SustainData(EO1Skills.MEDIC_SALVE, SustainType.HP_RECOVERY, SustainSource.SKILL, SustainUseType.ANYWHERE, SustainTarget.ALL, SustainValueType.FLAT, 20, 80),
     SustainData(EO1Skills.MEDIC_SALVE_II, SustainType.HP_RECOVERY, SustainSource.SKILL, SustainUseType.ANYWHERE, SustainTarget.ALL, SustainValueType.FLAT, 75, 180),
     SustainData(EO1Skills.MEDIC_REVIVE, SustainType.REVIVE, SustainSource.SKILL, SustainUseType.ANYWHERE, SustainTarget.SINGLE, SustainValueType.FLAT, 15, 75),
-    SustainData(EO1Skills.MEDIC_REGEN, SustainType.HP_RECOVERY, SustainSource.SKILL, SustainUseType.BATTLE_ONLY, SustainTarget.ALL, SustainValueType.PERCENT, 5, 16),
-    SustainData(EO1Skills.MEDIC_H_TOUCH, SustainType.HP_RECOVERY, SustainSource.SKILL, SustainUseType.FIELD_ONLY, SustainTarget.ALL, SustainValueType.H_TOUCH, 25, 40),
+    SustainData(EO1Skills.MEDIC_REGEN, SustainType.HP_RECOVERY, SustainSource.SKILL, SustainUseType.BATTLE_ONLY_END_OF_TURN_BUFF, SustainTarget.ALL, SustainValueType.PERCENT, 5, 16),
+    #SustainData(EO1Skills.MEDIC_H_TOUCH, SustainType.HP_RECOVERY, SustainSource.SKILL, SustainUseType.FIELD_ONLY, SustainTarget.ALL, SustainValueType.H_TOUCH, 25, 40),
     SustainData(EO1Skills.MEDIC_PATCH_UP, SustainType.HP_RECOVERY, SustainSource.SKILL, SustainUseType.END_OF_BATTLE, SustainTarget.ALL, SustainValueType.PERCENT, 1, 12),
-    SustainData(EO1Skills.MEDIC_TP_REGEN, SustainType.TP_RECOVERY, SustainSource.SKILL, SustainUseType.BATTLE_ONLY, SustainTarget.SELF, SustainValueType.FLAT, 1, 5),
-    SustainData(EO1Skills.ALCHEMIST_TP_REGEN, SustainType.TP_RECOVERY, SustainSource.SKILL, SustainUseType.BATTLE_ONLY, SustainTarget.SELF, SustainValueType.FLAT, 1, 5),
-    SustainData(EO1Skills.TROUBADOUR_HEALING, SustainType.HP_RECOVERY, SustainSource.SKILL, SustainUseType.BATTLE_ONLY, SustainTarget.ALL, SustainValueType.PERCENT, 2, 13),
-    SustainData(EO1Skills.TROUBADOUR_RELAXING, SustainType.TP_RECOVERY, SustainSource.SKILL, SustainUseType.BATTLE_ONLY, SustainTarget.ALL, SustainValueType.PERCENT, 1, 5),
+    SustainData(EO1Skills.MEDIC_TP_REGEN, SustainType.TP_RECOVERY, SustainSource.SKILL, SustainUseType.BATTLE_ONLY_END_OF_TURN_BUFF, SustainTarget.SELF, SustainValueType.FLAT, 1, 5),
+    SustainData(EO1Skills.ALCHEMIST_TP_REGEN, SustainType.TP_RECOVERY, SustainSource.SKILL, SustainUseType.BATTLE_ONLY_END_OF_TURN_BUFF, SustainTarget.SELF, SustainValueType.FLAT, 1, 5),
+    SustainData(EO1Skills.TROUBADOUR_HEALING, SustainType.HP_RECOVERY, SustainSource.SKILL, SustainUseType.BATTLE_ONLY_END_OF_TURN_BUFF, SustainTarget.ALL, SustainValueType.PERCENT, 2, 13),
+    SustainData(EO1Skills.TROUBADOUR_RELAXING, SustainType.TP_RECOVERY, SustainSource.SKILL, SustainUseType.BATTLE_ONLY_END_OF_TURN_BUFF, SustainTarget.ALL, SustainValueType.PERCENT, 1, 5),
     #SustainData(EO1Skills.TROUBADOUR_STALKER, SustainType.ENCOUNTER_REDUCTION, SustainSource.SKILL, SustainUseType.FIELD_ONLY, SustainTarget.ALL),
     #SustainData(EO1Skills.FLEE, ),
 ]

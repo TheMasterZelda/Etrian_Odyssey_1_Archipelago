@@ -130,7 +130,10 @@ def randomly_pick_progressive_items(world: EtrianOdysseyWorld, total_value: int,
         result_items.append(selected_option)
         remaining_value -= selected_option
 
+    # If there are no valid options, skip the extra items. This mean the player shuffled something but set the default value to the max.
     valid_options = filter_list(total_value, values)
+    if len(valid_options) == 0:
+        return result_items
 
     for _ in range(extra_count):
         selected_option = pick_one(valid_options)
@@ -222,6 +225,22 @@ def __get_skill_item_pool(world: EtrianOdysseyWorld) -> list[SkillItem]:
 
     raise Exception(f"Skill Sanity Mode {skill_sanity_mode} not implemented.")
 
+def __get_random_skill_item_for_class(world: EtrianOdysseyWorld, class_name: str, skill_item_pool: list[SkillItem], skill_item_count: int) -> list[SkillItem]:
+    effective_skill_item_pool: list[SkillItem] = []
+
+    for skill_item in skill_item_pool:
+        if skill_item.skill_item_type == SkillItemType.INDIVIDUAL:
+            if class_name == get_class_name_for_skill_item(skill_item):
+                effective_skill_item_pool.append(skill_item)
+        elif skill_item.skill_item_type == SkillItemType.GROUP:
+            if class_name == get_class_name_for_skill_item(skill_item):
+                effective_skill_item_pool.append(skill_item)
+        else:
+            raise Exception(f"Unsupported Skill Item Type {skill_item.skill_item_type} for class based selection.")
+
+    effective_skill_item_count = min(skill_item_count, len(effective_skill_item_pool))
+    return world.random.sample(effective_skill_item_pool, k=effective_skill_item_count)
+
 def get_starting_skill_items(world: EtrianOdysseyWorld) -> list[SkillItem]:
     skill_sanity_mode = SkillSanityType(world.options.skill_sanity_mode.value)
     if skill_sanity_mode == SkillSanityType.none:
@@ -235,17 +254,23 @@ def get_starting_skill_items(world: EtrianOdysseyWorld) -> list[SkillItem]:
     if not world.options.shuffle_gathering_skills:
         starting_skills.append(SkillUnlockItems.ALL_GATHERING_SKILLS.to_skill_item())
 
-    #starting_skill_item_count = world.options.starting_skill_count.value
+    starting_skill_item_count = world.options.starting_skill_item_count.value
 
-    # todo handle starting items.
     if skill_sanity_mode == SkillSanityType.shuffle_individually:
         skill_item_pool = __get_skill_item_pool(world)
-        #if starting_skill_item_count > 0:
-        #    starting_bonus_skills = world.random.sample(skill_item_pool, k=starting_skill_item_count)
-        #    starting_skills.extend(starting_bonus_skills)
+        if starting_skill_item_count == 0:
+            return starting_skills
+        for class_data in ALL_CLASS_DATA:
+            starting_class_skills = __get_random_skill_item_for_class(world, class_data.name, skill_item_pool, starting_skill_item_count)
+            starting_skills.extend(starting_class_skills)
         return starting_skills
     elif skill_sanity_mode == SkillSanityType.shuffle_group:
         skill_item_pool = __get_skill_item_pool(world)
+        if starting_skill_item_count == 0:
+            return starting_skills
+        for class_data in ALL_CLASS_DATA:
+            starting_class_skills = __get_random_skill_item_for_class(world, class_data.name, skill_item_pool, starting_skill_item_count)
+            starting_skills.extend(starting_class_skills)
         return starting_skills
 
     raise Exception(f"Skill Sanity Mode {skill_sanity_mode} not implemented.")

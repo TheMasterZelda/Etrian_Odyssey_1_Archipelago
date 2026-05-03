@@ -140,7 +140,7 @@ class EO1ItemID:
     #HEX_BELL = 0x1113
     #MAP = 0x1114
     #RADHA_NOTE = 0x1115
-    #WARP_WIRE = 0x1116
+    WARP_WIRE = 0x1116
     #TOUGH_FANG = 0x1117
     #TOUGH_WING = 0x1119
     #FROZEN_ARM = 0x113D

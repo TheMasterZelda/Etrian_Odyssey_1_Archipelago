@@ -41,7 +41,7 @@ class LogicManager:
     codex_processor: CodexProcessor
     compendium_processor: CompendiumProcessor
     conditional_drop_processor: ConditionalDropProcessor
-    #shop_unlock_processor: ShopUnlockProcessor
+    shop_unlock_processor: ShopUnlockProcessor
     sustain_processor: SustainProcessor
 
     def __init__(self, options: EtrianOdysseyOptions, player_id: int, fill_default=True) -> None:
@@ -58,10 +58,10 @@ class LogicManager:
         self.encounter_group_battle_processor = self.__create_encounter_group_battle_processor_from_options(options)
         max_stratum = get_max_stratum_for_goal(EO1Goal(options.goal.value))
 
-        self.conditional_drop_processor = ConditionalDropProcessor()
+        self.conditional_drop_processor = ConditionalDropProcessor(self.enemy_battle_processor)
         self.codex_processor = CodexProcessor(max_stratum, player_id)
         self.compendium_processor = CompendiumProcessor(max_stratum, player_id, self.conditional_drop_processor)
-        #self.shop_unlock_processor = ShopUnlockProcessor()
+        self.shop_unlock_processor = ShopUnlockProcessor()
 
         if fill_default:
             # Initialize class data
@@ -153,12 +153,16 @@ class LogicManager:
                                               self.codex_processor.can_fill_codex_entry, state)
             self.__recalculate_set_logic_data(self.logic_data.compendium_logic_data,
                                               self.compendium_processor.can_fill_compendium_entry, state)
+            self.__recalculate_set_logic_data(self.logic_data.shop_unlock_logic_data,
+                                              self.shop_unlock_processor.can_unlock_item, state)
 
         def recalculate_location():
             self.__recalculate_set_logic_data(self.logic_data.codex_logic_data,
                                               self.codex_processor.can_fill_codex_entry, state)
             self.__recalculate_set_logic_data(self.logic_data.compendium_logic_data,
                                               self.compendium_processor.can_fill_compendium_entry, state)
+            self.__recalculate_set_logic_data(self.logic_data.shop_unlock_logic_data,
+                                              self.shop_unlock_processor.can_unlock_item, state)
 
         def recalculate_skill():
             self.__recalculate_class_data(state)
@@ -194,13 +198,29 @@ class LogicManager:
             if encounter_group_id not in self.logic_data.encounter_group.survivable_encounter_groups:
                 return False
 
-        # todo sustain.
+        if not bool(self.options.sustain_logic_enabled):
+            return True
 
-        return True
+        # Optimization: Skip sustain check if the region requires none.
+        if region_data.sustain_score == 0:
+            return True
 
-    # todo this is technically distinct from the encounter list. This needs improvement.
+        # TODO Because codex and compendium need to perform region access checks, removing the stale state here will cause generation to sometimes fail. This has extremely high generation cost, so a fix must be found.
+        codex_stale = self.logic_data.codex_logic_data.is_stale()
+        compendium_stale = self.logic_data.compendium_logic_data.is_stale()
+        self.__update_shop_entries(state)
+        self.logic_data.codex_logic_data.set_stale(codex_stale)
+        self.logic_data.compendium_logic_data.set_stale(compendium_stale)
+
+        sustain_score = self.sustain_processor.get_current_sustain_score(self.logic_data)
+
+        #print(f"score={sustain_score},region={region_data.sustain_score}")
+
+        return sustain_score >= region_data.sustain_score
+
     def can_defeat_enemies(self, state: CollectionState, enemies: list[int]) -> bool:
-        return all(self.can_defeat_enemy(state, enemy) for enemy in enemies)
+        self.__update_defeatable_enemies(state)
+        return self.encounter_battle_processor.can_defeat_enemy_group(enemies, state, self.logic_data)
 
     def can_defeat_enemy(self, state: CollectionState, enemy: int) -> bool:
         self.__update_defeatable_enemies(state)
@@ -268,7 +288,11 @@ class LogicManager:
             #if changed:
                 #self.logic_data.set_shop_consumable_stale()
 
-    #def __update_shop_consumable_entries(self, state: CollectionState) -> None:
+    def __update_shop_entries(self, state: CollectionState) -> None:
+        self.__update_fillable_compendium_entries(state)
+
+        if self.logic_data.shop_unlock_logic_data.is_stale():
+            self.__update_set_logic_data(self.logic_data.shop_unlock_logic_data, self.shop_unlock_processor.can_unlock_item, state)
     #    # This have dependencies on compendium entries, but this makes a circular reference.
     #    # To avoid infinite looping, do a direct update of the compendium entries here, instead of a delayed one.
     #    # This will have the impact of logic being delayed by one step, but it also

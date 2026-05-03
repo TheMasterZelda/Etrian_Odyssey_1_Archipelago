@@ -515,7 +515,7 @@ def build_skill_unlock_dictionary() -> dict[int, list[SkillUnlockData]]:
 
 SKILL_UNLOCK_DATA_BY_SKILL_ID: dict[int, list[SkillUnlockData]] = build_skill_unlock_dictionary()
 
-def __get_class_index_for_skill_item(skill_item: SkillItem) -> int:
+def get_class_name_for_skill_item(skill_item: SkillItem) -> str:
     if skill_item.skill_item_type == SkillItemType.ALL:
         raise Exception("SkillItemType of ALL is invalid for this function.")
     elif skill_item.skill_item_type == SkillItemType.MULTI_CLASS_GROUP:
@@ -528,6 +528,11 @@ def __get_class_index_for_skill_item(skill_item: SkillItem) -> int:
         class_name = GROUP_SKILL_ITEM_BY_ITEM_ID[skill_item.ap_item_id].class_name
     else:
         raise Exception(f"Unknown skill item type {skill_item.skill_item_type}")
+
+    return class_name
+
+def __get_class_index_for_skill_item(skill_item: SkillItem) -> int:
+    class_name = get_class_name_for_skill_item(skill_item)
     return CLASS_DATA_BY_NAME[class_name].class_id
 
 def __apply_skill_unlock_value(skill_data: EO1SkillData, skill_unlock_value: int) -> int:

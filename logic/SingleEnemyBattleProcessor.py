@@ -36,9 +36,9 @@ class SingleEnemyBattleProcessor(ABC):
     def can_survive_enemy(self, enemy_id: int, state: CollectionState, logic_data: AllLogicData) -> bool:
         pass
 
-    #@abstractmethod
-    #def can_defeat_with_condition(self, enemy_id: int, condition: DropCondition, state: CollectionState, logic_data: AllLogicData) -> bool:
-    #    pass
+    @abstractmethod
+    def can_defeat_with_condition(self, enemy_id: int, condition: DropCondition, state: CollectionState, logic_data: AllLogicData) -> bool:
+        pass
 
     def max_level_for_defeat(self, logic_data: AllLogicData):
         return min(logic_data.current_level_cap, MAX_LEVEL_BY_FLOOR[min(logic_data.current_floor_limit, _MAX_FLOOR)])
@@ -58,6 +58,9 @@ class LevelOnlySingleEnemyBattleProcessor(SingleEnemyBattleProcessor):
         #enemy_data.level * (95/100) - 5
         return self.max_level_for_defeat(logic_data) >= max(1, effective_enemy_level)
 
+    def can_defeat_with_condition(self, enemy_id: int, condition: DropCondition, state: CollectionState, logic_data: AllLogicData) -> bool:
+        return self.can_defeat_enemy(enemy_id, state, logic_data)
+
 class NoLogicSingleEnemyBattleProcessor(SingleEnemyBattleProcessor):
     def can_survive_enemy(self, enemy_id: int, state: CollectionState, logic_data: AllLogicData) -> bool:
         return True
@@ -65,6 +68,7 @@ class NoLogicSingleEnemyBattleProcessor(SingleEnemyBattleProcessor):
     def can_defeat_enemy(self, enemy_id: int, state: CollectionState, logic_data: AllLogicData) -> bool:
         return True
 
-    #def can_defeat_with_condition(self, enemy_id: int, condition: DropCondition, state: CollectionState, logic_data: AllLogicData) -> bool:
+    def can_defeat_with_condition(self, enemy_id: int, condition: DropCondition, state: CollectionState, logic_data: AllLogicData) -> bool:
+        return True
 
 

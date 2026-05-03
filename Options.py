@@ -37,6 +37,9 @@ class BattleLogicDifficulty(Choice):
     #option_expert = BattleLogicDifficultyType.expert.value
     default = BattleLogicDifficultyType.normal.value
 
+class SustainLogicEnabled(DefaultOnToggle):
+    display_name = "Sustain Logic Enabled"
+
 class LevelCapMode(Choice):
     display_name = "Level Cap Mode"
     option_none = 0
@@ -127,8 +130,8 @@ class ShuffleGatheringSkills(Toggle):
 class RemoveSkillsRequirements(Toggle):
     display_name = "Remove Skills Requirements"
 
-class StartingSkillCount(Range):
-    display_name = "Starting Skill Count"
+class StartingSkillItemCount(Range):
+    display_name = "Starting Skill Item Count"
     range_start = 0
     range_end = 21
     default = 0
@@ -140,6 +143,9 @@ class CodexSanity(DefaultOnToggle):
 # Compendiumsanity
 class CompendiumSanity(Toggle):
     display_name = "Compendium Sanity"
+
+class CompendiumSanityIncludeConditionalDrops(DefaultOnToggle):
+    display_name = "Compendium Sanity Include Conditional Drops"
 
 # QoL options
 class ShopUnlockMaterialCostDivider(Choice):
@@ -164,6 +170,7 @@ class EtrianOdysseyOptions(PerGameCommonOptions):
     experience_modifier: ExperienceModifier
     battle_logic_mode: BattleLogicMode
     battle_logic_difficulty: BattleLogicDifficulty
+    sustain_logic_enabled: SustainLogicEnabled
     level_cap_mode: LevelCapMode
     initial_level_cap: InitialLevelCap
     level_cap_increase_value: LevelCapIncreaseValue
@@ -178,9 +185,10 @@ class EtrianOdysseyOptions(PerGameCommonOptions):
     shuffle_generic_stats_increase_skills: ShuffleGenericStatsIncreaseSkills
     shuffle_gathering_skills: ShuffleGatheringSkills
     remove_skills_requirements: RemoveSkillsRequirements
-    starting_skill_count: StartingSkillCount
+    starting_skill_item_count: StartingSkillItemCount
     codex_sanity: CodexSanity
     compendium_sanity: CompendiumSanity
+    compendium_sanity_include_conditional_drops: CompendiumSanityIncludeConditionalDrops
     shop_unlock_material_cost_divider: ShopUnlockMaterialCostDivider
 
     def get_effective_initial_level_cap(self) -> int:

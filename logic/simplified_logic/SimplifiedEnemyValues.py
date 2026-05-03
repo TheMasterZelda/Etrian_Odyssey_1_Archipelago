@@ -1,3 +1,4 @@
+from __future__ import annotations
 from dataclasses import dataclass
 
 from ...data.EnemyData import EO1Enemies
@@ -21,6 +22,18 @@ class EnemyAttributes:
     can_inflict_bind: bool = False
     can_apply_buff: bool = False # TODO change for a list of buff effects to handle counter?
     # TODO list of debuff that can be applied to the party.
+
+    def copy(self) -> EnemyAttributes:
+        new_copy = EnemyAttributes()
+        new_copy.damage_type_resistance = self.damage_type_resistance.copy()
+        new_copy.damage_type_immunity = self.damage_type_immunity.copy()
+        new_copy.damage_type_weakness = self.damage_type_weakness.copy()
+        new_copy.ailment_resistance = self.ailment_resistance.copy()
+        new_copy.skills_body_use = self.skills_body_use.copy()
+        new_copy.can_inflict_status_effect = self.can_inflict_status_effect
+        new_copy.can_inflict_bind = self.can_inflict_bind
+        new_copy.can_apply_buff = self.can_apply_buff
+        return new_copy
 
 @dataclass
 class SimplifiedEnemyValues:
@@ -350,7 +363,6 @@ SIMPLIFIED_ENEMY_VALUES_TABLE: list[SimplifiedEnemyValues] = [
 
                           )), # Use Head Arm
     # TODO Can be encountered in stratum 1 B3F
-    # TODO can mitigates Fire Damage.
     SimplifiedEnemyValues(EO1Enemies.FIREBIRD,
                           PartySVCriteria(
                               valid_class_criteria=CanUseActiveSkill(

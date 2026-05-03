@@ -150,6 +150,20 @@ class CodexProcessor:
 
         raise Exception("Not implemented")
 
+    def __can_reach_any_regions(self, regions: list[str], state: CollectionState, logic_data: AllLogicData) -> bool:
+        for region in regions:
+            # Skip regions not in the seed (depending on goal).
+            if region not in self.region_cache:
+                continue
+
+            # Optimization: Doing a floor number check is much, much faster than doing a "can_reach_region" check.
+            region_data = ALL_REGION_DATA_BY_NAME[region]
+            if region_data.floor_number > logic_data.current_floor_limit:
+                continue
+            if state.can_reach_region(region, self.player_id):
+                return True
+        return False
+
     def __can_fill_regular_entry(self, codex_data: CodexData, state: CollectionState, logic_data: AllLogicData) -> bool:
         # Temporary, since we only support regular encounter monsters.
         #if codex_data.enemy_id not in ENCOUNTER_BY_MONSTER:
@@ -162,37 +176,21 @@ class CodexProcessor:
                 continue
 
             regions = REGION_BY_ENCOUNTER[encounter_id]
-            for region in regions:
-                # Skip regions not in the seed (depending on goal).
-                if region not in self.region_cache:
-                    continue
-                if state.can_reach_region(region, self.player_id):
-                    return True
+            if self.__can_reach_any_regions(regions, state, logic_data):
+                return True
 
         # If we got here, this mean none of the encounters are both defeatable and reachable.
         return False
 
     def __can_fill_foe_entry(self, codex_data, state, logic_data) -> bool:
         regions = REGION_BY_FOE[codex_data.enemy_id]
-        for region in regions:
-            # Skip regions not in the seed (depending on goal).
-            if region not in self.region_cache:
-                continue
-            if state.can_reach_region(region, self.player_id):
-                return True
-        return False
+        return self.__can_reach_any_regions(regions, state, logic_data)
 
     def __can_fill_boss_entry(self, codex_data, state, logic_data) -> bool:
         # Bosses are more complex, since they can be locked behind questlines.
         # However, for now quest related bosses are unsupported.
         regions = REGION_BY_BOSS[codex_data.enemy_id]
-        for region in regions:
-            # Skip regions not in the seed (depending on goal).
-            if region not in self.region_cache:
-                continue
-            if state.can_reach_region(region, self.player_id):
-                return True
-        return False
+        return self.__can_reach_any_regions(regions, state, logic_data)
 
     def __can_fill_minion_entry(self, codex_data, state, logic_data) -> bool:
         # For this game, there is only one minion type enemy, so this function is hard coded for them.

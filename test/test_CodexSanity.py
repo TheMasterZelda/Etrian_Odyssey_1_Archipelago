@@ -10,6 +10,7 @@ BASE_OPTIONS = {
     **OptionSets.NO_FLOOR_SHUFFLING,
     **OptionSets.NO_CLASS_SHUFFLING,
     **OptionSets.NO_SKILL_SHUFFLING,
+    **OptionSets.ENABLE_ALL_OPTIONAL_LOGIC_OPTIONS,
 }
 
 

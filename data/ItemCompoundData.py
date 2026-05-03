@@ -276,4 +276,13 @@ ITEM_COMPOUND_TABLE: list[EO1ItemCompound] = [
     EO1ItemCompound(EO1ItemID.GOLD_CHIME, EO1MaterialID.GLASS_EYE, EO1MaterialID.CARAPACE, 0, 1, 1, 0),
     EO1ItemCompound(EO1ItemID.MAGNET, EO1MaterialID.SCRAP_IRON, 0, 0, 3, 0, 0),
     #EO1ItemCompound(EO1ItemID.WARP_WIRE, EO1MaterialID.<!0000>, 0, 0, 1, 0, 0),
+
+    # These are not from the game data, but are logical indication to say they are shop items.
+    EO1ItemCompound(EO1ItemID.MEDICA, 0, 0, 0, 0, 0, 0),
+    EO1ItemCompound(EO1ItemID.AMRITA, 0, 0, 0, 0, 0, 0),
+    EO1ItemCompound(EO1ItemID.AXCELA, 0, 0, 0, 0, 0, 0),
+    EO1ItemCompound(EO1ItemID.WARD_CHIME, 0, 0, 0, 0, 0, 0),
+
 ]
+
+ITEM_COMPOUND_BY_ITEM_ID: dict[int, EO1ItemCompound] = {item_compound.item_id:item_compound for item_compound in ITEM_COMPOUND_TABLE}

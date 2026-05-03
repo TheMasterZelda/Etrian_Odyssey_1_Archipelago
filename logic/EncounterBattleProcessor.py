@@ -33,19 +33,22 @@ class EncounterBattleProcessor(ABC):
         return enemy_list
 
     @abstractmethod
-    def can_defeat_encounter(self, encounter_id: int, state: CollectionState, logic_data: AllLogicData) -> bool:
+    def can_defeat_enemy_group(self, enemies: list[int], state: CollectionState, logic_data: AllLogicData) -> bool:
         pass
+
+    def can_defeat_encounter(self, encounter_id: int, state: CollectionState, logic_data: AllLogicData) -> bool:
+        encounter_data = self.get_encounter_data(encounter_id)
+        enemy_list = self.get_all_encounter_enemies(encounter_data)
+
+        return self.can_defeat_enemy_group(enemy_list, state, logic_data)
 
     @abstractmethod
     def can_survive_encounter(self, encounter_id: int, state: CollectionState, logic_data: AllLogicData) -> bool:
         pass
 
 class SimpleEncounterBattleProcessor(EncounterBattleProcessor):
-    def can_defeat_encounter(self, encounter_id: int, state: CollectionState, logic_data: AllLogicData) -> bool:
-        encounter_data = self.get_encounter_data(encounter_id)
-        enemy_list = self.get_all_encounter_enemies(encounter_data)
-
-        for enemy_id in enemy_list:
+    def can_defeat_enemy_group(self, enemies: list[int], state: CollectionState, logic_data: AllLogicData) -> bool:
+        for enemy_id in enemies:
             if enemy_id in logic_data.defeatable_enemy.undefeatable_enemies:
                 return False
 

@@ -30,6 +30,10 @@ class EtrianOdysseyTestBase(WorldTestBase):
         # For now, we can't test the patch output effectively, but when it becomes handled by the apworld, implement it.
         self.generate_patch_raw_data()
 
+    #def setUp(self) -> None:
+    #    if self.auto_construct:
+    #        self.world_setup(seed=20586521702883398726)
+
     #options = {
         # General
     #    OptionKeys.GOAL: EO1Goal.defeat_etreant.value,

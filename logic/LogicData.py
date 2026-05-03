@@ -7,7 +7,7 @@ from ..data.EncounterData import *
 from ..data.EncounterGroupData import *
 from ..data.CodexData import *
 from ..data.CompendiumData import *
-from ..data.InventoryItemData import EO1ItemNames, CONSUMABLE_DATA
+from ..data.InventoryItemData import EO1ItemNames, EO1ItemID, CONSUMABLE_DATA
 
 if TYPE_CHECKING:
     from .. import EtrianOdysseyWorld
@@ -248,31 +248,17 @@ class ClassLogicData(LogicData):
 #class SustainLogicData(LogicData):
 #    current_max_sustain_score: int
 
-#class ShopUnlockLogicData(DualIntSetLogicData):
-#    def copy(self) -> ShopUnlockLogicData:
-#        new_copy = ShopUnlockLogicData(fill_default=False)
-#        self.copy_data(new_copy)
-#        return new_copy
-#
-#    def fill_default(self) -> None:
-#        for consumable_data in CONSUMABLE_DATA:
-#            self.non_unlockable_shop_items.add(consumable_data.item_id)
-#
-#    @property
-#    def non_unlockable_shop_items(self) -> set[int]:
-#        return self.unaccessible
-#    @property
-#    def unlockable_shop_items(self) -> set[int]:
-#        return self.accessible
-
-class ShopConsumableUnlockLogicData(DualIntSetLogicData):
-    def copy(self) -> ShopConsumableUnlockLogicData:
-        new_copy = ShopConsumableUnlockLogicData(fill_default=False)
+class ShopUnlockLogicData(DualIntSetLogicData):
+    def copy(self) -> ShopUnlockLogicData:
+        new_copy = ShopUnlockLogicData(fill_default=False)
         self.copy_data(new_copy)
         return new_copy
 
     def fill_default(self) -> None:
         for consumable_data in CONSUMABLE_DATA:
+            # Warp wires are a special kind of unlock item handled differently.
+            if consumable_data.item_id == EO1ItemID.WARP_WIRE:
+                continue
             self.non_unlockable_shop_items.add(consumable_data.item_id)
 
     @property
@@ -294,7 +280,7 @@ class AllLogicData:
     encounter_group: EncounterGroupLogicData
     codex_logic_data: CodexLogicData
     compendium_logic_data: CompendiumLogicData
-    #shop_consumable_unlock_logic_data: ShopConsumableUnlockLogicData
+    shop_unlock_logic_data: ShopUnlockLogicData
     #SustainLogicData
 
     def __init__(self, fill_default: bool):
@@ -310,7 +296,7 @@ class AllLogicData:
         self.encounter_group = EncounterGroupLogicData(fill_default)
         self.codex_logic_data = CodexLogicData(fill_default)
         self.compendium_logic_data = CompendiumLogicData(fill_default)
-        #self.shop_consumable_unlock_logic_data = ShopConsumableUnlockLogicData(fill_default)
+        self.shop_unlock_logic_data = ShopUnlockLogicData(fill_default)
         # Sustain
 
     def copy(self) -> AllLogicData:
@@ -327,7 +313,7 @@ class AllLogicData:
         new_copy.encounter_group = self.encounter_group.copy()
         new_copy.codex_logic_data = self.codex_logic_data.copy()
         new_copy.compendium_logic_data = self.compendium_logic_data.copy()
-        #new_copy.shop_consumable_unlock_logic_data = self.shop_consumable_unlock_logic_data.copy()
+        new_copy.shop_unlock_logic_data = self.shop_unlock_logic_data.copy()
         #SustainLogicData
         return new_copy
 
@@ -343,10 +329,9 @@ class AllLogicData:
         self.encounter_group.set_stale(True)
         self.codex_logic_data.set_stale(True)
         self.compendium_logic_data.set_stale(True)
-
-    #def set_shop_consumable_stale(self):
-    #    self.shop_consumable_unlock_logic_data.set_stale(True)
+        self.shop_unlock_logic_data.set_stale(True)
 
     def set_location_stale(self):
         self.codex_logic_data.set_stale(True)
         self.compendium_logic_data.set_stale(True)
+        self.shop_unlock_logic_data.set_stale(True)

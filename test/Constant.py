@@ -6,6 +6,7 @@ class OptionKeys:
     #experience_modifier: ExperienceModifier irrelevant to the generation
     BATTLE_LOGIC_MODE = "battle_logic_mode"
     BATTLE_LOGIC_DIFFICULTY = "battle_logic_difficulty"
+    SUSTAIN_LOGIC_ENABLED = "sustain_logic_enabled"
     LEVEL_CAP_MODE = "level_cap_mode"
     INITIAL_LEVEL_CAP = "initial_level_cap"
     LEVEL_CAP_INCREASE_VALUE = "level_cap_increase_value"
@@ -20,9 +21,10 @@ class OptionKeys:
     SHUFFLE_GENERIC_STATS_INCREASE_SKILLS = "shuffle_generic_stats_increase_skills"
     SHUFFLE_GATHERING_SKILLS = "shuffle_gathering_skills"
     REMOVE_SKILLS_REQUIREMENTS = "remove_skills_requirements"
-    STARTING_SKILL_COUNT = "starting_class_count"
+    STARTING_SKILL_ITEM_COUNT = "starting_class_item_count"
     CODEX_SANITY = "codex_sanity"
     COMPENDIUM_SANITY = "compendium_sanity"
+    COMPENDIUM_SANITY_INCLUDE_CONDITIONAL_DROPS = "compendium_sanity_include_conditional_drops"
     #shop_unlock_material_cost_divider: ShopUnlockMaterialCostDivider irrelevant to the generation
 
 class OptionSets:
@@ -33,10 +35,12 @@ class OptionSets:
     ENABLE_ALL_LOCATIONS = {
         OptionKeys.CODEX_SANITY: True,
         OptionKeys.COMPENDIUM_SANITY: True,
+        OptionKeys.COMPENDIUM_SANITY_INCLUDE_CONDITIONAL_DROPS: True,
     }
     DISABLE_ALL_OPTIONAL_LOCATIONS = {
         OptionKeys.CODEX_SANITY: False,
         OptionKeys.COMPENDIUM_SANITY: False,
+        OptionKeys.COMPENDIUM_SANITY_INCLUDE_CONDITIONAL_DROPS: False,
     }
     NO_LEVEL_SHUFFLING = {
         OptionKeys.LEVEL_CAP_MODE: LevelCapMode.option_none,
@@ -49,6 +53,9 @@ class OptionSets:
     }
     NO_CLASS_SHUFFLING = {
         OptionKeys.CLASS_SANITY_MODE: ClassSanityType.start_with_all.value,
+    }
+    ENABLE_ALL_OPTIONAL_LOGIC_OPTIONS = {
+        OptionKeys.SUSTAIN_LOGIC_ENABLED: True
     }
 
 class APGenSteps:
