@@ -2,7 +2,6 @@ from BaseClasses import Tutorial
 from worlds.AutoWorld import WebWorld
 from .Constant import GAME_NAME
 
-# TODO complete with md files
 class EtrianOdysseyWebWorld(WebWorld):
     game = GAME_NAME
     theme = "grassFlowers"

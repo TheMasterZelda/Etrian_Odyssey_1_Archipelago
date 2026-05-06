@@ -21,16 +21,49 @@ EXPECTED_ROM_NAME = "EO1AP V1"
 
 BIZHAWK_ARM9_DOMAIN = "ARM9 System Bus"
 
+
+def get_client_as_command_processor(self: "BizHawkClientCommandProcessor"):
+    ctx = self.ctx
+    from worlds._bizhawk.context import BizHawkClientContext
+    assert isinstance(ctx, BizHawkClientContext)
+    client = ctx.client_handler
+    assert isinstance(client, EtrianOdysseyClient)
+    return client
+
+class EtrianOdysseyClientCustomCommands(IntEnum):
+    NONE = 0
+    DEBUG_EO_SET_FLAG_OFF = 1
+    DEBUG_EO_SET_FLAG_ON = 2
+
+def cmd_debug_eo_set_flag_off(self: "BizHawkClientCommandProcessor", flag_id: str):
+    client = get_client_as_command_processor(self)
+    client.custom_command_to_run = EtrianOdysseyClientCustomCommands.DEBUG_EO_SET_FLAG_OFF
+    client.custom_command_parameter = int(flag_id)
+
+def cmd_debug_eo_set_flag_on(self: "BizHawkClientCommandProcessor", flag_id: str):
+    client = get_client_as_command_processor(self)
+    client.custom_command_to_run = EtrianOdysseyClientCustomCommands.DEBUG_EO_SET_FLAG_ON
+    client.custom_command_parameter = int(flag_id)
+
 class EtrianOdysseyClient(BizHawkClient):
     game = GAME_NAME
     system = "NDS"
     #patch_suffix = ".apeo1"
-    goal: EtrianOdysseyGoal | None
+    goal: EO1Goal | None
     key_items_to_process: set[int]
+    custom_command_to_run: EtrianOdysseyClientCustomCommands
+    custom_command_parameter: Any
 
     def initialize_client(self):
         self.goal = None
         self.key_items_to_process = {key_item.item_id for key_item in KEY_ITEMS_WITH_FLAG}
+
+    def register_custom_commands(self, ctx: "BizHawkClientContext"):
+        ctx.command_processor.commands["debug_eo_set_flag_off"] = cmd_debug_eo_set_flag_off
+        ctx.command_processor.commands["debug_eo_set_flag_on"] = cmd_debug_eo_set_flag_on
+
+        self.custom_command_to_run = EtrianOdysseyClientCustomCommands.NONE
+        self.custom_command_parameter = None
 
     async def validate_rom(self, ctx: "BizHawkClientContext") -> bool:
         from CommonClient import logger
@@ -71,6 +104,7 @@ class EtrianOdysseyClient(BizHawkClient):
         ctx.watcher_timeout = 0.5
 
         self.initialize_client()
+        self.register_custom_commands(ctx)
 
         return True
 
@@ -384,7 +418,7 @@ class EtrianOdysseyClient(BizHawkClient):
             return
 
         if self.goal is None:
-            self.goal = EtrianOdysseyGoal(ctx.slot_data[SlotDataKeys.GOAL])
+            self.goal = EO1Goal(ctx.slot_data[SlotDataKeys.GOAL])
 
         try:
             read_results = await bizhawk.read(
@@ -430,6 +464,56 @@ class EtrianOdysseyClient(BizHawkClient):
             await self.handle_goal(ctx, read_results[3])
 
             await self.handle_key_item_flags(ctx, save_pointer + FLAG_TABLE_OFFSET, read_results[2], read_results[4], guards)
+
+            await self.process_custom_commands(ctx, save_pointer + FLAG_TABLE_OFFSET, read_results[2], guards)
         except bizhawk.RequestFailedError:
             # Exit handler and return to main loop to reconnect
             pass
+
+    async def process_custom_commands(self,
+                                      ctx: "BizHawkClientContext",
+                                      flag_table_save_pointer: int,
+                                      flag_table: bytes,
+                                      global_guards: Dict[str, Tuple[int, bytes, str]]) -> None:
+        def get_flag_byte_offset(flag_id_to_check: int) -> int:
+            return math.floor(flag_id_to_check / 8)
+
+        def get_flag_to_set(flag_id_to_check: int) -> int:
+            return 1 << (flag_id_to_check % 8)
+
+        if self.custom_command_to_run == EtrianOdysseyClientCustomCommands.NONE:
+            return
+
+        if self.custom_command_to_run == EtrianOdysseyClientCustomCommands.DEBUG_EO_SET_FLAG_OFF:
+            writes: list[tuple[int, bytes, str]] = []
+            writes_guards: list[tuple[int, bytes, str]] = list(global_guards.values())
+
+            flag_offset = get_flag_byte_offset(self.custom_command_parameter)
+            flag_value_address = flag_table_save_pointer + flag_offset
+            flag_value = flag_table[flag_offset]
+
+            new_flag_value = flag_value & (0xFF ^ get_flag_to_set(self.custom_command_parameter))
+
+            writes_guards.append((flag_value_address, flag_value.to_bytes(1, "little"), BIZHAWK_ARM9_DOMAIN))
+            writes.append((flag_value_address, new_flag_value.to_bytes(1, "little"), BIZHAWK_ARM9_DOMAIN))
+
+            await bizhawk.guarded_write(ctx.bizhawk_ctx, writes, writes_guards)
+        elif self.custom_command_to_run == EtrianOdysseyClientCustomCommands.DEBUG_EO_SET_FLAG_ON:
+            writes: list[tuple[int, bytes, str]] = []
+            writes_guards: list[tuple[int, bytes, str]] = list(global_guards.values())
+
+            flag_offset = get_flag_byte_offset(self.custom_command_parameter)
+            flag_value_address = flag_table_save_pointer + flag_offset
+            flag_value = flag_table[flag_offset]
+
+            new_flag_value = flag_value | get_flag_to_set(self.custom_command_parameter)
+
+            writes_guards.append((flag_value_address, flag_value.to_bytes(1, "little"), BIZHAWK_ARM9_DOMAIN))
+            writes.append((flag_value_address, new_flag_value.to_bytes(1, "little"), BIZHAWK_ARM9_DOMAIN))
+
+            await bizhawk.guarded_write(ctx.bizhawk_ctx, writes, writes_guards)
+        else:
+            raise Exception(f"Unknown custom_command_to_run: {self.custom_command_to_run}")
+
+        self.custom_command_to_run = EtrianOdysseyClientCustomCommands.NONE
+        self.custom_command_parameter = None

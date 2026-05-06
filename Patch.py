@@ -85,7 +85,8 @@ def generate_output(world: EtrianOdysseyWorld):
         output_data["InitialValues"]["floor_limit"] = world.initial_floor_limit
 
     output_data["RemoveSkillsRequirements"] = bool(world.options.remove_skills_requirements)
-    output_data["ShopUnlockMaterialCostDivider"] = world.options.shop_unlock_material_cost_divider.value
+    output_data["ShopUnlockMaterialCostDivider"] = int(world.options.shop_unlock_material_cost_divider.value)
+    output_data["MaterialSellValueMultiplier"] = int(world.options.material_sell_value_multiplier.value)
 
     output_data["InitialValues"]["experience_modifier"] = int(world.options.experience_modifier)
 
