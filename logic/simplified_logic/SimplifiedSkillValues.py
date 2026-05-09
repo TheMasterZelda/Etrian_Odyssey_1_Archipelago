@@ -3,7 +3,6 @@ from enum import StrEnum, IntEnum
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
 
-from worlds.stardew_valley.strings.ap_names.mods.mod_items import SkillLevel
 from ...data.Generic import *
 from ...data.SkillData import *
 from .Constant import *
