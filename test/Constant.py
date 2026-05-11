@@ -19,6 +19,7 @@ class OptionKeys:
     STARTING_CLASS_COUNT = "starting_class_count"
     SKILL_SANITY_MODE = "skill_sanity_mode"
     SHUFFLE_GENERIC_STATS_INCREASE_SKILLS = "shuffle_generic_stats_increase_skills"
+    SHUFFLE_MASTERY_SKILLS = "shuffle_mastery_skills"
     SHUFFLE_GATHERING_SKILLS = "shuffle_gathering_skills"
     REMOVE_SKILLS_REQUIREMENTS = "remove_skills_requirements"
     STARTING_SKILL_ITEM_COUNT = "starting_class_item_count"

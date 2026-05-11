@@ -260,6 +260,33 @@ class ShuffleGenericStatsIncreaseSkills(DefaultOnToggle):
 
     display_name = "Shuffle Generic Stats Increase Skills"
 
+class ShuffleMasterySkills(DefaultOnToggle):
+    """
+    Determine if the Mastery Skills are shuffled.
+
+    These are:
+    - Landsknecht Axes
+    - Landsknecht Swords
+    - Survivalist Bows
+    - Protector Shields
+    - Dark Hunter Whips
+    - Dark Hunter Swords
+    - Medic Healer
+    - Alchemist Fire Up
+    - Alchemist Ice Up
+    - Alchemist Volt Up
+    - Alchemist Toxins
+    - Troubadour Songs
+    - Ronin Katanas
+    - Hexer Curses
+
+    If enabled, these skills are shuffled according to the "Skill Sanity Mode" option.
+    If disabled, the player start with all of them available.
+    Note: This is not particularly useful for Skill Sanity Mode "Group".
+    """
+
+    display_name = "Shuffle Mastery Skills"
+
 class ShuffleGatheringSkills(Toggle):
     """
     Determine if the Gathering skills are shuffled.
@@ -393,6 +420,7 @@ class EtrianOdysseyOptions(PerGameCommonOptions):
     starting_class_count: StartingClassCount
     skill_sanity_mode: SkillSanityMode
     shuffle_generic_stats_increase_skills: ShuffleGenericStatsIncreaseSkills
+    shuffle_mastery_skills: ShuffleMasterySkills
     shuffle_gathering_skills: ShuffleGatheringSkills
     remove_skills_requirements: RemoveSkillsRequirements
     starting_skill_item_count: StartingSkillItemCount

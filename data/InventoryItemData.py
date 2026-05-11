@@ -120,8 +120,8 @@ class EO1ItemID:
     #RARE_BLOOM = 0x10FF
     #GOLD_SEED = 0x1100
     #VOX_STONE = 0x1101
-    #CLEAR_KEY = 0x1102
-    #VIOLET_KEY = 0x1103
+    CLEAR_KEY = 0x1102
+    VIOLET_KEY = 0x1103
     #DRAGON_EGG = 0x1104
     #CARD_KEY = 0x1105
     #HOLY_GRAIL = 0x1106
@@ -139,7 +139,7 @@ class EO1ItemID:
     #OLD_SCROLL = 0x1112
     #HEX_BELL = 0x1113
     #MAP = 0x1114
-    #RADHA_NOTE = 0x1115
+    RADHA_NOTE = 0x1115
     WARP_WIRE = 0x1116
     #TOUGH_FANG = 0x1117
     #TOUGH_WING = 0x1119
@@ -474,7 +474,7 @@ class EO1ItemNames:
     #OLD_SCROLL = "Old Scroll"
     #HEX_BELL = "Hex Bell"
     #MAP = "Map"
-    #RADHA_NOTE = "Radha Note"
+    RADHA_NOTE = "Radha Note"
     WARP_WIRE = "Warp Wire"
     #TOUGH_FANG = "Tough Fang"
     #TOUGH_WING = "Tough Wing"
@@ -776,14 +776,13 @@ CONSUMABLE_DATA: list[EO1ItemData] = [
 KEY_ITEM_DATA: list[EO1KeyItem] = [
     EO1KeyItem(0x1102, EO1ItemNames.CLEAR_KEY, 1056, 0x41),
     EO1KeyItem(0x1103, EO1ItemNames.VIOLET_KEY, 1057, 0x42),
-
+    EO1KeyItem(0x1115, EO1ItemNames.RADHA_NOTE, 1075, 0x00),
     # EO1ItemData(EO1ItemType.Key, 0x1104, EO1ItemNames.DRAGON_EGG, 1058),
     # EO1ItemData(EO1ItemType.Key, 0x1105, EO1ItemNames.CARD_KEY, 1059),
 
     # EO1ItemData(EO1ItemType.Key, 0x1112, EO1ItemNames.OLD_SCROLL, 1072),
     # EO1ItemData(EO1ItemType.Key, 0x1113, EO1ItemNames.HEX_BELL, 1073),
     # EO1ItemData(EO1ItemType.Key, 0x1114, EO1ItemNames.MAP, 1074),
-    # EO1ItemData(EO1ItemType.Key, 0x1115, EO1ItemNames.RADHA_NOTE, 1075),
 
     #EO1ItemData(EO1ItemType.Key, 0x103C, EO1ItemNames.JADE_ORE, 1000),
     #EO1ItemData(EO1ItemType.Key, 0x10ED, EO1ItemNames.MAP_EVENT, 1035),
@@ -1145,6 +1144,7 @@ ITEM_PER_AP_ITEM_ID: dict[int, EO1ItemData] = {item_data.ap_item_id:item_data fo
 ITEM_PER_EO1_ID: dict[int, EO1ItemData] = {item_data.item_id:item_data for item_data in ALL_ITEM_DATA}
 ITEM_PER_NAME: dict[str, EO1ItemData] = {item_data.name:item_data for item_data in ALL_ITEM_DATA}
 
-# These are for the client.
+KEY_ITEM_DATA_BY_ITEM_ID: dict[int, EO1KeyItem] = {key_item_data.item_id:key_item_data for key_item_data in KEY_ITEM_DATA}
+
+# For the client.
 KEY_ITEMS_WITH_FLAG: list[EO1KeyItem] = [key_item_data for key_item_data in KEY_ITEM_DATA if key_item_data.associated_flag != 0]
-KEY_ITEM_DATA_BY_ITEM_ID: dict[int, EO1KeyItem] = {key_item_data.item_id:key_item_data for key_item_data in KEY_ITEMS_WITH_FLAG}

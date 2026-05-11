@@ -428,22 +428,70 @@ ALL_GROUP_SKILLS: list[GroupSkillItem] = [
     *ALL_OTHER_GROUP_SKILLS
 ]
 
-class SkillUnlockItems:
-    ALL_SKILLS = SkillItem(750, "All Skills", SkillItemType.ALL)
-    ALL_STATS_SKILLS = MultiClassGroupSkillItem("All Stats Up Skills", 751, [
-        group_skill.to_skill_item()
-        for group_skill in ALL_STATS_GROUP_SKILLS
-    ])
-    ALL_GATHERING_SKILLS = MultiClassGroupSkillItem("All Gathering Skills", 752, [
-        group_skill.to_skill_item()
-        for group_skill in ALL_GATHERING_GROUP_SKILLS
-    ])
 
-
-ALL_MULTI_CLASS_GROUP_ITEMS: list[MultiClassGroupSkillItem] = [
-    SkillUnlockItems.ALL_STATS_SKILLS,
-    SkillUnlockItems.ALL_GATHERING_SKILLS,
-]
+class EO1SkillPools:
+    INDIVIDUAL_GENERIC_STATS_INCREASE_SKILLS: set[int] = {
+            EO1Skills.LANDSKNECHT_HP_UP,
+            EO1Skills.LANDSKNECHT_TP_UP,
+            EO1Skills.LANDSKNECHT_ATK_UP,
+            EO1Skills.LANDSKNECHT_DEF_UP,
+            EO1Skills.SURVIVALIST_HP_UP,
+            EO1Skills.SURVIVALIST_TP_UP,
+            EO1Skills.SURVIVALIST_AGI_UP,
+            EO1Skills.PROTECTOR_HP_UP,
+            EO1Skills.PROTECTOR_TP_UP,
+            EO1Skills.PROTECTOR_DEF_UP,
+            EO1Skills.DARK_HUNTER_HP_UP,
+            EO1Skills.DARK_HUNTER_TP_UP,
+            EO1Skills.DARK_HUNTER_ATK_UP,
+            EO1Skills.MEDIC_HP_UP,
+            EO1Skills.MEDIC_TP_UP,
+            EO1Skills.MEDIC_ATK_UP,
+            EO1Skills.ALCHEMIST_TP_UP,
+            EO1Skills.TROUBADOUR_HP_UP,
+            EO1Skills.TROUBADOUR_TP_UP,
+            EO1Skills.RONIN_HP_UP,
+            EO1Skills.RONIN_TP_UP,
+            EO1Skills.RONIN_ATK_UP,
+            EO1Skills.HEXER_HP_UP,
+            EO1Skills.HEXER_TP_UP,
+    }
+    INDIVIDUAL_MASTERY_SKILLS: set[int] = {
+        EO1Skills.LANDSKNECHT_AXES,
+        EO1Skills.LANDSKNECHT_SWORDS,
+        EO1Skills.SURVIVALIST_BOWS,
+        EO1Skills.PROTECTOR_SHIELDS,
+        EO1Skills.DARK_HUNTER_WHIPS,
+        EO1Skills.DARK_HUNTER_SWORDS,
+        EO1Skills.RONIN_KATANAS,
+        EO1Skills.MEDIC_HEALER,
+        EO1Skills.ALCHEMIST_FIRE_UP,
+        EO1Skills.ALCHEMIST_ICE_UP,
+        EO1Skills.ALCHEMIST_VOLT_UP,
+        EO1Skills.ALCHEMIST_TOXINS,
+        EO1Skills.TROUBADOUR_SONGS,
+        EO1Skills.HEXER_CURSES
+    }
+    INDIVIDUAL_GATHERING_SKILLS: set[int] = {
+        EO1Skills.LANDSKNECHT_MINE,
+        EO1Skills.SURVIVALIST_CHOP,
+        EO1Skills.SURVIVALIST_MINE,
+        EO1Skills.SURVIVALIST_TAKE,
+        EO1Skills.PROTECTOR_MINE,
+        EO1Skills.DARK_HUNTER_TAKE,
+        EO1Skills.MEDIC_CHOP,
+        EO1Skills.ALCHEMIST_CHOP,
+        EO1Skills.TROUBADOUR_TAKE,
+        EO1Skills.RONIN_MINE,
+        EO1Skills.HEXER_MINE,
+    }
+    INDIVIDUAL_ALL_SKILLS: set[int] = {skill_id for skill_id in SKILL_DATA_BY_ID.keys()}
+    INDIVIDUAL_ALL_OTHER_SKILLS: set[int] = (
+            INDIVIDUAL_ALL_SKILLS
+            - INDIVIDUAL_GENERIC_STATS_INCREASE_SKILLS
+            - INDIVIDUAL_MASTERY_SKILLS
+            - INDIVIDUAL_GATHERING_SKILLS
+    )
 
 def make_skill_item_from_skill_data(skill_data: EO1SkillData) -> SkillItem:
     return SkillItem(skill_data.ap_item_id, skill_data.get_full_name(), SkillItemType.INDIVIDUAL)
@@ -452,6 +500,26 @@ def make_skill_item_from_skill_id(skill_id: int) -> SkillItem:
     return make_skill_item_from_skill_data(skill_data)
 def make_skill_items_from_skill_list(skill_list: set[int]) -> list[SkillItem]:
     return [make_skill_item_from_skill_id(skill_id) for skill_id in skill_list]
+
+class SkillUnlockItems:
+    ALL_SKILLS = SkillItem(750, "All Skills", SkillItemType.ALL)
+    ALL_STATS_SKILLS = MultiClassGroupSkillItem("All Stats Up Skills", 751, [
+        group_skill.to_skill_item()
+        for group_skill in ALL_STATS_GROUP_SKILLS
+    ])
+    ALL_MASTERY_SKILLS = MultiClassGroupSkillItem("All Mastery Skills", 752,
+                                                  make_skill_items_from_skill_list(EO1SkillPools.INDIVIDUAL_MASTERY_SKILLS))
+    ALL_GATHERING_SKILLS = MultiClassGroupSkillItem("All Gathering Skills", 753, [
+        group_skill.to_skill_item()
+        for group_skill in ALL_GATHERING_GROUP_SKILLS
+    ])
+
+
+ALL_MULTI_CLASS_GROUP_ITEMS: list[MultiClassGroupSkillItem] = [
+    SkillUnlockItems.ALL_STATS_SKILLS,
+    SkillUnlockItems.ALL_MASTERY_SKILLS,
+    SkillUnlockItems.ALL_GATHERING_SKILLS,
+]
 
 ALL_SKILLS_ITEMS: list[SkillItem] = [
     *[make_skill_item_from_skill_data(skill_data) for skill_data in ALL_SKILLS_DATA],
@@ -587,55 +655,6 @@ def apply_skill_item_to_values(skill_item: SkillItem, skill_unlock_values: list[
         skill_unlock_values[index] = __get_new_skill_unlock_value(skill_item, skill_unlock_value, all_current_skill_items)
 
     return skill_unlock_values
-
-
-class EO1SkillPools:
-    INDIVIDUAL_GENERIC_STATS_INCREASE_SKILLS: set[int] = {
-            EO1Skills.LANDSKNECHT_HP_UP,
-            EO1Skills.LANDSKNECHT_TP_UP,
-            EO1Skills.LANDSKNECHT_ATK_UP,
-            EO1Skills.LANDSKNECHT_DEF_UP,
-            EO1Skills.SURVIVALIST_HP_UP,
-            EO1Skills.SURVIVALIST_TP_UP,
-            EO1Skills.SURVIVALIST_AGI_UP,
-            EO1Skills.PROTECTOR_HP_UP,
-            EO1Skills.PROTECTOR_TP_UP,
-            EO1Skills.PROTECTOR_DEF_UP,
-            EO1Skills.DARK_HUNTER_HP_UP,
-            EO1Skills.DARK_HUNTER_TP_UP,
-            EO1Skills.DARK_HUNTER_ATK_UP,
-            EO1Skills.MEDIC_HP_UP,
-            EO1Skills.MEDIC_TP_UP,
-            EO1Skills.MEDIC_ATK_UP,
-            EO1Skills.ALCHEMIST_TP_UP,
-            EO1Skills.TROUBADOUR_HP_UP,
-            EO1Skills.TROUBADOUR_TP_UP,
-            EO1Skills.RONIN_HP_UP,
-            EO1Skills.RONIN_TP_UP,
-            EO1Skills.RONIN_ATK_UP,
-            EO1Skills.HEXER_HP_UP,
-            EO1Skills.HEXER_TP_UP,
-    }
-    INDIVIDUAL_GATHERING_SKILLS: set[int] = {
-        EO1Skills.LANDSKNECHT_MINE,
-        EO1Skills.SURVIVALIST_CHOP,
-        EO1Skills.SURVIVALIST_MINE,
-        EO1Skills.SURVIVALIST_TAKE,
-        EO1Skills.PROTECTOR_MINE,
-        EO1Skills.DARK_HUNTER_TAKE,
-        EO1Skills.MEDIC_CHOP,
-        EO1Skills.ALCHEMIST_CHOP,
-        EO1Skills.TROUBADOUR_TAKE,
-        EO1Skills.RONIN_MINE,
-        EO1Skills.HEXER_MINE,
-    }
-    INDIVIDUAL_ALL_SKILLS: set[int] = {skill_id for skill_id in SKILL_DATA_BY_ID.keys()}
-    INDIVIDUAL_ALL_OTHER_SKILLS: set[int] = (
-            INDIVIDUAL_ALL_SKILLS
-            - INDIVIDUAL_GENERIC_STATS_INCREASE_SKILLS
-            - INDIVIDUAL_GATHERING_SKILLS
-    )
-
 
 
 

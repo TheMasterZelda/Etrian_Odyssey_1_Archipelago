@@ -22,6 +22,7 @@ class SkillSanityIndividualShuffleTest(EtrianOdysseyTestBase):
         # Skills
         OptionKeys.SKILL_SANITY_MODE: SkillSanityType.shuffle_individually.value,
         OptionKeys.SHUFFLE_GENERIC_STATS_INCREASE_SKILLS: False,
+        OptionKeys.SHUFFLE_MASTERY_SKILLS: False,
         OptionKeys.SHUFFLE_GATHERING_SKILLS: False,
         OptionKeys.STARTING_SKILL_ITEM_COUNT: 0,
     }
@@ -35,6 +36,7 @@ class SkillSanityIndividualShuffleWithStartingItemTest(EtrianOdysseyTestBase):
         # Skills
         OptionKeys.SKILL_SANITY_MODE: SkillSanityType.shuffle_individually.value,
         OptionKeys.SHUFFLE_GENERIC_STATS_INCREASE_SKILLS: False,
+        OptionKeys.SHUFFLE_MASTERY_SKILLS: False,
         OptionKeys.SHUFFLE_GATHERING_SKILLS: False,
         OptionKeys.STARTING_SKILL_ITEM_COUNT: 10,
     }
@@ -48,6 +50,7 @@ class SkillSanityAllIndividualShuffleTest(EtrianOdysseyTestBase):
         # Skills
         OptionKeys.SKILL_SANITY_MODE: SkillSanityType.shuffle_individually.value,
         OptionKeys.SHUFFLE_GENERIC_STATS_INCREASE_SKILLS: True,
+        OptionKeys.SHUFFLE_MASTERY_SKILLS: True,
         OptionKeys.SHUFFLE_GATHERING_SKILLS: True,
         OptionKeys.STARTING_SKILL_ITEM_COUNT: 0,
     }
@@ -61,6 +64,7 @@ class SkillSanityAllIndividualShuffleWithStartingItemTest(EtrianOdysseyTestBase)
         # Skills
         OptionKeys.SKILL_SANITY_MODE: SkillSanityType.shuffle_individually.value,
         OptionKeys.SHUFFLE_GENERIC_STATS_INCREASE_SKILLS: True,
+        OptionKeys.SHUFFLE_MASTERY_SKILLS: True,
         OptionKeys.SHUFFLE_GATHERING_SKILLS: True,
         OptionKeys.STARTING_SKILL_ITEM_COUNT: 15,
     }
@@ -74,6 +78,7 @@ class SkillSanityGroupShuffleTest(EtrianOdysseyTestBase):
         # Skills
         OptionKeys.SKILL_SANITY_MODE: SkillSanityType.shuffle_group.value,
         OptionKeys.SHUFFLE_GENERIC_STATS_INCREASE_SKILLS: False,
+        OptionKeys.SHUFFLE_MASTERY_SKILLS: False,
         OptionKeys.SHUFFLE_GATHERING_SKILLS: False,
         OptionKeys.STARTING_SKILL_ITEM_COUNT: 0,
     }
@@ -87,6 +92,7 @@ class SkillSanityGroupShuffleWithStartingItemTest(EtrianOdysseyTestBase):
         # Skills
         OptionKeys.SKILL_SANITY_MODE: SkillSanityType.shuffle_group.value,
         OptionKeys.SHUFFLE_GENERIC_STATS_INCREASE_SKILLS: False,
+        OptionKeys.SHUFFLE_MASTERY_SKILLS: False,
         OptionKeys.SHUFFLE_GATHERING_SKILLS: False,
         OptionKeys.STARTING_SKILL_ITEM_COUNT: 10,
     }
@@ -100,6 +106,7 @@ class SkillSanityAllGroupShuffleTest(EtrianOdysseyTestBase):
         # Skills
         OptionKeys.SKILL_SANITY_MODE: SkillSanityType.shuffle_group.value,
         OptionKeys.SHUFFLE_GENERIC_STATS_INCREASE_SKILLS: True,
+        OptionKeys.SHUFFLE_MASTERY_SKILLS: True,
         OptionKeys.SHUFFLE_GATHERING_SKILLS: True,
         OptionKeys.STARTING_SKILL_ITEM_COUNT: 0,
     }
@@ -114,5 +121,6 @@ class SkillSanityNoSkillsRequirementsTest(EtrianOdysseyTestBase):
         OptionKeys.SKILL_SANITY_MODE: SkillSanityType.shuffle_individually.value,
         OptionKeys.REMOVE_SKILLS_REQUIREMENTS: True,
         OptionKeys.SHUFFLE_GENERIC_STATS_INCREASE_SKILLS: True,
+        OptionKeys.SHUFFLE_MASTERY_SKILLS: True,
         OptionKeys.SHUFFLE_GATHERING_SKILLS: True,
     }

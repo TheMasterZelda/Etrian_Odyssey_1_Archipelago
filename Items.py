@@ -185,11 +185,14 @@ def get_progressive_floor_limit_items(world: EtrianOdysseyWorld) -> list[EtrianO
 
     raise Exception("Not implemented")
 
-def __build_individual_skill_sanity_pool(shuffle_generic_stats_increase_skill: bool, shuffle_gathering_skills: bool) -> list[SkillItem]:
+def __build_individual_skill_sanity_pool(shuffle_generic_stats_increase_skill: bool, shuffle_mastery_skills: bool, shuffle_gathering_skills: bool) -> list[SkillItem]:
     skill_pool: list[SkillItem] = []
 
     if shuffle_generic_stats_increase_skill:
         skill_pool.extend(make_skill_items_from_skill_list(EO1SkillPools.INDIVIDUAL_GENERIC_STATS_INCREASE_SKILLS))
+
+    if shuffle_mastery_skills:
+        skill_pool.extend(make_skill_items_from_skill_list(EO1SkillPools.INDIVIDUAL_MASTERY_SKILLS))
 
     if shuffle_gathering_skills:
         skill_pool.extend(make_skill_items_from_skill_list(EO1SkillPools.INDIVIDUAL_GATHERING_SKILLS))
@@ -217,9 +220,10 @@ def __get_skill_item_pool(world: EtrianOdysseyWorld) -> list[SkillItem]:
         return [] # No skill items in the pool when skill sanity is off.
 
     shuffle_generic_stats_increase_skills = bool(world.options.shuffle_generic_stats_increase_skills.value)
+    shuffle_mastery_skills = bool(world.options.shuffle_mastery_skills.value)
     shuffle_gathering_skills = bool(world.options.shuffle_gathering_skills.value)
     if skill_sanity_mode == SkillSanityType.shuffle_individually:
-        return __build_individual_skill_sanity_pool(shuffle_generic_stats_increase_skills, shuffle_gathering_skills)
+        return __build_individual_skill_sanity_pool(shuffle_generic_stats_increase_skills, shuffle_mastery_skills, shuffle_gathering_skills)
     elif skill_sanity_mode == SkillSanityType.shuffle_group:
         return __build_group_skill_sanity_pool(shuffle_generic_stats_increase_skills, shuffle_gathering_skills)
 
@@ -250,6 +254,9 @@ def get_starting_skill_items(world: EtrianOdysseyWorld) -> list[SkillItem]:
 
     if not world.options.shuffle_generic_stats_increase_skills:
         starting_skills.append(SkillUnlockItems.ALL_STATS_SKILLS.to_skill_item())
+
+    if not world.options.shuffle_mastery_skills:
+        starting_skills.append(SkillUnlockItems.ALL_MASTERY_SKILLS.to_skill_item())
 
     if not world.options.shuffle_gathering_skills:
         starting_skills.append(SkillUnlockItems.ALL_GATHERING_SKILLS.to_skill_item())
@@ -316,11 +323,10 @@ def get_shuffled_classes(world: EtrianOdysseyWorld) -> list[EtrianOdysseyItem]:
     return [create_item_from_class_data(class_data, world.player) for class_data in missing_classes]
 
 def get_shuffled_key_items(world: EtrianOdysseyWorld) -> list[EtrianOdysseyItem]:
-    key_items: list[EtrianOdysseyItem] = []
-
-    for item_data in KEY_ITEM_DATA:
-        # todo: filter items based on goal
-        key_items.append(create_item_from_item_data(item_data, world.player))
+    key_items: list[EtrianOdysseyItem] = [
+        create_item_from_item_data(KEY_ITEM_DATA_BY_ITEM_ID[EO1ItemID.CLEAR_KEY], world.player),
+        create_item_from_item_data(KEY_ITEM_DATA_BY_ITEM_ID[EO1ItemID.VIOLET_KEY], world.player)
+    ]
 
     return key_items
 
