@@ -1,5 +1,9 @@
 # Etrian Odyssey
 
+## Warning
+
+At the moment, this randomizer is still in active development, and so is susceptible to generation problems and logic bugs. Please make sure other players and the host are aware of the risks.
+
 ## What does randomization do to this game?
 
 Randomization of Etrian Odyssey randomizes available character class and skills, along introducing a level cap 
@@ -10,6 +14,8 @@ along other locations.
 
 The goal is to complete up to one stratum decided by the player. Completing a stratum is
 defined by defeating its final floor boss. Note that any location on floors past the goal will not get shuffled.
+
+At the moment, goal past stratum 3 are not recommended for sync sessions considering the length of the game.
 
 ## What items and locations get shuffled?
 
@@ -57,3 +63,8 @@ up to a queue of 20. If more than 20 items are to be received, the player must i
 the option. If your inventory is full, you will need to sell or discard some items.
 
 Do note that items obtained from treasure box are added directly to the player inventory.
+
+## I found a bug!
+
+Nice! First, make sure its a bug specific to the randomizer, then go to the dedicated etrian odyssey discord channel in the Archipelago discord and let us know about it. Alternatively, you can open an issue on this github repository, but please let me (TheMasterZelda) know in the discord channel as I am not monitoring the issues actively.
+
