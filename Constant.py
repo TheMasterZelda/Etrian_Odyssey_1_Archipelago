@@ -2,7 +2,7 @@ from BaseClasses import Item, ItemClassification, Location, Region
 from enum import IntEnum, Enum
 
 GAME_NAME = "Etrian Odyssey"
-GAME_VERSION = "0.0.1"
+GAME_VERSION = "0.1.0"
 MAX_LEVEL = 70
 MAX_FLOOR = 30
 

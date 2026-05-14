@@ -3,7 +3,7 @@ import unittest
 from ...logic.SkillHelper import *
 from ...data.SkillData import *
 
-class SkillHelper(unittest.TestCase):
+class SkillHelperTest(unittest.TestCase):
 
     def test_is_not_physical_damage_type(self):
 

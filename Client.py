@@ -108,6 +108,11 @@ class EtrianOdysseyClient(BizHawkClient):
 
         return True
 
+    async def set_auth(self, ctx: "BizHawkClientContext") -> None:
+        player_name_bytes = (await bizhawk.read(ctx.bizhawk_ctx, [(PLAYER_SLOT_NAME_STATIC_ADDRESS, 0x40, BIZHAWK_ARM9_DOMAIN)]))[0]
+        player_name = player_name_bytes.decode("utf-8").rstrip("\x00")
+        ctx.auth = player_name
+
     @staticmethod
     def check_flag(flag_table: bytes, flag_id_to_check: int) -> bool:
         byte_offset = math.floor(flag_id_to_check / 8)
