@@ -44,6 +44,16 @@ Here is the full list of possible Locations:
 
 Any items added to the item pool can be in another player world.
 
+## What is different from vanilla?
+
+- Shilleka's Good have a new menu action - `Receive Item`, which is used to get items obtained from other worlds and from non treasure box locations. See `What happens when I receive and item?` for more info.
+- Resting Cost 1 level and a minimum level of 5, down from 10 and 30 respectively.
+- Walking speed is faster in the labyrinth.
+- Custom UI on the main menu to indicate the current level and floor cap. If those are not used it will show the vanilla cap (70 and 30).
+- "Automatic Hold A" for faster battle speed. No need to hold A manually during battle to make it go faster.
+
+Other changes are controlled by the player - see Options for more info.
+
 ## What does another world's item look like in Etrian Odyssey?
 
 Items in Etrian Odyssey does not have any visual indicator. As such, the player will only see
