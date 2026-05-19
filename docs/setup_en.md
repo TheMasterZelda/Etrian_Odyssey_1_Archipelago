@@ -2,7 +2,7 @@
 
 ## Required Software
 
-- [Archipelago 0.6.7+](https://github.com/ArchipelagoMW/Archipelago/releases)
+- [Archipelago 0.6.7+](https://github.com/ArchipelagoMW/Archipelago/releases) **This is required for both the seed generation and the client**
 - [Bizhawk 2.10+](https://github.com/TASEmulators/BizHawk/releases)
 - A North American copy of Etrian Odyssey for the Nintendo DS. The Archipelago community cannot provide this.
 - [Latest etrian_odyssey.apworld](https://github.com/TheMasterZelda/Etrian_Odyssey_1_Archipelago/releases)
@@ -10,7 +10,7 @@
 
 ## Recommended Software
 
-- [Universal Tracker](https://github.com/FarisTheAncient/Archipelago/releases)
+- [Universal Tracker](https://github.com/FarisTheAncient/Archipelago/releases) - Heavily recommended since the logic is complex so the player know what locations are available at any given time.
 
 ### Configuring Bizhawk (Recommended)
 
