@@ -11,8 +11,6 @@ from ..data.InventoryItemData import EO1ItemNames, EO1ItemID, CONSUMABLE_DATA
 from ..data.ItemCompoundData import ITEM_COMPOUND_TABLE
 from ..data.MaxLevelByFloor import MAX_LEVEL_BY_FLOOR
 
-if TYPE_CHECKING:
-    from .. import EtrianOdysseyWorld
 
 class LogicData(ABC):
     stale: bool

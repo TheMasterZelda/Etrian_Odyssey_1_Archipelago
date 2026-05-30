@@ -105,13 +105,15 @@ class EtrianOdysseyWorld(World):
     def collect(self, state: "CollectionState", item: "Item") -> bool:
         change = super().collect(state, item)
         if change:
-            state.etrianodyssey_logic_data[self.player].collect(state, item)
+            state_interface = get_ap_state_interface(state, self.player)
+            state.etrianodyssey_logic_data[self.player].collect(state_interface, item)
         return change
 
     def remove(self, state: "CollectionState", item: "Item") -> bool:
         change = super().remove(state, item)
         if change:
-            state.etrianodyssey_logic_data[self.player].remove(state, item)
+            state_interface = get_ap_state_interface(state, self.player)
+            state.etrianodyssey_logic_data[self.player].remove(state_interface, item)
         return change
 
     def generate_early(self) -> None:

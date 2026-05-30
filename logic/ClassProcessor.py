@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from abc import ABC, abstractmethod
 
-from BaseClasses import CollectionState
+from .StateInterface import StateInterface
 
 from ..data.ClassData import *
 from ..data.SkillData import *
@@ -12,33 +12,28 @@ from ..Options import *
 from .LogicData import *
 
 class ClassProcessor:
-    player_id: int
-
-    def __init__(self, player_id: int) -> None:
-        self.player_id = player_id
-
-    def __is_skill_unlocked(self, skill_id: int, state: CollectionState) -> bool:
+    def __is_skill_unlocked(self, skill_id: int, state: StateInterface) -> bool:
         skill_unlocks = SKILL_UNLOCK_DATA_BY_SKILL_ID[skill_id]
 
         for skill_unlock in skill_unlocks:
-            if state.has(skill_unlock.ap_item_name, self.player_id, skill_unlock.item_count_requirement):
+            if state.has_item_count(skill_unlock.ap_item_name, skill_unlock.item_count_requirement):
                 return True
 
         return False
 
-    def __all_skills_unlocked(self, all_skill_id: set[int], state: CollectionState) -> bool:
+    def __all_skills_unlocked(self, all_skill_id: set[int], state: StateInterface) -> bool:
         for skill_id in all_skill_id:
             if not self.__is_skill_unlocked(skill_id, state):
                 return False
         return True
 
-    def update_class_data(self, logic_data: AllLogicData, state: CollectionState) -> bool:
+    def update_class_data(self, logic_data: AllLogicData, state: StateInterface) -> bool:
         changed = False
 
         for class_logic_data in logic_data.class_data.class_as_list:
             class_data = CLASS_DATA_BY_NAME[class_logic_data.class_name]
             if not class_logic_data.class_unlocked:
-                if state.has(class_data.name, self.player_id):
+                if state.has_item(class_data.name):
                     class_logic_data.class_unlocked = True
                     changed = True
             for skill_logic_data in class_logic_data.class_skills.values():
@@ -60,13 +55,13 @@ class ClassProcessor:
 
         return changed
 
-    def recalculate_class_data(self, logic_data: AllLogicData, state: CollectionState) -> bool:
+    def recalculate_class_data(self, logic_data: AllLogicData, state: StateInterface) -> bool:
         changed = False
 
         for class_logic_data in logic_data.class_data.class_as_list:
             class_data = CLASS_DATA_BY_NAME[class_logic_data.class_name]
             if class_logic_data.class_unlocked:
-                if not state.has(class_data.name, self.player_id):
+                if not state.has_item(class_data.name):
                     class_logic_data.class_unlocked = False
                     changed = True
             for skill_logic_data in class_logic_data.class_skills.values():

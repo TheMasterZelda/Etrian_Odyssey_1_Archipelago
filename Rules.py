@@ -22,6 +22,7 @@ from .data.RegionData import EO1Regions
 import dataclasses
 from typing import TYPE_CHECKING
 from .logic.LogicManager import LogicManager
+from .logic.StateInterface import StateInterface
 
 if TYPE_CHECKING:
     from . import EtrianOdysseyWorld
@@ -44,6 +45,29 @@ class EtrianOdysseyLogic(LogicMixin):
 
     def etrianodyssey_get_logic_manager(self, player: int) -> LogicManager:
         return self.etrianodyssey_logic_data[player]
+
+class ArchipelagoStateInterface(StateInterface):
+    state: CollectionState
+    player_id: int
+
+    def __init__(self, state: CollectionState, player_id: int):
+        self.player_id = player_id
+        self.state = state
+
+    def has_item(self, item_name: str) -> bool:
+        return self.state.has(item_name, self.player_id)
+
+    def has_item_count(self, item_name: str, item_count: int) -> bool:
+        return self.state.has(item_name, self.player_id, item_count)
+
+    def can_reach_region(self, region: str) -> bool:
+        return self.state.can_reach_region(region, self.player_id)
+
+    def get_regions(self) -> list[str]:
+        return [region.name for region in self.state.multiworld.worlds[self.player_id].get_regions()]
+
+def get_ap_state_interface(state: CollectionState, player: int) -> ArchipelagoStateInterface:
+    return ArchipelagoStateInterface(state, player)
 
 # This is to remove individual warnings from calling this method.
 def get_logic_manager(state: CollectionState, player: int) -> LogicManager:
@@ -99,7 +123,8 @@ class CanSurviveRegion(Rule["EtrianOdysseyWorld"], game=GAME_NAME):
         @override
         def _evaluate(self, state: CollectionState) -> bool:
             logic_manager = get_logic_manager(state, self.player)
-            return logic_manager.can_survive_region(state, self.region)
+            state_interface = get_ap_state_interface(state, self.player)
+            return logic_manager.can_survive_region(state_interface, self.region)
 
         @override
         def item_dependencies(self) -> dict[str, set[int]]:
@@ -123,7 +148,8 @@ class CanDefeatEnemy(Rule["EtrianOdysseyWorld"], game=GAME_NAME):
         @override
         def _evaluate(self, state: CollectionState) -> bool:
             logic_manager = get_logic_manager(state, self.player)
-            return logic_manager.can_defeat_enemy(state, self.enemy)
+            state_interface = get_ap_state_interface(state, self.player)
+            return logic_manager.can_defeat_enemy(state_interface, self.enemy)
 
         @override
         def item_dependencies(self) -> dict[str, set[int]]:
@@ -144,8 +170,9 @@ class CanDefeatEncounter(Rule["EtrianOdysseyWorld"], game=GAME_NAME):
         @override
         def _evaluate(self, state: CollectionState) -> bool:
             logic_manager = get_logic_manager(state, self.player)
+            state_interface = get_ap_state_interface(state, self.player)
             enemies = list(self.enemies)
-            return logic_manager.can_defeat_enemies(state, enemies)
+            return logic_manager.can_defeat_enemies(state_interface, enemies)
 
         @override
         def item_dependencies(self) -> dict[str, set[int]]:
@@ -166,7 +193,8 @@ class CanFillCodexEntry(Rule["EtrianOdysseyWorld"], game=GAME_NAME):
         @override
         def _evaluate(self, state: CollectionState) -> bool:
             logic_manager = get_logic_manager(state, self.player)
-            return logic_manager.can_fill_codex_entry(state, self.enemy_id)
+            state_interface = get_ap_state_interface(state, self.player)
+            return logic_manager.can_fill_codex_entry(state_interface, self.enemy_id)
 
         @override
         def item_dependencies(self) -> dict[str, set[int]]:
@@ -190,7 +218,8 @@ class CanFillCompendiumEntry(Rule["EtrianOdysseyWorld"], game=GAME_NAME):
         @override
         def _evaluate(self, state: CollectionState) -> bool:
             logic_manager = get_logic_manager(state, self.player)
-            return logic_manager.can_fill_compendium_entry(state, self.item_id)
+            state_interface = get_ap_state_interface(state, self.player)
+            return logic_manager.can_fill_compendium_entry(state_interface, self.item_id)
 
         @override
         def item_dependencies(self) -> dict[str, set[int]]:
@@ -238,7 +267,8 @@ class CanUseSkill(Rule["EtrianOdysseyWorld"], game=GAME_NAME):
         @override
         def _evaluate(self, state: CollectionState) -> bool:
             logic_manager = get_logic_manager(state, self.player)
-            return logic_manager.can_fill_codex_entry(state, self.skill_id)
+            state_interface = get_ap_state_interface(state, self.player)
+            return logic_manager.can_fill_codex_entry(state_interface, self.skill_id)
 
         @override
         def item_dependencies(self) -> dict[str, set[int]]:
@@ -283,7 +313,8 @@ class CanStartQuest(Rule["EtrianOdysseyWorld"], game=GAME_NAME):
         @override
         def _evaluate(self, state: CollectionState) -> bool:
             logic_manager = get_logic_manager(state, self.player)
-            return logic_manager.can_start_quest(state, self.quest_id)
+            state_interface = get_ap_state_interface(state, self.player)
+            return logic_manager.can_start_quest(state_interface, self.quest_id)
         @override
         def item_dependencies(self) -> dict[str, set[int]]:
             return {
@@ -306,7 +337,8 @@ class CanCompleteQuest(Rule["EtrianOdysseyWorld"], game=GAME_NAME):
         @override
         def _evaluate(self, state: CollectionState) -> bool:
             logic_manager = get_logic_manager(state, self.player)
-            return logic_manager.can_complete_quest(state, self.quest_id)
+            state_interface = get_ap_state_interface(state, self.player)
+            return logic_manager.can_complete_quest(state_interface, self.quest_id)
         @override
         def item_dependencies(self) -> dict[str, set[int]]:
             return {

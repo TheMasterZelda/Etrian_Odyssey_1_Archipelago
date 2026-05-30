@@ -1,12 +1,11 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 from abc import ABC, abstractmethod
+
+from .StateInterface import StateInterface
 from ..Options import *
 from ..Constant import *
 from .LogicData import *
-
-from BaseClasses import CollectionState
-
 from ..data.EnemyData import *
 from ..data.EncounterData import *
 from ..data.EncounterGroupData import *
@@ -50,11 +49,11 @@ class EncounterGroupBattleProcessor(ABC):
         return encounter_list
 
     @abstractmethod
-    def can_survive_encounter_group(self, encounter_group_id: int, state: CollectionState, logic_data: AllLogicData) -> bool:
+    def can_survive_encounter_group(self, encounter_group_id: int, state: StateInterface, logic_data: AllLogicData) -> bool:
         pass
 
 class SimpleEncounterGroupBattleProcessor(EncounterGroupBattleProcessor):
-    def can_survive_encounter_group(self, encounter_group_id: int, state: CollectionState, logic_data: AllLogicData) -> bool:
+    def can_survive_encounter_group(self, encounter_group_id: int, state: StateInterface, logic_data: AllLogicData) -> bool:
         encounter_group_data = self.get_encounter_group_data(encounter_group_id)
 
         encounter_list = self.get_all_encounters(encounter_group_data)

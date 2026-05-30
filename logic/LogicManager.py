@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from BaseClasses import CollectionState
+from .StateInterface import StateInterface
 from . import QuestProcessor
 from .SustainProcessor import SustainProcessor
 from ..Items import EtrianOdysseyItemType, EtrianOdysseyItem
@@ -27,9 +27,6 @@ from .ShopUnlockProcessor import *
 from .QuestProcessor import *
 from .simplified_logic.SimplifiedSingleEnemyBattleProcessor import SimplifiedSingleEnemyBattleProcessor
 
-if TYPE_CHECKING:
-    from .. import EtrianOdysseyWorld
-
 class LogicManager:
     logic_data: AllLogicData
     options: EtrianOdysseyOptions
@@ -54,7 +51,7 @@ class LogicManager:
         self.options = options
         self.player_id = player_id
 
-        self.class_processor = ClassProcessor(player_id)
+        self.class_processor = ClassProcessor()
         self.sustain_processor = SustainProcessor()
         self.enemy_battle_processor = self.__create_single_enemy_battle_processor_from_options(options)
         self.encounter_battle_processor = self.__create_encounter_battle_processor_from_options(options)
@@ -62,9 +59,9 @@ class LogicManager:
         max_stratum = get_max_stratum_for_goal(EO1Goal(options.goal.value))
 
         self.conditional_drop_processor = ConditionalDropProcessor(self.enemy_battle_processor)
-        self.quest_processor = QuestProcessor(player_id, self.encounter_battle_processor)
-        self.codex_processor = CodexProcessor(max_stratum, player_id, self.quest_processor)
-        self.compendium_processor = CompendiumProcessor(max_stratum, player_id, self.conditional_drop_processor)
+        self.quest_processor = QuestProcessor(self.encounter_battle_processor)
+        self.codex_processor = CodexProcessor(max_stratum, self.quest_processor)
+        self.compendium_processor = CompendiumProcessor(max_stratum, self.conditional_drop_processor)
         self.shop_unlock_processor = ShopUnlockProcessor()
 
         if fill_default:
@@ -99,7 +96,7 @@ class LogicManager:
     def __create_encounter_group_battle_processor_from_options(options: EtrianOdysseyOptions) -> EncounterGroupBattleProcessor:
         return SimpleEncounterGroupBattleProcessor()
 
-    def collect(self, state: CollectionState, item: EtrianOdysseyItem) -> None:
+    def collect(self, state: StateInterface, item: EtrianOdysseyItem) -> None:
         if not hasattr(item, "item_type"):
             raise Exception(f"Expected an item_type to be defined for {item.name}")
 
@@ -132,7 +129,7 @@ class LogicManager:
         #if floor_ != self.logic_data.current_floor_limit:
         #    raise Exception("not match")
 
-    def remove(self, state: CollectionState, item: EtrianOdysseyItem) -> None:
+    def remove(self, state: StateInterface, item: EtrianOdysseyItem) -> None:
         if not hasattr(item, "item_type"):
             raise Exception(f"Expected an item_type to be defined for {item.name}")
 
@@ -195,7 +192,7 @@ class LogicManager:
     def get_current_floor_limit(self) -> int:
         return self.logic_data.current_floor_limit
 
-    def can_survive_region(self, state: CollectionState, region_name: str) -> bool:
+    def can_survive_region(self, state: StateInterface, region_name: str) -> bool:
         region_data = ALL_REGION_DATA_BY_NAME[region_name]
         self.__update_encounter_group(state)
 
@@ -226,37 +223,37 @@ class LogicManager:
 
         return sustain_score >= region_data.sustain_score
 
-    def can_defeat_enemies(self, state: CollectionState, enemies: list[int]) -> bool:
+    def can_defeat_enemies(self, state: StateInterface, enemies: list[int]) -> bool:
         self.__update_defeatable_enemies(state)
         return self.encounter_battle_processor.can_defeat_enemy_group(enemies, state, self.logic_data)
 
-    def can_defeat_enemy(self, state: CollectionState, enemy: int) -> bool:
+    def can_defeat_enemy(self, state: StateInterface, enemy: int) -> bool:
         self.__update_defeatable_enemies(state)
         return enemy in self.logic_data.defeatable_enemy.defeatable_enemies
 
-    def can_fill_codex_entry(self, state: CollectionState, enemy_id: int) -> bool:
+    def can_fill_codex_entry(self, state: StateInterface, enemy_id: int) -> bool:
         if enemy_id in [EO1Enemies.DRAKE, EO1Enemies.ALRAUNE]:
             self.logic_data.set_location_stale()
 
         self.__update_fillable_codex_entries(state)
         return enemy_id in self.logic_data.codex_logic_data.fillable_codex_entries
 
-    def can_unlock_shop_item(self, state: CollectionState, shop_item_id: int) -> bool:
+    def can_unlock_shop_item(self, state: StateInterface, shop_item_id: int) -> bool:
         self.__update_shop_entries(state)
         return shop_item_id in self.logic_data.shop_unlock_logic_data.unlockable_shop_items
 
-    def can_fill_compendium_entry(self, state: CollectionState, item_id: int) -> bool:
+    def can_fill_compendium_entry(self, state: StateInterface, item_id: int) -> bool:
         self.__update_fillable_compendium_entries(state)
         return item_id in self.logic_data.compendium_logic_data.fillable_compendium_entries
 
-    def can_start_quest(self, state: CollectionState, quest_id: int) -> bool:
+    def can_start_quest(self, state: StateInterface, quest_id: int) -> bool:
         self.__update_class_data(state)
         self.__update_defeatable_enemies(state)
         #self.__update_fillable_codex_entries(state)
         #self.__update_fillable_compendium_entries(state)
         return self.quest_processor.can_start_quest(quest_id, self.logic_data, state)
 
-    def can_complete_quest(self, state: CollectionState, quest_id: int) -> bool:
+    def can_complete_quest(self, state: StateInterface, quest_id: int) -> bool:
         self.__update_class_data(state)
         self.__update_defeatable_enemies(state)
         self.__update_fillable_codex_entries(state)
@@ -264,7 +261,7 @@ class LogicManager:
         self.__update_shop_entries(state)
         return self.quest_processor.can_complete_quest(quest_id, self.logic_data, state)
 
-    def can_fully_complete_codex_and_compendium(self, state: CollectionState) -> bool:
+    def can_fully_complete_codex_and_compendium(self, state: StateInterface) -> bool:
         self.__update_fillable_codex_entries(state)
         self.__update_fillable_compendium_entries(state)
 
@@ -274,7 +271,7 @@ class LogicManager:
             return False
         return True
 
-    def __update_defeatable_enemies(self, state: CollectionState) -> None:
+    def __update_defeatable_enemies(self, state: StateInterface) -> None:
         self.__update_class_data(state)
 
         # Note: This may seems like a circular reference (and it logically is), but it is handled by delaying
@@ -283,27 +280,27 @@ class LogicManager:
         if self.logic_data.defeatable_enemy.is_stale():
             self.__update_set_logic_data(self.logic_data.defeatable_enemy, self.enemy_battle_processor.can_defeat_enemy, state)
 
-    def __update_survivable_enemies(self, state: CollectionState) -> None:
+    def __update_survivable_enemies(self, state: StateInterface) -> None:
         self.__update_class_data(state)
 
         if self.logic_data.survivable_enemy.is_stale():
             self.__update_set_logic_data(self.logic_data.survivable_enemy, self.enemy_battle_processor.can_survive_enemy, state)
 
-    def __update_defeatable_encounters(self, state: CollectionState) -> None:
+    def __update_defeatable_encounters(self, state: StateInterface) -> None:
         self.__update_class_data(state)
         self.__update_defeatable_enemies(state)
 
         if self.logic_data.defeatable_encounter.is_stale():
             self.__update_set_logic_data(self.logic_data.defeatable_encounter, self.encounter_battle_processor.can_defeat_encounter, state)
 
-    def __update_survivable_encounters(self, state: CollectionState) -> None:
+    def __update_survivable_encounters(self, state: StateInterface) -> None:
         self.__update_class_data(state)
         self.__update_survivable_enemies(state)
 
         if self.logic_data.survivable_encounter.is_stale():
             self.__update_set_logic_data(self.logic_data.survivable_encounter, self.encounter_battle_processor.can_survive_encounter, state)
 
-    def __update_encounter_group(self, state: CollectionState) -> None:
+    def __update_encounter_group(self, state: StateInterface) -> None:
         self.__update_class_data(state)
         self.__update_survivable_enemies(state)
         self.__update_survivable_encounters(state)
@@ -311,14 +308,14 @@ class LogicManager:
         if self.logic_data.encounter_group.is_stale():
             self.__update_set_logic_data(self.logic_data.encounter_group, self.encounter_group_battle_processor.can_survive_encounter_group, state)
 
-    def __update_fillable_codex_entries(self, state: CollectionState) -> None:
+    def __update_fillable_codex_entries(self, state: StateInterface) -> None:
         self.__update_class_data(state)
         self.__update_defeatable_encounters(state)
 
         if self.logic_data.codex_logic_data.is_stale():
             self.__update_set_logic_data(self.logic_data.codex_logic_data, self.codex_processor.can_fill_codex_entry, state)
 
-    def __update_fillable_compendium_entries(self, state: CollectionState) -> None:
+    def __update_fillable_compendium_entries(self, state: StateInterface) -> None:
         self.__update_class_data(state)
         self.__update_defeatable_encounters(state)
         self.__update_fillable_codex_entries(state)
@@ -328,19 +325,19 @@ class LogicManager:
             if changed:
                 self.logic_data.set_shop_unlock_stale()
 
-    def __update_shop_entries(self, state: CollectionState) -> None:
+    def __update_shop_entries(self, state: StateInterface) -> None:
         self.__update_fillable_compendium_entries(state)
 
         if self.logic_data.shop_unlock_logic_data.is_stale():
             self.__update_set_logic_data(self.logic_data.shop_unlock_logic_data, self.shop_unlock_processor.can_unlock_item, state)
 
-    def __update_class_data(self, state: CollectionState) -> None:
+    def __update_class_data(self, state: StateInterface) -> None:
         if self.logic_data.class_data.is_stale():
             if self.class_processor.update_class_data(self.logic_data, state):
                 self.logic_data.set_battle_stale()
             self.logic_data.class_data.set_stale(False)
 
-    def __update_set_logic_data(self, logic_data: DualIntSetLogicData, can_access: Callable[int, CollectionState, AllLogicData], state: CollectionState) -> bool:
+    def __update_set_logic_data(self, logic_data: DualIntSetLogicData, can_access: Callable[int, StateInterface, AllLogicData], state: StateInterface) -> bool:
         new_accessible = set()
         for identifier in logic_data.unaccessible:
             if can_access(identifier, state, self.logic_data):
@@ -354,13 +351,13 @@ class LogicManager:
         changed = len(new_accessible) > 0
         return changed
 
-    def __recalculate_class_data(self, state: CollectionState) -> bool:
+    def __recalculate_class_data(self, state: StateInterface) -> bool:
         changed = self.class_processor.recalculate_class_data(self.logic_data, state)
         # TODO decide if this is omitted. Do not set to False, since the data could already be stale.
         self.logic_data.class_data.set_stale(True)
         return changed
 
-    def __recalculate_set_logic_data(self, logic_data: DualIntSetLogicData, can_access: Callable[int, CollectionState, AllLogicData], state: CollectionState) -> bool:
+    def __recalculate_set_logic_data(self, logic_data: DualIntSetLogicData, can_access: Callable[int, StateInterface, AllLogicData], state: StateInterface) -> bool:
         new_unaccessible = set()
         for identifier in logic_data.accessible:
             if not can_access(identifier, state, self.logic_data):

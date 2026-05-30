@@ -1,6 +1,4 @@
-
-from BaseClasses import CollectionState
-
+from .StateInterface import StateInterface
 from ..data.CompendiumData import *
 from ..data.EnemyData import *
 from ..data.GatheringSpotData import *
@@ -30,20 +28,17 @@ CHOP_GATHERING_SKILLS: list[int] = [
 
 class CompendiumProcessor:
     max_stratum: int
-    player_id: int
     conditional_drop_processor: ConditionalDropProcessor
     region_cache: set[str] | None
 
-    def __init__(self, max_stratum: int, player_id: int, conditional_drop_processor: ConditionalDropProcessor):
-        self.player_id = player_id
+    def __init__(self, max_stratum: int, conditional_drop_processor: ConditionalDropProcessor):
         self.max_stratum = max_stratum
         self.conditional_drop_processor = conditional_drop_processor
         self.region_cache = None
 
-    def can_fill_compendium_entry(self, item_id: int, state: CollectionState, logic_data: AllLogicData) -> bool:
+    def can_fill_compendium_entry(self, item_id: int, state: StateInterface, logic_data: AllLogicData) -> bool:
         if self.region_cache is None:
-            self.region_cache = set([region_data.name for region_data
-                                     in state.multiworld.worlds[self.player_id].get_regions()])
+            self.region_cache = set(state.get_regions())
 
         compendium_entry = COMPENDIUM_BY_ITEM_ID[item_id]
 
@@ -56,7 +51,7 @@ class CompendiumProcessor:
         else:
             raise Exception(f"Unknown compendium source: {compendium_entry.source}")
 
-    def __can_fill_monster_entry(self, compendium_data: CompendiumData, state: CollectionState, logic_data: AllLogicData) -> bool:
+    def __can_fill_monster_entry(self, compendium_data: CompendiumData, state: StateInterface, logic_data: AllLogicData) -> bool:
         for enemy_id in ENEMY_BY_DROP_ID[compendium_data.item_id]:
             if enemy_id not in logic_data.codex_logic_data.fillable_codex_entries:
                 continue
@@ -84,7 +79,7 @@ class CompendiumProcessor:
 
         return False
 
-    def __can_fill_gathering_entry(self, compendium_data: CompendiumData, state: CollectionState, logic_data: AllLogicData) -> bool:
+    def __can_fill_gathering_entry(self, compendium_data: CompendiumData, state: StateInterface, logic_data: AllLogicData) -> bool:
         for gathering_spot_unique_id in GATHERING_SPOT_BY_ITEM_ID[compendium_data.item_id]:
             gathering_spot_data = GATHERING_SPOT_BY_UNIQUE_ID[gathering_spot_unique_id]
 
@@ -101,20 +96,20 @@ class CompendiumProcessor:
             region_data = ALL_REGION_DATA_BY_NAME[gathering_spot_data.region]
             if region_data.floor_number > logic_data.current_floor_limit:
                 continue
-            if state.can_reach_region(gathering_spot_data.region, self.player_id):
+            if state.can_reach_region(gathering_spot_data.region):
                 return True
 
         return False
 
 
-    def __can_fill_both_entry(self, compendium_data: CompendiumData, state: CollectionState, logic_data: AllLogicData) -> bool:
+    def __can_fill_both_entry(self, compendium_data: CompendiumData, state: StateInterface, logic_data: AllLogicData) -> bool:
         if self.__can_fill_monster_entry(compendium_data, state, logic_data):
             return True
         if self.__can_fill_gathering_entry(compendium_data, state, logic_data):
             return True
         return False
 
-    def __can_use_gathering_skill(self, gather_type: EO1GatherType, state: CollectionState, logic_data: AllLogicData) -> bool:
+    def __can_use_gathering_skill(self, gather_type: EO1GatherType, state: StateInterface, logic_data: AllLogicData) -> bool:
         def can_use_any(gathering_skill_list: list[int], skills: dict[int, SkillLogicData]) -> bool:
             for gathering_skill in gathering_skill_list:
                 if gathering_skill not in skills:

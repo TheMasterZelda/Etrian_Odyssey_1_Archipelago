@@ -1,10 +1,10 @@
-from BaseClasses import CollectionState
+from .StateInterface import StateInterface
 from ..logic.LogicData import AllLogicData
 from ..data.ItemCompoundData import *
 
 
 class ShopUnlockProcessor:
-    def can_unlock_item(self, item_id: int, state: CollectionState, logic_data: AllLogicData) -> bool:
+    def can_unlock_item(self, item_id: int, state: StateInterface, logic_data: AllLogicData) -> bool:
         item_compound = ITEM_COMPOUND_BY_ITEM_ID[item_id]
 
         if not self.__is_material_available(item_compound.material_1_id, logic_data):

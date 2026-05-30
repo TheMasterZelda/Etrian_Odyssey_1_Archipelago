@@ -1,5 +1,3 @@
-from BaseClasses import CollectionState
-
 from ..LogicData import *
 
 from ...data.EnemyData import *
@@ -34,7 +32,7 @@ class SimplifiedSingleEnemyBattleProcessor(SingleEnemyBattleProcessor):
             raise Exception()
         return original_criteria
 
-    def can_survive_enemy(self, enemy_id: int, state: CollectionState, logic_data: AllLogicData) -> bool:
+    def can_survive_enemy(self, enemy_id: int, state: StateInterface, logic_data: AllLogicData) -> bool:
         enemy_data = self.get_enemy_data(enemy_id)
         if not self.__survive_level_requirement_met(enemy_data, logic_data):
             return False
@@ -54,7 +52,7 @@ class SimplifiedSingleEnemyBattleProcessor(SingleEnemyBattleProcessor):
 
         return sv_enemy.survive_criteria.evaluate_criteria(sv_enemy.attributes, logic_data.class_data.unlocked_classes, logic_data)
 
-    def can_defeat_enemy(self, enemy_id: int, state: CollectionState, logic_data: AllLogicData) -> bool:
+    def can_defeat_enemy(self, enemy_id: int, state: StateInterface, logic_data: AllLogicData) -> bool:
         enemy_data = self.get_enemy_data(enemy_id)
         if not self.__defeat_level_requirement_met(enemy_data, logic_data):
             return False
@@ -71,7 +69,7 @@ class SimplifiedSingleEnemyBattleProcessor(SingleEnemyBattleProcessor):
 
         return sv_enemy.defeat_criteria.evaluate_criteria(sv_enemy.attributes, logic_data.class_data.unlocked_classes, logic_data)
 
-    def can_defeat_with_condition(self, enemy_id: int, condition: DropCondition, state: CollectionState, logic_data: AllLogicData) -> bool:
+    def can_defeat_with_condition(self, enemy_id: int, condition: DropCondition, state: StateInterface, logic_data: AllLogicData) -> bool:
         enemy_data = self.get_enemy_data(enemy_id)
         if not self.__defeat_level_requirement_met(enemy_data, logic_data):
             return False

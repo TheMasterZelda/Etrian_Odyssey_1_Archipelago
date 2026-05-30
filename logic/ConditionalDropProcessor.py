@@ -1,4 +1,4 @@
-from BaseClasses import CollectionState
+from .StateInterface import StateInterface
 from ..data.EnemyData import *
 from .LogicData import *
 from .SingleEnemyBattleProcessor import SingleEnemyBattleProcessor
@@ -85,7 +85,7 @@ class ConditionalDropProcessor:
 
         raise Exception(f"enemy {enemy_id}")
 
-    def can_fulfill_drop_condition(self, enemy_id: int, logic_data: AllLogicData, state: CollectionState) -> bool:
+    def can_fulfill_drop_condition(self, enemy_id: int, logic_data: AllLogicData, state: StateInterface) -> bool:
         enemy_data = ENEMY_BY_ID[enemy_id]
 
         def can_defeat_with_condition() -> bool:

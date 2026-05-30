@@ -1,5 +1,5 @@
-from BaseClasses import CollectionState
 from .QuestProcessor import QuestProcessor
+from .StateInterface import StateInterface
 
 from ..data.CodexData import *
 from ..data.EncounterData import *
@@ -117,20 +117,17 @@ REGION_BY_BOSS: dict[int, list[str]] = generate_region_by_boss_dictionary()
 
 class CodexProcessor:
     max_stratum: int
-    player_id: int
     quest_processor: QuestProcessor
     region_cache: set[str] | None
 
-    def __init__(self, max_stratum: int, player_id: int, quest_processor: QuestProcessor):
-        self.player_id = player_id
+    def __init__(self, max_stratum: int, quest_processor: QuestProcessor):
         self.max_stratum = max_stratum
         self.quest_processor = quest_processor
         self.region_cache = None
 
-    def can_fill_codex_entry(self, enemy_id: int, state: CollectionState, logic_data: AllLogicData) -> bool:
+    def can_fill_codex_entry(self, enemy_id: int, state: StateInterface, logic_data: AllLogicData) -> bool:
         if self.region_cache is None:
-            self.region_cache = set([region_data.name for region_data
-                                     in state.multiworld.worlds[self.player_id].get_regions()])
+            self.region_cache = set(state.get_regions())
 
         if enemy_id not in logic_data.defeatable_enemy.defeatable_enemies:
             return False
@@ -155,7 +152,7 @@ class CodexProcessor:
 
         raise Exception("Not implemented")
 
-    def __can_reach_any_regions(self, regions: list[str], state: CollectionState, logic_data: AllLogicData) -> bool:
+    def __can_reach_any_regions(self, regions: list[str], state: StateInterface, logic_data: AllLogicData) -> bool:
         for region in regions:
             # Skip regions not in the seed (depending on goal).
             if region not in self.region_cache:
@@ -165,11 +162,11 @@ class CodexProcessor:
             region_data = ALL_REGION_DATA_BY_NAME[region]
             if region_data.floor_number > logic_data.current_floor_limit:
                 continue
-            if state.can_reach_region(region, self.player_id):
+            if state.can_reach_region(region):
                 return True
         return False
 
-    def __can_fill_regular_entry(self, codex_data: CodexData, state: CollectionState, logic_data: AllLogicData) -> bool:
+    def __can_fill_regular_entry(self, codex_data: CodexData, state: StateInterface, logic_data: AllLogicData) -> bool:
         # Temporary, since we only support regular encounter monsters.
         #if codex_data.enemy_id not in ENCOUNTER_BY_MONSTER:
         #    return False
