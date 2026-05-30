@@ -4,6 +4,7 @@ from BaseClasses import Location, ItemClassification
 from .Items import EtrianOdysseyItem, EtrianOdysseyItemType
 from .Rules import *
 from .data.EnemyData import EO1Enemies
+from .data.QuestData import QuestData, ALL_QUEST_DATA
 from .data.RegionData import EO1Regions, ALL_REGIONS
 from .data.TreasureData import *
 from .data.MissionData import *
@@ -21,11 +22,12 @@ if TYPE_CHECKING:
 # Treasure Chest use id 1000 to 1139.
 # Codex use id 2000 to 2131.
 # Compendium use id 3000 to 3195.
+# Quests use id 4000 to 4999.
 
 class EtrianOdysseyLocationType(Enum):
     TREASURE_BOX = 0
     MISSION_CLEAR = 1
-    #QUEST
+    QUEST_COMPLETION = 2
     CODEX_ENTRY = 3
     COMPENDIUM_ENTRY = 4
     #FOE
@@ -57,6 +59,11 @@ def create_location_from_compendium_data(compendium_data: CompendiumData) -> Etr
     location.location_type = EtrianOdysseyLocationType.COMPENDIUM_ENTRY
     return location
 
+def create_location_from_quest_data(quest_data: QuestData) -> EtrianOdysseyLocation:
+    location = EtrianOdysseyLocation(None, quest_data.get_full_location_name())
+    location.location_type = EtrianOdysseyLocationType.QUEST_COMPLETION
+    return location
+
 def location_is_handled_in_game(location_id: int) -> bool:
     if location_id == -1:
         return False
@@ -70,7 +77,8 @@ ALL_LOCATIONS_BY_ID: dict[int, EtrianOdysseyLocation] = {
     **{treasure_data.location_id: create_location_from_treasure_data(treasure_data) for treasure_data in ALL_TREASURE_DATA},
     **{mission_data.location_id: create_location_from_mission_data(mission_data) for mission_data in ALL_MISSION_DATA},
     **{codex_data.location_id: create_location_from_codex_data(codex_data) for codex_data in ALL_CODEX_ENTRIES},
-    **{compendium_data.location_id: create_location_from_compendium_data(compendium_data) for compendium_data in COMPENDIUM_TABLE}
+    **{compendium_data.location_id: create_location_from_compendium_data(compendium_data) for compendium_data in COMPENDIUM_TABLE},
+    **{quest_data.location_id: create_location_from_quest_data(quest_data) for quest_data in ALL_QUEST_DATA},
 }
 ALL_LOCATIONS_ID_BY_NAME: dict[str, int] = {ALL_LOCATIONS_BY_ID[location_id].name:location_id for location_id in ALL_LOCATIONS_BY_ID}
 
@@ -84,9 +92,30 @@ def create_all_locations(world: EtrianOdysseyWorld) -> None:
     if bool(world.options.compendium_sanity.value):
         create_compendium_locations(world)
 
+    if bool(world.options.quest_sanity.value):
+        create_quest_completion_locations(world)
+
+def create_quest_completion_locations(world: EtrianOdysseyWorld) -> None:
+    pub_region = world.get_region(EO1Regions.PUB)
+    max_stratum = get_max_stratum_for_goal(EO1Goal(world.options.goal.value))
+
+    def create_location(quest: QuestData):
+        location = EtrianOdysseyLocation(world.player, quest.get_full_location_name(), quest.location_id, pub_region)
+        pub_region.locations.append(location)
+        access_rule = CanCompleteQuest(quest.quest_id)
+        world.set_rule(location, access_rule)
+
+    for quest_data in ALL_QUEST_DATA:
+        # Filter quests based on the max stratum.
+        if quest_data.required_stratum > max_stratum:
+            continue
+
+        create_location(quest_data)
+
 def create_codex_locations(world: EtrianOdysseyWorld) -> None:
     radha_hall_region = world.get_region(EO1Regions.RADHA_HALL)
     max_stratum = get_max_stratum_for_goal(EO1Goal(world.options.goal.value))
+    quest_monsters_enabled = bool(world.options.codex_sanity_include_quest_monsters.value)
 
     def create_location(codex: CodexData):
         location = EtrianOdysseyLocation(world.player, codex.get_full_name(), codex.location_id, radha_hall_region)
@@ -98,6 +127,10 @@ def create_codex_locations(world: EtrianOdysseyWorld) -> None:
         # Filter the codex entry based on the max stratum.
         if codex_data.required_stratum > max_stratum:
             continue
+
+        if codex_data.encounter_type == CodexEncounterType.QUEST:
+            if not quest_monsters_enabled:
+                continue
 
         create_location(codex_data)
 
@@ -274,11 +307,15 @@ def create_goal_event(world: EtrianOdysseyWorld) -> None:
 def create_events(world: EtrianOdysseyWorld) -> None:
     regions: set[str] = {region.name for region in world.get_regions()}
 
-    create_goal_event(world)
+    goal = EO1Goal(world.options.goal.value)
+    goal_stratum = get_max_stratum_for_goal(goal)
 
     def create_event(event_info: EventInfo, region_name: str, access_rule: Rule):
-        if region_name not in regions:
+        if event_info.required_stratum > goal_stratum:
             return
+
+        if region_name not in regions:
+            raise Exception(f"Region {region_name} not available for event {event_info.name}")
 
         region = world.get_region(region_name)
         event_location = EtrianOdysseyLocation(world.player, event_info.name, None, region)
@@ -287,6 +324,9 @@ def create_events(world: EtrianOdysseyWorld) -> None:
         event_location.place_locked_item(event_item)
         region.locations.append(event_location)
         world.set_rule(event_location, access_rule)
+
+    # Goal events.
+    create_goal_event(world)
 
     # Stratum 2 reached
     create_event(EVENT_STRATUM_2_REACHED, EO1Regions.B6F_MAIN, True_())
@@ -301,7 +341,7 @@ def create_events(world: EtrianOdysseyWorld) -> None:
     create_event(EVENT_DISCOVER_CLAW_MARK, EO1Regions.B18F_MAIN, True_())
 
     # The Azure Colossus quest accepted
-    # not implemented yet EO1Regions.SHILLEKA
+    create_event(EVENT_AZURE_COLOSSUS_QUEST_ACCEPTED, EO1Regions.PUB, CanStartQuest(EO1QuestID.THE_AZURE_COLOSSUS))
 
     # Mission 7 Completed
     create_event(EVENT_MISSION_7_COMPLETED, EO1Regions.B20F_MAIN, get_mission_access_rule(world, MISSION_7_DATA.mission_id))
@@ -311,3 +351,6 @@ def create_events(world: EtrianOdysseyWorld) -> None:
 
     # Card Key
     create_event(EVENT_CARD_KEY_OBTAINED, EO1Regions.B21F_MAIN, CanDefeatEncounter((EO1Enemies.REN, EO1Enemies.TLACHTGA)))
+
+    # Quest Items
+    create_event(EVENT_OBTAIN_RADHA_NOTE, EO1Regions.RADHA_HALL, CanReachLocation(MISSION_1_DATA.get_full_name(), EO1Regions.RADHA_HALL))

@@ -51,7 +51,7 @@ class ClassProcessor:
                     continue
                 if skill_logic_data.skill_usable:
                     continue
-                if skill_logic_data.required_level > logic_data.current_level_cap: # Don't count the +2 SP from level for now.
+                if skill_logic_data.required_level > logic_data.get_effective_level_cap(): # Don't count the +2 SP from level for now.
                     continue
 
                 if self.__all_skills_unlocked(skill_logic_data.required_skills, state):
@@ -77,7 +77,7 @@ class ClassProcessor:
                         changed = True
                         continue
 
-                if skill_logic_data.required_level < logic_data.current_level_cap + 2: # + 2 because of the starting SP
+                if skill_logic_data.required_level < logic_data.get_effective_level_cap(): # Don't count the +2 SP from level for now.
                     skill_logic_data.skill_unlocked = False
                     changed = True
 

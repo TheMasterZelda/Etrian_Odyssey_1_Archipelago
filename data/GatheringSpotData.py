@@ -10,7 +10,7 @@ class EO1GatherType(IntEnum):
     MINE = 1
     TAKE = 2
 
-@dataclass
+@dataclass(frozen=True)
 class EO1GatheringSpotData:
     unique_id: int
     gather_type: EO1GatherType

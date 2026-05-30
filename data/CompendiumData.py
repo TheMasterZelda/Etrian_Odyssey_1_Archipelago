@@ -10,12 +10,13 @@ class CompendiumSource(IntEnum):
     GATHERING = 1
     BOTH = 2
 
-@dataclass
+@dataclass(frozen=True)
 class CompendiumData:
     item_id: int
     material_name: str
     location_id: int
     source: CompendiumSource
+    #required_stratum: int | None = None
     conditional_drop: bool = False
 
     def get_full_name(self) -> str:
@@ -33,7 +34,7 @@ COMPENDIUM_TABLE: list[CompendiumData] = [
     CompendiumData(EO1MaterialID.HORN, "Horn", 3008, CompendiumSource.MONSTER),
     CompendiumData(EO1MaterialID.HARDWOOD, "Hardwood", 3009, CompendiumSource.BOTH),
     CompendiumData(EO1MaterialID.VINE, "Vine", 3010, CompendiumSource.MONSTER),
-    #CompendiumData(EO1MaterialID.CHARCOAL, "Charcoal", 3011, CompendiumSource.MONSTER, conditional_drop=True),
+    CompendiumData(EO1MaterialID.CHARCOAL, "Charcoal", 3011, CompendiumSource.MONSTER, conditional_drop=True),
     CompendiumData(EO1MaterialID.GUM_HIDE, "Gum Hide", 3012, CompendiumSource.MONSTER),
     CompendiumData(EO1MaterialID.THORN, "Thorn", 3013, CompendiumSource.MONSTER),
     CompendiumData(EO1MaterialID.METAL_HORN, "Metal Horn", 3014, CompendiumSource.BOTH),
@@ -61,7 +62,7 @@ COMPENDIUM_TABLE: list[CompendiumData] = [
     CompendiumData(EO1MaterialID.GUM_VINE, "Gum Vine", 3036, CompendiumSource.MONSTER),
     CompendiumData(EO1MaterialID.FEATHER, "Feather", 3037, CompendiumSource.MONSTER),
     CompendiumData(EO1MaterialID.TAILBONE, "Tailbone", 3038, CompendiumSource.MONSTER),
-    #CompendiumData(EO1MaterialID.CARMINITE, "Carminite", 3039, CompendiumSource.MONSTER, conditional_drop=True),
+    CompendiumData(EO1MaterialID.CARMINITE, "Carminite", 3039, CompendiumSource.MONSTER, conditional_drop=True),
     CompendiumData(EO1MaterialID.IRON_SHELL, "Iron Shell", 3040, CompendiumSource.MONSTER),
     CompendiumData(EO1MaterialID.THICK_LEAF, "Thick Leaf", 3041, CompendiumSource.MONSTER),
     CompendiumData(EO1MaterialID.BIRD_TALON, "Bird Talon", 3042, CompendiumSource.MONSTER),
@@ -76,7 +77,7 @@ COMPENDIUM_TABLE: list[CompendiumData] = [
     CompendiumData(EO1MaterialID.TOXIC_BARB, "Toxic Barb", 3051, CompendiumSource.BOTH),
     CompendiumData(EO1MaterialID.SHARP_HORN, "Sharp Horn", 3052, CompendiumSource.MONSTER),
     CompendiumData(EO1MaterialID.TOUGH_WING, "Tough Wing", 3053, CompendiumSource.MONSTER),
-    #CompendiumData(EO1MaterialID.TOUGH_FANG, "Tough Fang", 3054, CompendiumSource.MONSTER, conditional_drop=True),
+    #CompendiumData(EO1MaterialID.TOUGH_FANG, "Tough Fang", 3054, CompendiumSource.MONSTER, required_stratum=6, conditional_drop=True),
     CompendiumData(EO1MaterialID.GREAT_TUSK, "Great Tusk", 3055, CompendiumSource.MONSTER),
     CompendiumData(EO1MaterialID.GUM_THROAT, "Gum Throat", 3056, CompendiumSource.MONSTER),
     CompendiumData(EO1MaterialID.ROCK_CORAL, "Rock Coral", 3057, CompendiumSource.BOTH),
@@ -173,15 +174,15 @@ COMPENDIUM_TABLE: list[CompendiumData] = [
     CompendiumData(EO1MaterialID.EVIL_PLUME, "Evil Plume", 3148, CompendiumSource.MONSTER),
     #CompendiumData(EO1MaterialID.EVIL_CREST, "Evil Crest", 3149, CompendiumSource.MONSTER, conditional_drop=True),
     CompendiumData(EO1MaterialID.N1000_SHELL, "1000 Shell", 3150, CompendiumSource.MONSTER),
-    CompendiumData(EO1MaterialID.OLD_SHELL, "Old Shell", 3151, CompendiumSource.MONSTER),
+    CompendiumData(EO1MaterialID.OLD_SHELL, "Old Shell", 3151, CompendiumSource.MONSTER, conditional_drop=True),
     CompendiumData(EO1MaterialID.GEM_SCALE, "Gem Scale", 3152, CompendiumSource.MONSTER),
     CompendiumData(EO1MaterialID.BLACK_ROOT, "Black Root", 3153, CompendiumSource.MONSTER),
-    CompendiumData(EO1MaterialID.GEM_PLUME, "Gem Plume", 3154, CompendiumSource.MONSTER),
+    CompendiumData(EO1MaterialID.GEM_PLUME, "Gem Plume", 3154, CompendiumSource.MONSTER, conditional_drop=True),
     CompendiumData(EO1MaterialID.HEX_MARROW, "Hex Marrow", 3155, CompendiumSource.MONSTER, conditional_drop=True),
     CompendiumData(EO1MaterialID.GOLD_PLUME, "Gold Plume", 3156, CompendiumSource.MONSTER),
     CompendiumData(EO1MaterialID.HELL_WING, "Hell Wing", 3157, CompendiumSource.MONSTER),
-    CompendiumData(EO1MaterialID.VELVET, "Velvet", 3158, CompendiumSource.MONSTER),
-    CompendiumData(EO1MaterialID.HOLED_LIMB, "Holed Limb", 3159, CompendiumSource.MONSTER),
+    CompendiumData(EO1MaterialID.VELVET, "Velvet", 3158, CompendiumSource.MONSTER, conditional_drop=True),
+    CompendiumData(EO1MaterialID.HOLED_LIMB, "Holed Limb", 3159, CompendiumSource.MONSTER, conditional_drop=True),
     CompendiumData(EO1MaterialID.RUBY_SKULL, "Ruby Skull", 3160, CompendiumSource.MONSTER),
     CompendiumData(EO1MaterialID.RUBY_BONE, "Ruby Bone", 3161, CompendiumSource.MONSTER),
     CompendiumData(EO1MaterialID.HEX_CHAIN, "Hex Chain", 3162, CompendiumSource.MONSTER),
@@ -192,11 +193,11 @@ COMPENDIUM_TABLE: list[CompendiumData] = [
     CompendiumData(EO1MaterialID.VOLT_CORE, "Volt Core", 3167, CompendiumSource.MONSTER),
     CompendiumData(EO1MaterialID.FIRE_SCALE, "Fire Scale", 3168, CompendiumSource.MONSTER),
     CompendiumData(EO1MaterialID.FIRE_FANG, "Fire Fang", 3169, CompendiumSource.MONSTER),
-    CompendiumData(EO1MaterialID.STATUE_ARM, "Statue Arm", 3170, CompendiumSource.MONSTER),
-    CompendiumData(EO1MaterialID.BEAST_EYE, "Beast Eye", 3171, CompendiumSource.MONSTER),
+    CompendiumData(EO1MaterialID.STATUE_ARM, "Statue Arm", 3170, CompendiumSource.MONSTER, conditional_drop=True),
+    #CompendiumData(EO1MaterialID.BEAST_EYE, "Beast Eye", 3171, CompendiumSource.MONSTER, conditional_drop=True),
     CompendiumData(EO1MaterialID.FROST_BONE, "Frost Bone", 3172, CompendiumSource.MONSTER),
     CompendiumData(EO1MaterialID.DEMON_CORE, "Demon Core", 3173, CompendiumSource.MONSTER),
-    CompendiumData(EO1MaterialID.EBON_PLUME, "Ebon Plume", 3174, CompendiumSource.MONSTER),
+    CompendiumData(EO1MaterialID.EBON_PLUME, "Ebon Plume", 3174, CompendiumSource.MONSTER, conditional_drop=True),
     CompendiumData(EO1MaterialID.ICE_SPINE, "Ice Spine", 3175, CompendiumSource.MONSTER, conditional_drop=True),
     CompendiumData(EO1MaterialID.BARBEL, "Barbel", 3176, CompendiumSource.MONSTER),
     CompendiumData(EO1MaterialID.ROYAL_VINE, "Royal Vine", 3177, CompendiumSource.MONSTER),
@@ -210,7 +211,7 @@ COMPENDIUM_TABLE: list[CompendiumData] = [
     CompendiumData(EO1MaterialID.VOLT_SCALE, "Volt Scale", 3185, CompendiumSource.MONSTER),
     CompendiumData(EO1MaterialID.YELLOW_ORE, "Yellow Ore", 3186, CompendiumSource.MONSTER),
     CompendiumData(EO1MaterialID.BUG_SCALE, "Bug Scale", 3187, CompendiumSource.MONSTER),
-    CompendiumData(EO1MaterialID.COLD_SCALE, "Cold Scale", 3188, CompendiumSource.MONSTER),
+    CompendiumData(EO1MaterialID.COLD_SCALE, "Cold Scale", 3188, CompendiumSource.MONSTER, conditional_drop=True),
     CompendiumData(EO1MaterialID.ODD_FRUIT, "Odd Fruit", 3189, CompendiumSource.MONSTER),
     CompendiumData(EO1MaterialID.CROSS_SEED, "Cross Seed", 3190, CompendiumSource.GATHERING),
     CompendiumData(EO1MaterialID.NARCISSUS, "Narcissus", 3191, CompendiumSource.GATHERING),

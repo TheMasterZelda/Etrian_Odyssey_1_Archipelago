@@ -19,7 +19,7 @@ class EO1Class2SkillData(NamedTuple):
     required_skill_2_id: int
     required_skill_2_level: int
 
-@dataclass
+@dataclass(frozen=True)
 class EO1ClassStats:
     class_name: str
     hp: list[int]

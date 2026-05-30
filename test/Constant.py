@@ -22,10 +22,13 @@ class OptionKeys:
     SHUFFLE_MASTERY_SKILLS = "shuffle_mastery_skills"
     SHUFFLE_GATHERING_SKILLS = "shuffle_gathering_skills"
     REMOVE_SKILLS_REQUIREMENTS = "remove_skills_requirements"
-    STARTING_SKILL_ITEM_COUNT = "starting_class_item_count"
+    STARTING_SKILL_ITEM_COUNT = "starting_skill_item_count"
     CODEX_SANITY = "codex_sanity"
+    CODEX_SANITY_INCLUDE_QUEST_MONSTERS = "codex_sanity_include_quest_monsters"
     COMPENDIUM_SANITY = "compendium_sanity"
     COMPENDIUM_SANITY_INCLUDE_CONDITIONAL_DROPS = "compendium_sanity_include_conditional_drops"
+    QUEST_SANITY = "quest_sanity"
+    QUEST_COMPLETION_REWARD_HINT = "quest_completion_reward_hint"
     #shop_unlock_material_cost_divider: ShopUnlockMaterialCostDivider irrelevant to the generation
 
 class OptionSets:
@@ -35,13 +38,17 @@ class OptionSets:
     }
     ENABLE_ALL_LOCATIONS = {
         OptionKeys.CODEX_SANITY: True,
+        OptionKeys.CODEX_SANITY_INCLUDE_QUEST_MONSTERS: True,
         OptionKeys.COMPENDIUM_SANITY: True,
         OptionKeys.COMPENDIUM_SANITY_INCLUDE_CONDITIONAL_DROPS: True,
+        OptionKeys.QUEST_SANITY: True,
     }
     DISABLE_ALL_OPTIONAL_LOCATIONS = {
         OptionKeys.CODEX_SANITY: False,
+        OptionKeys.CODEX_SANITY_INCLUDE_QUEST_MONSTERS: False,
         OptionKeys.COMPENDIUM_SANITY: False,
         OptionKeys.COMPENDIUM_SANITY_INCLUDE_CONDITIONAL_DROPS: False,
+        OptionKeys.QUEST_SANITY: False,
     }
     NO_LEVEL_SHUFFLING = {
         OptionKeys.LEVEL_CAP_MODE: LevelCapMode.option_none,

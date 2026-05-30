@@ -9,7 +9,7 @@ class TreasureContentType(IntEnum):
     Item = 0
     Money = 1
 
-@dataclass
+@dataclass(frozen=True)
 class TreasureLogicRequirement:
     mandatory_enemies: list[int]
     require_escape: bool = False
@@ -127,7 +127,7 @@ ALL_TREASURE_DATA: list[TreasureData] = [
     TreasureData(16, 3, "D1 East", TreasureContentType.Item, 2062, EO1Regions.B16F_SECRET_AREA, 1091),  # B16F At [2,15], 0x080E - Fairy Boot
     TreasureData(16, 4, "D5", TreasureContentType.Item, 1030, EO1Regions.B16F_MAIN, 1092),  # B16F At [20,18], 0x0406 - Brigandine
     TreasureData(16, 5, "E2", TreasureContentType.Item, 4288, EO1Regions.B16F_SECRET_AREA, 1093),  # B16F At [6,23], 0x10C0 - Soma
-    TreasureData(17, 0, "", TreasureContentType.Item, 4289, EO1Regions.B17F_SECRET_AREA_NORTH, 1094, TreasureLogicRequirement([EO1Enemies.KINGDILE])),  # B17F At [5,2], 0x10C1 - Somaprime
+    TreasureData(17, 0, "", TreasureContentType.Item, 4289, EO1Regions.B17F_SECRET_AREA_NORTH, 1094, TreasureLogicRequirement([EO1Enemies.KINGDILE]), required_stratum=5),  # B17F At [5,2], 0x10C1 - Somaprime
     TreasureData(17, 1, "C2", TreasureContentType.Item, 4285, EO1Regions.B17F_MAIN, 1095),  # B17F At [7,10], 0x10BD - Amrita II
     TreasureData(17, 2, "D5", TreasureContentType.Item, 2008, EO1Regions.B17F_MAIN, 1096),  # B17F At [24,18], 0x07D8 - Sandy Pin
     TreasureData(18, 0, "", TreasureContentType.Item, 4302, EO1Regions.B18F_WEST, 1097),  # B18F At [1,21], 0x10CE - Axcela II

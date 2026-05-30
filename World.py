@@ -149,7 +149,9 @@ class EtrianOdysseyWorld(World):
 
     def fill_slot_data(self) -> Mapping[str, Any]:
         slot_data = self.options.as_dict(
-            "goal"
+            "goal",
+            SlotDataKeys.QUEST_SANITY,
+            SlotDataKeys.QUEST_COMPLETION_REWARD_HINT,
         )
         return slot_data
 

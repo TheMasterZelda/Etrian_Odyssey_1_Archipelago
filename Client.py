@@ -11,6 +11,7 @@ from .Items import *
 from .Locations import *
 from .data.InventoryItemData import *
 from .data.ItemData import *
+from .data.QuestData import QUEST_DATA_BY_LOCATION_ID, QUEST_DATA_BY_QUEST_ID
 from .data.TreasureData import *
 from .Constant import *
 
@@ -50,12 +51,16 @@ class EtrianOdysseyClient(BizHawkClient):
     system = "NDS"
     #patch_suffix = ".apeo1"
     goal: EO1Goal | None
+    scouted_locations: set[int]
+    quest_completion_reward_hint: bool | None
     key_items_to_process: set[int]
     custom_command_to_run: EtrianOdysseyClientCustomCommands
     custom_command_parameter: Any
 
     def initialize_client(self):
         self.goal = None
+        self.scouted_locations = set()
+        self.quest_completion_reward_hint = None
         self.key_items_to_process = {key_item.item_id for key_item in KEY_ITEMS_WITH_FLAG}
 
     def register_custom_commands(self, ctx: "BizHawkClientContext"):
@@ -323,15 +328,22 @@ class EtrianOdysseyClient(BizHawkClient):
                 compendium_data = COMPENDIUM_BY_LOCATION_ID[location_id]
                 if self.check_compendium_entry(compendium_data.item_id, coco_table, reported_only=False):
                     new_checks.append(location_id)
+            elif location_type == EtrianOdysseyLocationType.QUEST_COMPLETION:
+                quest_data = QUEST_DATA_BY_LOCATION_ID[location_id]
+                if check_flag(quest_data.completion_flag):
+                    new_checks.append(location_id)
             else:
                 raise NotImplementedError(f"Unknown location type: {location_type}")
 
         if new_checks:
             await ctx.check_locations(new_checks)
 
-    async def handle_goal(self, ctx: "BizHawkClientContext", codex_table: bytes):
+    async def handle_goal(self, ctx: "BizHawkClientContext", codex_table: bytes, flag_table: bytes):
         if ctx.finished_game:
             return
+
+        def check_flag(flag_id_to_check: int) -> bool:
+            return self.check_flag(flag_table, flag_id_to_check)
 
         goal_filled = False
         if self.goal == EO1Goal.defeat_fenrir:
@@ -341,7 +353,7 @@ class EtrianOdysseyClient(BizHawkClient):
         elif self.goal == EO1Goal.defeat_cotrangl:
             goal_filled = self.check_codex_entry(EO1Enemies.COTRANGL, codex_table, reported_only=False)
         elif self.goal == EO1Goal.annihilate_the_forest_folk:
-            raise Exception("Annihilate the forest folk goal not implemented. You must goal manually.")
+            goal_filled = check_flag(MISSION_7_CLEAR_FLAG)
         elif self.goal == EO1Goal.defeat_etreant:
             goal_filled = self.check_codex_entry(EO1Enemies.ETREANT, codex_table, reported_only=False)
         elif self.goal == EO1Goal.defeat_primevil:
@@ -425,6 +437,11 @@ class EtrianOdysseyClient(BizHawkClient):
         if self.goal is None:
             self.goal = EO1Goal(ctx.slot_data[SlotDataKeys.GOAL])
 
+            if bool(ctx.slot_data[SlotDataKeys.QUEST_SANITY]):
+                self.quest_completion_reward_hint = bool(ctx.slot_data[SlotDataKeys.QUEST_COMPLETION_REWARD_HINT])
+            else:
+                self.quest_completion_reward_hint = False
+
         try:
             read_results = await bizhawk.read(
                 ctx.bizhawk_ctx,
@@ -466,14 +483,72 @@ class EtrianOdysseyClient(BizHawkClient):
 
             await self.handle_received_items(ctx, save_pointer, read_results[0], read_results[1], guards)
             await self.handle_location_checking(ctx, save_pointer, read_results[2], read_results[3])
-            await self.handle_goal(ctx, read_results[3])
+            await self.handle_goal(ctx, read_results[3], read_results[2])
 
             await self.handle_key_item_flags(ctx, save_pointer + FLAG_TABLE_OFFSET, read_results[2], read_results[4], guards)
+
+            await self.handle_scout(ctx, save_pointer, game_state, guards)
 
             await self.process_custom_commands(ctx, save_pointer + FLAG_TABLE_OFFSET, read_results[2], guards)
         except bizhawk.RequestFailedError:
             # Exit handler and return to main loop to reconnect
             pass
+
+    async def get_quest_scout(self, ctx: "BizHawkClientContext", save_pointer: int, game_state: int, global_guards: Dict[str, Tuple[int, bytes, str]]) -> list[int]:
+        if game_state != 0x09:
+            return []
+
+        guards: Dict[str, Tuple[int, bytes, str]] = {}
+        guards.update(global_guards)
+
+        read_results = await bizhawk.guarded_read(
+            ctx.bizhawk_ctx,
+            [
+                (OBJECT_0X15_STATIC_POINTER, 4, BIZHAWK_ARM9_DOMAIN)
+            ], list(guards.values()))
+
+        if read_results is None:
+            return []
+
+        # Read the static object pointer.
+        obj0x15_pointer = int.from_bytes(read_results[0], byteorder='little')
+
+        if obj0x15_pointer == 0:
+            return []
+
+        guards["OBJ0x15_POINTER"] = (OBJECT_0X15_STATIC_POINTER, obj0x15_pointer.to_bytes(4, "little"), BIZHAWK_ARM9_DOMAIN)
+
+        quest_window_obj_addr = obj0x15_pointer + GENERIC_OBJECT_HEADER_SIZE
+        # Read the instance pointer.
+        read_results = await bizhawk.guarded_read(
+            ctx.bizhawk_ctx,
+            [
+                (quest_window_obj_addr + QUEST_WINDOW_OBJ_QUEST_ARRAY_OFFSET, 2 * 5, BIZHAWK_ARM9_DOMAIN),
+                (quest_window_obj_addr + QUEST_WINDOW_OBJ_CURRENT_QUEST_INDEX_OFFSET, 4, BIZHAWK_ARM9_DOMAIN),
+            ], list(guards.values()))
+
+        if read_results is None:
+            return []
+
+        quest_index = int.from_bytes(read_results[1], byteorder='little')
+        quest_id = int.from_bytes(read_results[0][quest_index * 2:quest_index * 2 + 2], "little")
+
+        if quest_id not in QUEST_DATA_BY_QUEST_ID:
+            return []
+
+        location_id = QUEST_DATA_BY_QUEST_ID[quest_id].location_id
+
+        return [location_id]
+
+    async def handle_scout(self, ctx: "BizHawkClientContext", save_pointer: int, game_state: int, guards: Dict[str, Tuple[int, bytes, str]]):
+        locations_to_scout: set[int] = set()
+        if self.quest_completion_reward_hint:
+            locations_to_scout.update(await self.get_quest_scout(ctx, save_pointer, game_state, guards))
+
+        if len(locations_to_scout) > 0:
+            locations_to_scout.difference_update(self.scouted_locations)
+            await ctx.send_msgs([{"cmd": "LocationScouts", "locations": locations_to_scout, "create_as_hint": 2}])
+            self.scouted_locations.update(locations_to_scout)
 
     async def process_custom_commands(self,
                                       ctx: "BizHawkClientContext",

@@ -104,6 +104,8 @@ def get_max_stratum_for_goal(goal: EO1Goal) -> int:
 
 class SlotDataKeys:
     GOAL = "goal"
+    QUEST_SANITY = "quest_sanity"
+    QUEST_COMPLETION_REWARD_HINT = "quest_completion_reward_hint"
 #    PROGRESSIVE_LEVEL_CAP_VALUE = "level_cap_increase_value"
 #    PROGRESSIVE_FLOOR_LIMIT_VALUE = "floor_limit_increase_value"
 

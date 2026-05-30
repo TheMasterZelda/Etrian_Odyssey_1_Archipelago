@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from BaseClasses import CollectionState
+from . import QuestProcessor
 from .SustainProcessor import SustainProcessor
 from ..Items import EtrianOdysseyItemType, EtrianOdysseyItem
 from ..data.ItemData import *
@@ -12,7 +13,7 @@ from ..data.RegionData import *
 from ..Constant import *
 from typing import TYPE_CHECKING
 
-from collections.abc import Iterator, Callable
+from collections.abc import Callable
 
 from .LogicData import *
 from .ClassProcessor import *
@@ -23,6 +24,7 @@ from .CodexProcessor import *
 from .CompendiumProcessor import *
 from .ConditionalDropProcessor import *
 from .ShopUnlockProcessor import *
+from .QuestProcessor import *
 from .simplified_logic.SimplifiedSingleEnemyBattleProcessor import SimplifiedSingleEnemyBattleProcessor
 
 if TYPE_CHECKING:
@@ -43,6 +45,7 @@ class LogicManager:
     conditional_drop_processor: ConditionalDropProcessor
     shop_unlock_processor: ShopUnlockProcessor
     sustain_processor: SustainProcessor
+    quest_processor: QuestProcessor.QuestProcessor
 
     def __init__(self, options: EtrianOdysseyOptions, player_id: int, fill_default=True) -> None:
         self.logic_data = AllLogicData(fill_default)
@@ -59,7 +62,8 @@ class LogicManager:
         max_stratum = get_max_stratum_for_goal(EO1Goal(options.goal.value))
 
         self.conditional_drop_processor = ConditionalDropProcessor(self.enemy_battle_processor)
-        self.codex_processor = CodexProcessor(max_stratum, player_id)
+        self.quest_processor = QuestProcessor(player_id, self.encounter_battle_processor)
+        self.codex_processor = CodexProcessor(max_stratum, player_id, self.quest_processor)
         self.compendium_processor = CompendiumProcessor(max_stratum, player_id, self.conditional_drop_processor)
         self.shop_unlock_processor = ShopUnlockProcessor()
 
@@ -194,6 +198,9 @@ class LogicManager:
         region_data = ALL_REGION_DATA_BY_NAME[region_name]
         self.__update_encounter_group(state)
 
+        if region_data.is_always_survivable:
+            return True
+
         for encounter_group_id in region_data.encounters:
             if encounter_group_id not in self.logic_data.encounter_group.survivable_encounter_groups:
                 return False
@@ -233,6 +240,21 @@ class LogicManager:
     def can_fill_compendium_entry(self, state: CollectionState, item_id: int) -> bool:
         self.__update_fillable_compendium_entries(state)
         return item_id in self.logic_data.compendium_logic_data.fillable_compendium_entries
+
+    def can_start_quest(self, state: CollectionState, quest_id: int) -> bool:
+        self.__update_class_data(state)
+        self.__update_defeatable_enemies(state)
+        #self.__update_fillable_codex_entries(state)
+        #self.__update_fillable_compendium_entries(state)
+        return self.quest_processor.can_start_quest(quest_id, self.logic_data, state)
+
+    def can_complete_quest(self, state: CollectionState, quest_id: int) -> bool:
+        self.__update_class_data(state)
+        self.__update_defeatable_enemies(state)
+        self.__update_fillable_codex_entries(state)
+        self.__update_fillable_compendium_entries(state)
+        self.__update_shop_entries(state)
+        return self.quest_processor.can_complete_quest(quest_id, self.logic_data, state)
 
     def __update_defeatable_enemies(self, state: CollectionState) -> None:
         self.__update_class_data(state)

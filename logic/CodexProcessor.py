@@ -1,4 +1,5 @@
 from BaseClasses import CollectionState
+from .QuestProcessor import QuestProcessor
 
 from ..data.CodexData import *
 from ..data.EncounterData import *
@@ -117,11 +118,13 @@ REGION_BY_BOSS: dict[int, list[str]] = generate_region_by_boss_dictionary()
 class CodexProcessor:
     max_stratum: int
     player_id: int
+    quest_processor: QuestProcessor
     region_cache: set[str] | None
 
-    def __init__(self, max_stratum: int, player_id: int):
+    def __init__(self, max_stratum: int, player_id: int, quest_processor: QuestProcessor):
         self.player_id = player_id
         self.max_stratum = max_stratum
+        self.quest_processor = quest_processor
         self.region_cache = None
 
     def can_fill_codex_entry(self, enemy_id: int, state: CollectionState, logic_data: AllLogicData) -> bool:
@@ -146,7 +149,9 @@ class CodexProcessor:
         elif codex_data.encounter_type == CodexEncounterType.MINION:
             return self.__can_fill_minion_entry(codex_data, state, logic_data)
         elif codex_data.encounter_type == CodexEncounterType.QUEST:
-            return False
+            return self.__can_fill_quest_entry(codex_data, state, logic_data)
+        elif codex_data.encounter_type == CodexEncounterType.SPECIAL:
+            return self.__can_fill_special_entry(codex_data, state, logic_data)
 
         raise Exception("Not implemented")
 
@@ -201,4 +206,15 @@ class CodexProcessor:
         # If other minion types get added, add a validation the enemy type here isn't also minion (to avoid stackoverflow mistakes).
         return self.can_fill_codex_entry(EO1Enemies.CERNUNOS, state, logic_data)
 
+    def __can_fill_quest_entry(self, codex_data, state, logic_data) -> bool:
+        if codex_data.quest_id is None:
+            raise Exception(f"Codex entry {codex_data.codex_id} of type Quest is lacking a defined Quest ID.")
 
+        return self.quest_processor.can_complete_quest(codex_data.quest_id, logic_data, state)
+
+    def __can_fill_special_entry(self, codex_data, state, logic_data) -> bool:
+        if codex_data.enemy_id == EO1Enemies.PONDCLAW:
+            # Pondclaw requires access to B8F to start a miniquest, and fight it on B7F.
+            return self.__can_reach_any_regions([EO1Regions.B8F_MAIN], state, logic_data)
+        else:
+            raise Exception(f"Unimplemented Special Codex entry {codex_data.codex_id} for enemy {codex_data.enemy_id}")

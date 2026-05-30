@@ -21,7 +21,7 @@ class EtrianOdysseyGoal(Choice):
     option_defeat_fenrir = EO1Goal.defeat_fenrir.value
     option_defeat_cernunos = EO1Goal.defeat_cernunos.value
     option_defeat_cotrangl = EO1Goal.defeat_cotrangl.value
-    #option_annihilate_the_forest_folk = EO1Goal.annihilate_the_forest_folk.value
+    option_annihilate_the_forest_folk = EO1Goal.annihilate_the_forest_folk.value
     option_defeat_etreant  = EO1Goal.defeat_etreant.value
     #option_defeat_primevil = EO1Goal.defeat_primevil.value
     default = EO1Goal.defeat_etreant.value
@@ -56,7 +56,7 @@ class BattleLogicMode(Choice):
     option_simplified = BattleLogicModeType.simplified.value
     option_level_only = BattleLogicModeType.level_only.value
     option_no_logic = BattleLogicModeType.no_logic.value
-    default = BattleLogicModeType.level_only.value
+    default = BattleLogicModeType.simplified.value
 
 class BattleLogicDifficulty(Choice):
     """
@@ -340,6 +340,27 @@ class CodexSanity(DefaultOnToggle):
 
     display_name = "Codex Sanity"
 
+class CodexSanityIncludeQuestMonsters(DefaultOnToggle):
+    """
+    Shuffles the Quest only Monster Codex entries as Locations.
+
+    Note: Only used if "codex_sanity" is enabled.
+    Quest only monsters are:
+    - Fireater
+    - Toxinfly
+    - Omnivore
+    - Nightoad
+    - Hextoad
+    - Steelweb
+    - Golem
+    - Alraune
+    - Wyrm
+    - Drake
+    - Dragon
+    """
+
+    display_name = "Codex Sanity Include Monsters"
+
 # Compendiumsanity
 class CompendiumSanity(Toggle):
     """
@@ -357,7 +378,41 @@ class CompendiumSanityIncludeConditionalDrops(DefaultOnToggle):
 
     display_name = "Compendium Sanity Include Conditional Drops"
 
+# Quest sanity
+class QuestSanity(Toggle):
+    """
+    Shuffles Quest completions as Locations. See the Quest Document for more information.
+    TODO Link to Quest Document.
+    """
+
+    display_name = "Quest Sanity"
+
+class QuestCompletionRewardHint(DefaultOnToggle):
+    """
+    When enabled, replace part of the quest description in-game with the name of the reward for clearing the quest.
+    """
+    display_name = "Quest Completion Reward Hint"
+
 # QoL options
+class MinimizeQuestMaterialGrind(DefaultOnToggle):
+    """
+    When enabled, reduce the item requirement for completing the following quests to 1 per material:
+    - The leathersmith's favor
+    - Chef's request I
+    - Fashionista I
+    - Prayer to the stars
+    - Chef's request II
+    - Under construction
+    - A sister's parting gift
+    - The Crystal Maiden
+    - Emblem of love
+    - The gold enthusiast
+
+    This option is fully independent of Quest Sanity, and it doesn't affect its logic.
+    """
+
+    display_name = "Minimize Quest Material Grind"
+
 class ShopUnlockMaterialCostDivider(Choice):
     """
     Reduce the amount of material required to be sold to unlock new shop items.
@@ -389,7 +444,6 @@ class MaterialSellValueMultiplier(Range):
     range_end = 100
     default = 1
 
-# Quest sanity
 # FOEsanity
 # Shopsanity
 # Tilesanity
@@ -425,8 +479,12 @@ class EtrianOdysseyOptions(PerGameCommonOptions):
     remove_skills_requirements: RemoveSkillsRequirements
     starting_skill_item_count: StartingSkillItemCount
     codex_sanity: CodexSanity
+    codex_sanity_include_quest_monsters: CodexSanityIncludeQuestMonsters
     compendium_sanity: CompendiumSanity
     compendium_sanity_include_conditional_drops: CompendiumSanityIncludeConditionalDrops
+    quest_sanity: QuestSanity
+    quest_completion_reward_hint: QuestCompletionRewardHint
+    minimize_quest_material_grind: MinimizeQuestMaterialGrind
     shop_unlock_material_cost_divider: ShopUnlockMaterialCostDivider
     material_sell_value_multiplier: MaterialSellValueMultiplier
 

@@ -1,9 +1,10 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Callable, cast
 from dataclasses import dataclass, field
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod, ABCMeta
 
 from BaseClasses import CollectionState
+from .EnemyAttributes import EnemyAttributes
 from ..LogicData import SingleClassLogicData, AllLogicData, SkillLogicData
 from ...data.Generic import *
 
@@ -11,7 +12,6 @@ from ..SkillHelper import *
 import itertools
 
 from .SimplifiedClassValues import *
-from .SimplifiedEnemyValues import *
 from .SimplifiedSkillValues import *
 
 from .Constant import *
@@ -78,15 +78,29 @@ def get_effective_skill_viability_level(active_skill_values: ActiveSkillValues, 
 
     raise Exception(f"Unknown Situational Cause: {cause}")
 
-@dataclass
+@dataclass(frozen=True)
 class SVCriteria(ABC):
+    @abstractmethod
+    def copy(self) -> SVCriteria:
+        pass
+
     @abstractmethod
     def evaluate_criteria(self, enemy_attributes: EnemyAttributes, class_logic_data: list[SingleClassLogicData], all_logic_data: AllLogicData) -> bool:
         pass
 
-@dataclass
-class OrSVCriteria(SVCriteria):
+@dataclass(frozen=True)
+class GroupSVCriteria(SVCriteria, metaclass=ABCMeta):
     criteria: list[SVCriteria]
+
+@dataclass(frozen=True)
+class OrSVCriteria(GroupSVCriteria):
+    def copy(self) -> SVCriteria:
+        new_copy = OrSVCriteria([])
+
+        for inner_criteria in self.criteria:
+            new_copy.criteria.append(inner_criteria.copy())
+
+        return new_copy
 
     def evaluate_criteria(self, enemy_attributes: EnemyAttributes, class_logic_data: list[SingleClassLogicData], all_logic_data: AllLogicData) -> bool:
         for inner_criteria in self.criteria:
@@ -94,9 +108,15 @@ class OrSVCriteria(SVCriteria):
                 return True
         return False
 
-@dataclass
-class AndSVCriteria(SVCriteria):
-    criteria: list[SVCriteria]
+@dataclass(frozen=True)
+class AndSVCriteria(GroupSVCriteria):
+    def copy(self) -> SVCriteria:
+        new_copy = AndSVCriteria([])
+
+        for inner_criteria in self.criteria:
+            new_copy.criteria.append(inner_criteria.copy())
+
+        return new_copy
 
     def evaluate_criteria(self, enemy_attributes: EnemyAttributes, class_logic_data: list[SingleClassLogicData], all_logic_data: AllLogicData) -> bool:
         for inner_criteria in self.criteria:
@@ -104,22 +124,31 @@ class AndSVCriteria(SVCriteria):
                 return False
         return True
 
-@dataclass
+@dataclass(frozen=True)
 class TrueSVCriteria(SVCriteria):
+    def copy(self) -> SVCriteria:
+        return TrueSVCriteria()
+
     def evaluate_criteria(self, enemy_attributes: EnemyAttributes, class_logic_data: list[SingleClassLogicData], all_logic_data: AllLogicData) -> bool:
         return True
 
-@dataclass
+@dataclass(frozen=True)
 class FalseSVCriteria(SVCriteria):
+    def copy(self) -> SVCriteria:
+        return FalseSVCriteria()
+
     def evaluate_criteria(self, enemy_attributes: EnemyAttributes, class_logic_data: list[SingleClassLogicData], all_logic_data: AllLogicData) -> bool:
         return False
 
-@dataclass
+@dataclass(frozen=True)
 class ClassSVCriteria(SVCriteria):
     front_class_count: int | None = None
     back_class_count: int | None = None
     total_class_count: int | None = None
     criteria: SVCriteria = field(default_factory=TrueSVCriteria)
+
+    def copy(self) -> SVCriteria:
+        return ClassSVCriteria(self.front_class_count, self.back_class_count, self.total_class_count, self.criteria.copy())
 
     def evaluate_criteria(self, enemy_attributes: EnemyAttributes, class_logic_data: list[SingleClassLogicData], all_logic_data: AllLogicData) -> bool:
         front_row_count = 0
@@ -181,24 +210,31 @@ class PlayerParty:
         return True
 
     def clone(self) -> PlayerParty:
-        party = PlayerParty([])
-        party.members = self.members.copy()
-        return party
+        return PlayerParty(self.members.copy())
 
     def members_as_set(self) -> set[str]:
         return set(self.members)
 
 
-@dataclass
+@dataclass(frozen=True)
 class AdventurerMatch:
     match_count: int
     criteria: SVCriteria = field(default_factory=TrueSVCriteria)
 
+    def copy(self) -> AdventurerMatch:
+        return AdventurerMatch(self.match_count, self.criteria.copy())
 
-@dataclass
+
+@dataclass(frozen=True)
 class PartySVCriteria(SVCriteria):
     valid_class_criteria: SVCriteria = field(default_factory=TrueSVCriteria)
     extra_criteria: list[AdventurerMatch] = field(default_factory=list)
+
+    def copy(self) -> SVCriteria:
+        new_copy = PartySVCriteria(self.valid_class_criteria.copy(), [])
+        for extra_criteria in self.extra_criteria:
+            new_copy.extra_criteria.append(extra_criteria.copy())
+        return new_copy
 
     @staticmethod
     def build_possible_party(eligible_class: list[str], front_row_class: set[str], back_row_class: set[str], allow_repeats: bool):
@@ -272,8 +308,11 @@ class PartySVCriteria(SVCriteria):
 
         return False
 
-@dataclass
+@dataclass(frozen=True)
 class HasAntiStatusSVCriteria(SVCriteria):
+    def copy(self) -> SVCriteria:
+        return HasAntiStatusSVCriteria()
+
     def evaluate_criteria(self, enemy_attributes: EnemyAttributes, class_logic_data: list[SingleClassLogicData], all_logic_data: AllLogicData) -> bool:
         # First, check for a status heal skill.
         for class_data in class_logic_data:
@@ -302,14 +341,20 @@ class HasAntiStatusSVCriteria(SVCriteria):
         return False
 
 
-@dataclass
+@dataclass(frozen=True)
 class HasAntiBindSVCriteria(SVCriteria):
+    def copy(self) -> SVCriteria:
+        return HasAntiBindSVCriteria()
+
     def evaluate_criteria(self, enemy_attributes: EnemyAttributes, class_logic_data: list[SingleClassLogicData], all_logic_data: AllLogicData) -> bool:
         return True # Theriaca A is always obtainable, since the only material required are Bug Wing.
 
-@dataclass
+@dataclass(frozen=True)
 class CanInflictAilment(SVCriteria):
     ailment: EO1Ailment
+
+    def copy(self) -> SVCriteria:
+        return CanInflictAilment(self.ailment)
 
     def evaluate_criteria(self, enemy_attributes: EnemyAttributes, class_logic_data: list[SingleClassLogicData], all_logic_data: AllLogicData) -> bool:
         for class_data in class_logic_data:
@@ -338,7 +383,7 @@ class IndividualClassCriteriaBase(SVCriteria):
     def evaluate_single_class(self, enemy_attributes: EnemyAttributes, class_data: SingleClassLogicData, all_logic_data: AllLogicData) -> bool:
         pass
 
-@dataclass
+@dataclass(frozen=True)
 class SkillCountCriteriaBase(IndividualClassCriteriaBase):
     skill_count: int = 1
 
@@ -369,11 +414,20 @@ class SkillCountCriteriaBase(IndividualClassCriteriaBase):
     def evaluate_single_skill(self, skill: SkillLogicData, enemy_attributes: EnemyAttributes, class_data: SingleClassLogicData, all_logic_data: AllLogicData) -> bool:
         pass
 
-@dataclass
+@dataclass(frozen=True)
 class CanUseActiveSkill(SkillCountCriteriaBase):
     damage_type_resistances: list[EO1Element] = field(default_factory=list)
     ailment_resistances: list[EO1Ailment] = field(default_factory=list)
     skill_viability_level: SkillViabilityLevel | None = None
+    ignore_immunities: bool = False
+
+    def copy(self) -> SVCriteria:
+        return CanUseActiveSkill(
+            self.skill_count,
+            self.damage_type_resistances.copy(),
+            self.ailment_resistances.copy(),
+            self.skill_viability_level,
+            self.ignore_immunities)
 
     @staticmethod
     def get_as_active_skill_values(skill_values: SimplifiedSkillValues) -> ActiveSkillValues:
@@ -396,12 +450,13 @@ class CanUseActiveSkill(SkillCountCriteriaBase):
         skill_data = self.get_skill_data(skill)
 
         if active_skill_values.is_damage_skill():
-            for element in enemy_attributes.damage_type_immunity:
-                if skill_data.primary_element == element:
-                    return False
-                elif skill_data.secondary_element is not None:
-                    if skill_data.secondary_element == element:
+            if not self.ignore_immunities:
+                for element in enemy_attributes.damage_type_immunity:
+                    if skill_data.primary_element == element:
                         return False
+                    elif skill_data.secondary_element is not None:
+                        if skill_data.secondary_element == element:
+                            return False
 
             # TODO review
             for element in self.damage_type_resistances:
@@ -416,10 +471,20 @@ class CanUseActiveSkill(SkillCountCriteriaBase):
 
         return True
 
-@dataclass
+@dataclass(frozen=True)
 class CanUseDamageSkill(CanUseActiveSkill):
     skill_power: SkillPower | None = None
     damage_type: EO1Element | None = None
+
+    def copy(self) -> SVCriteria:
+        return CanUseDamageSkill(
+            self.skill_count,
+            self.damage_type_resistances.copy(),
+            self.ailment_resistances.copy(),
+            self.skill_viability_level,
+            self.ignore_immunities,
+            self.skill_power,
+            self.damage_type)
 
     def evaluate_single_skill(self, skill: SkillLogicData, enemy_attributes: EnemyAttributes, class_data: SingleClassLogicData, all_logic_data: AllLogicData) -> bool:
         if not super(CanUseDamageSkill, self).evaluate_single_skill(skill, enemy_attributes, class_data, all_logic_data):
@@ -450,9 +515,19 @@ class CanUseDamageSkill(CanUseActiveSkill):
         # Passed all filters.
         return True
 
-@dataclass
+@dataclass(frozen=True)
 class CanUseAOEDamageMitigationSkill(CanUseActiveSkill):
     damage_type: EO1Element | None = None
+
+
+    def copy(self) -> SVCriteria:
+        return CanUseAOEDamageMitigationSkill(
+            self.skill_count,
+            self.damage_type_resistances.copy(),
+            self.ailment_resistances.copy(),
+            self.skill_viability_level,
+            self.ignore_immunities,
+            self.damage_type)
 
     def evaluate_single_skill(self, skill: SkillLogicData, enemy_attributes: EnemyAttributes, class_data: SingleClassLogicData, all_logic_data: AllLogicData) -> bool:
         if not super(CanUseAOEDamageMitigationSkill, self).evaluate_single_skill(skill, enemy_attributes, class_data, all_logic_data):
@@ -521,6 +596,13 @@ class CanUseAOEDamageMitigationSkill(CanUseActiveSkill):
         return False
 
 class CanUseAOEHealSkill(CanUseActiveSkill):
+    def copy(self) -> SVCriteria:
+        return CanUseAOEHealSkill(
+            self.skill_count,
+            self.damage_type_resistances.copy(),
+            self.ailment_resistances.copy(),
+            self.skill_viability_level)
+
     def evaluate_single_skill(self, skill: SkillLogicData, enemy_attributes: EnemyAttributes, class_data: SingleClassLogicData, all_logic_data: AllLogicData) -> bool:
         if not super(CanUseAOEHealSkill, self).evaluate_single_skill(skill, enemy_attributes, class_data, all_logic_data):
             return False
@@ -544,6 +626,9 @@ class CanUseAOEHealSkill(CanUseActiveSkill):
         return False
 
 class HasDefensivePassive(SkillCountCriteriaBase):
+    def copy(self) -> SVCriteria:
+        return HasDefensivePassive(self.skill_count)
+
     @staticmethod
     def get_as_passive_stat_skill_values(skill_values: SimplifiedSkillValues) -> PassiveStatSkillValues:
         return cast(PassiveStatSkillValues, skill_values)
@@ -566,6 +651,9 @@ class HasDefensivePassive(SkillCountCriteriaBase):
         return False
 
 class HasOffensivePassive(SkillCountCriteriaBase):
+    def copy(self) -> SVCriteria:
+        return HasOffensivePassive(self.skill_count)
+
     @staticmethod
     def get_as_passive_stat_skill_values(skill_values: SimplifiedSkillValues) -> PassiveStatSkillValues:
         return cast(PassiveStatSkillValues, skill_values)
