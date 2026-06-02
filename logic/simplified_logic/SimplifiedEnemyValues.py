@@ -2,38 +2,16 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from ...data.EnemyData import EO1Enemies
-from ...data.Generic import EO1Element
+from ...data.Generic import EO1Element, EO1Ailment
+from .EnemyAttributes import EnemyAttributes
 
 from .Constant import *
 from .SimplifiedValuesCriteria import *
 
 # For some reason the IDE scream about missing import, despite not being true.
-from .SimplifiedValuesCriteria import CanUseActiveSkill, OrSVCriteria
+from .SimplifiedValuesCriteria import SVCriteria, CanUseActiveSkill, OrSVCriteria
 
 
-@dataclass
-class EnemyAttributes:
-    damage_type_resistance: list[EO1Element] = field(default_factory=list)
-    damage_type_immunity: list[EO1Element] = field(default_factory=list)
-    damage_type_weakness: list[EO1Element] = field(default_factory=list)
-    ailment_resistance: list[EO1Element] = field(default_factory=list)
-    skills_body_use: list[EO1BodyPart] = field(default_factory=list)
-    can_inflict_status_effect: bool = False
-    can_inflict_bind: bool = False
-    can_apply_buff: bool = False # TODO change for a list of buff effects to handle counter?
-    # TODO list of debuff that can be applied to the party.
-
-    def copy(self) -> EnemyAttributes:
-        new_copy = EnemyAttributes()
-        new_copy.damage_type_resistance = self.damage_type_resistance.copy()
-        new_copy.damage_type_immunity = self.damage_type_immunity.copy()
-        new_copy.damage_type_weakness = self.damage_type_weakness.copy()
-        new_copy.ailment_resistance = self.ailment_resistance.copy()
-        new_copy.skills_body_use = self.skills_body_use.copy()
-        new_copy.can_inflict_status_effect = self.can_inflict_status_effect
-        new_copy.can_inflict_bind = self.can_inflict_bind
-        new_copy.can_apply_buff = self.can_apply_buff
-        return new_copy
 
 @dataclass
 class SimplifiedEnemyValues:
@@ -499,7 +477,7 @@ SIMPLIFIED_ENEMY_VALUES_TABLE: list[SimplifiedEnemyValues] = [
                           attributes=EnemyAttributes(
                               skills_body_use=[EO1BodyPart.LEG]
                           )),
-    SimplifiedEnemyValues(EO1Enemies.PONDCLAW, FalseSVCriteria(),
+    SimplifiedEnemyValues(EO1Enemies.PONDCLAW, TrueSVCriteria(),
                           attributes=EnemyAttributes(
                               skills_body_use=[EO1BodyPart.HEAD]
 
@@ -1037,25 +1015,134 @@ SIMPLIFIED_ENEMY_VALUES_TABLE: list[SimplifiedEnemyValues] = [
                               skills_body_use=[EO1BodyPart.HEAD, EO1BodyPart.ARM, EO1BodyPart.LEG],
                               can_inflict_bind=True
                           )),
-    SimplifiedEnemyValues(EO1Enemies.GOLEM, TrueSVCriteria(),
+    SimplifiedEnemyValues(EO1Enemies.GOLEM,
+                          PartySVCriteria(
+                              valid_class_criteria=CanUseActiveSkill(
+                                  skill_count=2,
+                                  skill_viability_level=SkillViabilityLevel.NORMAL
+                              ),
+                              extra_criteria=[
+                                  AdventurerMatch(
+                                      match_count=2,
+                                      criteria=OrSVCriteria([
+                                          CanUseAOEDamageMitigationSkill(damage_type=EO1Element.BASH),
+                                          CanUseAOEHealSkill()
+                                      ])
+                                  ),
+                                  AdventurerMatch(
+                                      match_count=3,
+                                      criteria=CanUseDamageSkill(skill_power=SkillPower.MEDIUM)
+                                  )
+                              ]
+                          ),
                           attributes=EnemyAttributes(
                               skills_body_use=[EO1BodyPart.HEAD, EO1BodyPart.ARM],
-                              can_inflict_status_effect=True
+                              can_inflict_status_effect=True,
+                              can_apply_buff=True
                           )), # Block, Ward, Regen buffs
-    #    SimplifiedEnemyValues(EO1Enemies.ALRAUNE), # Ice Thunder Immunity # Use Head Arm Leg
-    #    SimplifiedEnemyValues(EO1Enemies.MANTICOR), # Use Head Leg
+    SimplifiedEnemyValues(EO1Enemies.ALRAUNE,
+                          PartySVCriteria(
+                              valid_class_criteria=CanUseActiveSkill(
+                                  skill_count=3,
+                                  skill_viability_level=SkillViabilityLevel.NORMAL
+                              ),
+                              extra_criteria=[
+                                  AdventurerMatch(
+                                      match_count=2,
+                                      criteria=OrSVCriteria([
+                                          CanUseAOEDamageMitigationSkill(damage_type=EO1Element.FIRE),
+                                          CanUseAOEDamageMitigationSkill(damage_type=EO1Element.THUNDER),
+                                          CanUseAOEHealSkill()
+                                      ])
+                                  ),
+                                  AdventurerMatch(
+                                      match_count=3,
+                                      criteria=CanUseDamageSkill(skill_power=SkillPower.MEDIUM)
+                                  )
+                              ]
+                          ),
+                          attributes=EnemyAttributes(
+                              damage_type_immunity=[EO1Element.THUNDER, EO1Element.FIRE],
+                              skills_body_use=[EO1BodyPart.HEAD, EO1BodyPart.ARM, EO1BodyPart.LEG],
+                              can_inflict_status_effect=True
+                          )), # Ice Thunder Immunity # Use Head Arm Leg
+    SimplifiedEnemyValues(EO1Enemies.MANTICOR,
+                          AndSVCriteria([
+                              HasAntiStatusSVCriteria(),
+                              PartySVCriteria(
+                                  valid_class_criteria=CanUseActiveSkill(
+                                      skill_count=3,
+                                      skill_viability_level=SkillViabilityLevel.NORMAL
+                                  ),
+                                  extra_criteria=[
+                                      AdventurerMatch(
+                                          match_count=1,
+                                          criteria=OrSVCriteria([
+                                              # TODO validate damage type
+                                              CanUseAOEDamageMitigationSkill(damage_type=EO1Element.STAB),
+                                              CanUseAOEHealSkill()
+                                          ])
+                                      ),
+                                      AdventurerMatch(
+                                          match_count=3,
+                                          criteria=CanUseDamageSkill(skill_power=SkillPower.MEDIUM)
+                                      )
+                                  ]
+                              )
+                          ]),
+                          attributes=EnemyAttributes(
+                              skills_body_use=[EO1BodyPart.HEAD, EO1BodyPart.LEG],
+                              can_inflict_status_effect=True,
+                          )), # Use Head Leg
     #    SimplifiedEnemyValues(EO1Enemies.WYRM),  # Fire Immunity # Use Head Arm Leg
     #    SimplifiedEnemyValues(EO1Enemies.DRAKE), # Ice Immunity  # Use Head Arm Leg
     #    SimplifiedEnemyValues(EO1Enemies.DRAGON), # Thunder Immunity # Use Head Arm
     #
     #    # Quest enemies
-    #    SimplifiedEnemyValues(EO1Enemies.FIREATER), # Use Head # Corrode (debuff)
-    #    SimplifiedEnemyValues(EO1Enemies.TOXINFLY), # Use Leg # Inflict Poison
-    #    SimplifiedEnemyValues(EO1Enemies.OMNIVORE), # Use Head Arm # Inflict binds
-    #    SimplifiedEnemyValues(EO1Enemies.STEELWEB), # Use Head
+    SimplifiedEnemyValues(EO1Enemies.FIREATER,
+                          PartySVCriteria(
+                              valid_class_criteria=CanUseActiveSkill(
+                                  skill_viability_level=SkillViabilityLevel.NORMAL
+                              ),
+                              extra_criteria=[
+                                  AdventurerMatch(
+                                      match_count=2,
+                                      criteria=OrSVCriteria([
+                                          CanUseDamageSkill(damage_type=EO1Element.STAB),
+                                          CanUseDamageSkill(damage_type=EO1Element.ICE),
+                                          CanUseAOEDamageMitigationSkill(damage_type=EO1Element.FIRE),
+                                      ])
+                                  )
+                              ]
+                          ),
+                          attributes=EnemyAttributes(
+                              skills_body_use=[EO1BodyPart.HEAD],
+                          )),  # Use Head # Corrode (debuff)
+    SimplifiedEnemyValues(EO1Enemies.TOXINFLY, TrueSVCriteria(),
+                          attributes=EnemyAttributes(
+                              skills_body_use=[EO1BodyPart.LEG],
+                              can_inflict_status_effect=True
+                          )), # Use Leg # Inflict Poison
+    SimplifiedEnemyValues(EO1Enemies.OMNIVORE, TrueSVCriteria(),
+                          attributes=EnemyAttributes(
+                              skills_body_use=[EO1BodyPart.HEAD, EO1BodyPart.ARM],
+                              can_inflict_bind=True
+                          )), # Use Head Arm # Inflict binds
+    SimplifiedEnemyValues(EO1Enemies.STEELWEB, TrueSVCriteria(),
+                          attributes=EnemyAttributes(
+                              skills_body_use=[EO1BodyPart.HEAD],
+                          )), # Use Head
     #    SimplifiedEnemyValues(EO1Enemies.GOUDARAT),
-    #    SimplifiedEnemyValues(EO1Enemies.NIGHTOAD), # Use Head
-    #    SimplifiedEnemyValues(EO1Enemies.HEXTOAD), # Use Head
+    SimplifiedEnemyValues(EO1Enemies.NIGHTOAD, TrueSVCriteria(),
+                          attributes=EnemyAttributes(
+                              skills_body_use=[EO1BodyPart.HEAD],
+                              can_inflict_status_effect=True
+                          )), # Use Head # Inflict Poison
+    SimplifiedEnemyValues(EO1Enemies.HEXTOAD, TrueSVCriteria(),
+                          attributes=EnemyAttributes(
+                              skills_body_use=[EO1BodyPart.HEAD],
+                              can_inflict_status_effect=True
+                          )), # Use Head # Inflict Curse
 ]
 
 SIMPLIFIED_ENEMY_VALUES_BY_ID: dict[int, SimplifiedEnemyValues] = {enemy_data.enemy_id:enemy_data for enemy_data in SIMPLIFIED_ENEMY_VALUES_TABLE}

@@ -784,56 +784,57 @@ KEY_ITEM_DATA: list[EO1KeyItem] = [
     # EO1ItemData(EO1ItemType.Key, 0x1113, EO1ItemNames.HEX_BELL, 1073),
     # EO1ItemData(EO1ItemType.Key, 0x1114, EO1ItemNames.MAP, 1074),
 
-    #EO1ItemData(EO1ItemType.Key, 0x103C, EO1ItemNames.JADE_ORE, 1000),
-    #EO1ItemData(EO1ItemType.Key, 0x10ED, EO1ItemNames.MAP_EVENT, 1035),
-    #EO1ItemData(EO1ItemType.Key, 0x10EE, EO1ItemNames.HOLY_WATER, 1036),
-    #EO1ItemData(EO1ItemType.Key, 0x10EF, EO1ItemNames.WATER, 1037),
-    #EO1ItemData(EO1ItemType.Key, 0x10F0, EO1ItemNames.BOTTLE, 1038),
-    #EO1ItemData(EO1ItemType.Key, 0x10F1, EO1ItemNames.JUNK_BOX, 1039),
-    #EO1ItemData(EO1ItemType.Key, 0x10F2, EO1ItemNames.JUNK_BOX, 1040),
-    #EO1ItemData(EO1ItemType.Key, 0x10F3, EO1ItemNames.LOCKET, 1041),
-    #EO1ItemData(EO1ItemType.Key, 0x10F4, EO1ItemNames.PLANT_SEED, 1042),
-    #EO1ItemData(EO1ItemType.Key, 0x10F5, EO1ItemNames.GOLD_STONE, 1043),
-    #EO1ItemData(EO1ItemType.Key, 0x10F6, EO1ItemNames.GOLD_STONE, 1044),
-    #EO1ItemData(EO1ItemType.Key, 0x10F7, EO1ItemNames.MOON_STONE, 1045),
-    #EO1ItemData(EO1ItemType.Key, 0x10F8, EO1ItemNames.GOUDA, 1046),
-    #EO1ItemData(EO1ItemType.Key, 0x10F9, EO1ItemNames.ODD_POWDER, 1047),
-    #EO1ItemData(EO1ItemType.Key, 0x10FA, EO1ItemNames.LUCKY_COIN, 1048),
-    #EO1ItemData(EO1ItemType.Key, 0x10FB, EO1ItemNames.RUST_SWORD, 1049),
-    #EO1ItemData(EO1ItemType.Key, 0x10FC, EO1ItemNames.BROKEN_AXE, 1050),
-    #EO1ItemData(EO1ItemType.Key, 0x10FD, EO1ItemNames.OLD_WAND, 1051),
-    #EO1ItemData(EO1ItemType.Key, 0x10FE, EO1ItemNames.PANACEA, 1052),
-    #EO1ItemData(EO1ItemType.Key, 0x10FF, EO1ItemNames.RARE_BLOOM, 1053),
-    #EO1ItemData(EO1ItemType.Key, 0x1100, EO1ItemNames.GOLD_SEED, 1054),
-    #EO1ItemData(EO1ItemType.Key, 0x1101, EO1ItemNames.VOX_STONE, 1055),
-    #EO1ItemData(EO1ItemType.Key, 0x1106, EO1ItemNames.HOLY_GRAIL, 1060),
-    #EO1ItemData(EO1ItemType.Key, 0x1107, EO1ItemNames.COPPER_TOP, 1061),
-    #EO1ItemData(EO1ItemType.Key, 0x1108, EO1ItemNames.SHINY_DISC, 1062),
-    #EO1ItemData(EO1ItemType.Key, 0x1109, EO1ItemNames.SOFT_GLASS, 1063),
-    #EO1ItemData(EO1ItemType.Key, 0x110A, EO1ItemNames.TOKEN, 1064),
-    #EO1ItemData(EO1ItemType.Key, 0x110B, EO1ItemNames.CLAM_TOOL, 1065),
-    #EO1ItemData(EO1ItemType.Key, 0x110C, EO1ItemNames.MAGIC_DOWN, 1066),
-    #EO1ItemData(EO1ItemType.Key, 0x110D, EO1ItemNames.MAGIC_DOWN, 1067),
-    #EO1ItemData(EO1ItemType.Key, 0x110E, EO1ItemNames.MAGIC_DOWN, 1068),
-    #EO1ItemData(EO1ItemType.Key, 0x110F, EO1ItemNames.DIAMOND, 1069),
-    #EO1ItemData(EO1ItemType.Key, 0x1110, EO1ItemNames.BLACK_GEM, 1070),
-    #EO1ItemData(EO1ItemType.Key, 0x1111, EO1ItemNames.SHINY_GEM, 1071),
-    #EO1ItemData(EO1ItemType.Key, 0x1117, EO1ItemNames.TOUGH_FANG, 1077),
-    #EO1ItemData(EO1ItemType.Key, 0x1119, EO1ItemNames.TOUGH_WING, 1078),
-    #EO1ItemData(EO1ItemType.Key, 0x113D, EO1ItemNames.FROZEN_ARM, 1079),
-    #EO1ItemData(EO1ItemType.Key, 0x113E, EO1ItemNames.ANKH_A, 1080),
-    #EO1ItemData(EO1ItemType.Key, 0x113F, EO1ItemNames.ANKH_B, 1081),
-    #EO1ItemData(EO1ItemType.Key, 0x1140, EO1ItemNames.ANKH_C, 1082),
-    #EO1ItemData(EO1ItemType.Key, 0x1141, EO1ItemNames.ANKH_D, 1083),
-    #EO1ItemData(EO1ItemType.Key, 0x1142, EO1ItemNames.ANKH_E, 1084),
-    #EO1ItemData(EO1ItemType.Key, 0x1143, EO1ItemNames.ANKH_MOTOR, 1085),
-    #EO1ItemData(EO1ItemType.Key, 0x1144, EO1ItemNames.BANDANNA, 1086),
-    #EO1ItemData(EO1ItemType.Key, 0x1145, EO1ItemNames.PEARL, 1087),
-    #EO1ItemData(EO1ItemType.Key, 0x1146, EO1ItemNames.RARE_MEAT, 1088),
+
+    #EO1ItemData(EO1ItemType.Key, 0x103C, EO1ItemNames.JADE_ORE, 1000), Unused
+    #EO1ItemData(EO1ItemType.Key, 0x10ED, EO1ItemNames.MAP_EVENT, 1035), Unused
+    #EO1ItemData(EO1ItemType.Key, 0x10EF, EO1ItemNames.WATER, 1037), Unused
+    #EO1ItemData(EO1ItemType.Key, 0x10F0, EO1ItemNames.BOTTLE, 1038), Unused
+    #EO1ItemData(EO1ItemType.Key, 0x10F1, EO1ItemNames.JUNK_BOX, 1039), Dummy Quest
+    #EO1ItemData(EO1ItemType.Key, 0x10F2, EO1ItemNames.JUNK_BOX, 1040), Dummy Quest
+    #EO1ItemData(EO1ItemType.Key, 0x10F3, EO1ItemNames.LOCKET, 1041), Dummy Quest
+    #EO1ItemData(EO1ItemType.Key, 0x10F4, EO1ItemNames.PLANT_SEED, 1042), Unused
+    #EO1ItemData(EO1ItemType.Key, 0x10F5, EO1ItemNames.GOLD_STONE, 1043), Dummy Quest
+    #EO1ItemData(EO1ItemType.Key, 0x10F6, EO1ItemNames.GOLD_STONE, 1044), Dummy Quest
+    #EO1ItemData(EO1ItemType.Key, 0x10F7, EO1ItemNames.MOON_STONE, 1045), Dummy Quest
+    #EO1ItemData(EO1ItemType.Key, 0x1106, EO1ItemNames.HOLY_GRAIL, 1060), Unused
+    #EO1ItemData(EO1ItemType.Key, 0x110C, EO1ItemNames.MAGIC_DOWN, 1066), Unused
+    #EO1ItemData(EO1ItemType.Key, 0x110D, EO1ItemNames.MAGIC_DOWN, 1067), Unused
+    #EO1ItemData(EO1ItemType.Key, 0x1117, EO1ItemNames.TOUGH_FANG, 1077), Unused
+    #EO1ItemData(EO1ItemType.Key, 0x1119, EO1ItemNames.TOUGH_WING, 1078), Unused
 ]
 
 QUEST_ITEM_DATA: list[EO1ItemData] = [
     # Placeholder for future feature.
+    # EO1ItemData(EO1ItemType.Key, 0x10EE, EO1ItemNames.HOLY_WATER, 1036),
+    # EO1ItemData(EO1ItemType.Key, 0x10FA, EO1ItemNames.LUCKY_COIN, 1048),
+    # EO1ItemData(EO1ItemType.Key, 0x10FB, EO1ItemNames.RUST_SWORD, 1049),
+    # EO1ItemData(EO1ItemType.Key, 0x10FC, EO1ItemNames.BROKEN_AXE, 1050),
+    # EO1ItemData(EO1ItemType.Key, 0x10FD, EO1ItemNames.OLD_WAND, 1051),
+    # EO1ItemData(EO1ItemType.Key, 0x1144, EO1ItemNames.BANDANNA, 1086),
+    # EO1ItemData(EO1ItemType.Key, 0x1145, EO1ItemNames.PEARL, 1087),
+    # EO1ItemData(EO1ItemType.Key, 0x1100, EO1ItemNames.GOLD_SEED, 1054),
+    # EO1ItemData(EO1ItemType.Key, 0x10FF, EO1ItemNames.RARE_BLOOM, 1053),
+    # EO1ItemData(EO1ItemType.Key, 0x1101, EO1ItemNames.VOX_STONE, 1055),
+    # EO1ItemData(EO1ItemType.Key, 0x1146, EO1ItemNames.RARE_MEAT, 1088),
+    # EO1ItemData(EO1ItemType.Key, 0x110E, EO1ItemNames.MAGIC_DOWN, 1068),
+    # EO1ItemData(EO1ItemType.Key, 0x110F, EO1ItemNames.DIAMOND, 1069),
+    # EO1ItemData(EO1ItemType.Key, 0x1110, EO1ItemNames.BLACK_GEM, 1070),
+    # EO1ItemData(EO1ItemType.Key, 0x1111, EO1ItemNames.SHINY_GEM, 1071),
+    # EO1ItemData(EO1ItemType.Key, 0x10F8, EO1ItemNames.GOUDA, 1046),
+    # EO1ItemData(EO1ItemType.Key, 0x1107, EO1ItemNames.COPPER_TOP, 1061),
+    # EO1ItemData(EO1ItemType.Key, 0x1108, EO1ItemNames.SHINY_DISC, 1062),
+    # EO1ItemData(EO1ItemType.Key, 0x110B, EO1ItemNames.CLAM_TOOL, 1065),
+    # EO1ItemData(EO1ItemType.Key, 0x1109, EO1ItemNames.SOFT_GLASS, 1063),
+    # EO1ItemData(EO1ItemType.Key, 0x110A, EO1ItemNames.TOKEN, 1064),
+    # EO1ItemData(EO1ItemType.Key, 0x113D, EO1ItemNames.FROZEN_ARM, 1079),
+    # EO1ItemData(EO1ItemType.Key, 0x113E, EO1ItemNames.ANKH_A, 1080),
+    # EO1ItemData(EO1ItemType.Key, 0x113F, EO1ItemNames.ANKH_B, 1081),
+    # EO1ItemData(EO1ItemType.Key, 0x1140, EO1ItemNames.ANKH_C, 1082),
+    # EO1ItemData(EO1ItemType.Key, 0x1141, EO1ItemNames.ANKH_D, 1083),
+    # EO1ItemData(EO1ItemType.Key, 0x1142, EO1ItemNames.ANKH_E, 1084),
+    # EO1ItemData(EO1ItemType.Key, 0x1143, EO1ItemNames.ANKH_MOTOR, 1085),
+    # EO1ItemData(EO1ItemType.Key, 0x10F9, EO1ItemNames.ODD_POWDER, 1047),
+    # EO1ItemData(EO1ItemType.Key, 0x10FE, EO1ItemNames.PANACEA, 1052),
 ]
 
 

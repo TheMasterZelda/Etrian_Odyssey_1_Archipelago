@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 from .InventoryItemData import *
 from .MaterialData import *
 
-@dataclass
+@dataclass(frozen=True)
 class EO1ItemCompound:
     item_id: int
     material_1_id: int

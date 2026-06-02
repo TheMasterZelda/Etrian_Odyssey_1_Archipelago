@@ -1,5 +1,5 @@
 """Maximum level random encounter/mandatory boss by floor."""
-MAX_LEVEL_BY_FLOOR = {
+MAX_LEVEL_BY_FLOOR: dict[int, int] = {
     1: 4, # From Clawbug.
     2: 10, # From Fender.
     3: 11, # From Roller.

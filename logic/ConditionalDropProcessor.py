@@ -80,6 +80,7 @@ class ConditionalDropProcessor:
 
         # TODO temporary.
         if enemy_id == EO1Enemies.FIREBIRD:
+            #return self.single_enemy_battle_processor.can_defeat_with_condition(enemy_id, enemy_data.drop_condition, state, logic_data)
             return True
 
         raise Exception(f"enemy {enemy_id}")
@@ -123,15 +124,20 @@ class ConditionalDropProcessor:
                 return False
             return can_defeat_with_condition()
         if enemy_data.drop_condition == DropCondition.FULL_BIND:
-            raise Exception(f"Conditional FULL_BIND not implemented.")
-        if enemy_data.drop_condition == DropCondition.KILL_1_TURNS:
-            raise Exception(f"Conditional KILL_1_TURNS not implemented.")
-        if enemy_data.drop_condition == DropCondition.KILL_2_TURNS:
-            raise Exception(f"Conditional KILL_2_TURNS not implemented.")
-        if enemy_data.drop_condition == DropCondition.KILL_3_TURNS:
-            raise Exception(f"Conditional KILL_3_TURNS not implemented.")
-        if enemy_data.drop_condition == DropCondition.KILL_7_TURNS:
-            raise Exception(f"Conditional KILL_7_TURNS not implemented.")
+            if not self.__any_usable_skill_can_inflict_ailment(logic_data.class_data.unlocked_classes, EO1Ailment.HEAD_BIND):
+                return False
+            if not self.__any_usable_skill_can_inflict_ailment(logic_data.class_data.unlocked_classes, EO1Ailment.ARM_BIND):
+                return False
+            if not self.__any_usable_skill_can_inflict_ailment(logic_data.class_data.unlocked_classes, EO1Ailment.LEG_BIND):
+                return False
+            # Player can inflict all 3 binds individually. Leave the battle processor determine if it is realistic to do.
+            return can_defeat_with_condition()
+        # Kill within X turns is entirely up to the battle processor, nothing can be checked here.
+        if (enemy_data.drop_condition == DropCondition.KILL_1_TURNS or
+            enemy_data.drop_condition == DropCondition.KILL_2_TURNS or
+            enemy_data.drop_condition == DropCondition.KILL_3_TURNS or
+            enemy_data.drop_condition == DropCondition.KILL_7_TURNS):
+            return can_defeat_with_condition()
         if enemy_data.drop_condition == DropCondition.NONE:
             return True
         raise Exception(f"Unknown drop condition {enemy_data.drop_condition}.")

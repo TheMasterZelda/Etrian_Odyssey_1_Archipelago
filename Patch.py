@@ -1,10 +1,11 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from .Constant import GAME_VERSION
 from .Locations import *
 from .Items import *
 from .data.ClassData import EO1Class, ALL_CLASS_DATA
 from .data.Events import EVENT_BY_NAME
+from .data.QuestData import QUEST_DATA_BY_LOCATION_ID
 from .data.SkillUnlockData import SkillItem
 
 if TYPE_CHECKING:
@@ -58,7 +59,25 @@ def __patch_treasure_box(location: Location, player: int) -> dict[str, int]:
 
     return generate_treasure_box_patch_data(treasure_data.floor_number - 1, treasure_data.chest_id, treasure_type, treasure_value)
 
-def __patch_individual_location(location: Location, player: int, output_data):
+def __patch_quest_hint(location: Location, player: int, player_names: dict[int, str]) -> dict[str, Any]:
+    location_id = ALL_LOCATIONS_ID_BY_NAME[location.name]
+    location_type = ALL_LOCATIONS_BY_ID[location_id].location_type
+    if location_type != EtrianOdysseyLocationType.QUEST_COMPLETION:
+        raise Exception(f"Location {location.name} is not a quest completion.")
+
+    quest_id = QUEST_DATA_BY_LOCATION_ID[location_id].quest_id
+    item_player_id = location.item.player
+    item_player_name = player_names[item_player_id]
+    item_name = location.item.name
+
+    return {
+        "quest_id": quest_id,
+        "item_player_id": item_player_id,
+        "item_player_name": item_player_name,
+        "item_name": item_name,
+    }
+
+def __patch_individual_location(location: Location, player: int, player_names: dict[int, str], hint_quest_rewards: bool, output_data):
     if location.name in EVENT_BY_NAME:
         return
 
@@ -66,17 +85,25 @@ def __patch_individual_location(location: Location, player: int, output_data):
     location_type = ALL_LOCATIONS_BY_ID[location_id].location_type
     if location_type == EtrianOdysseyLocationType.TREASURE_BOX:
         output_data["TreasureBoxes"].append(__patch_treasure_box(location, player))
+    elif location_type == EtrianOdysseyLocationType.QUEST_COMPLETION:
+        # No need to check for quest sanity since locations only exists if its enabled.
+        if not hint_quest_rewards:
+            return
+        output_data["QuestHints"].append(__patch_quest_hint(location, player, player_names))
+
 
 def generate_output(world: EtrianOdysseyWorld):
     multiworld = world.multiworld
     player = world.player
+    hint_quest_rewards = bool(world.options.quest_completion_reward_hint)
     output_data = {
         "Version": GAME_VERSION,
         "Seed": multiworld.seed_name,
         "Slot": player,
         "Name": world.player_name,
         "InitialValues": {},
-        "TreasureBoxes": []
+        "TreasureBoxes": [],
+        "QuestHints": []
     }
 
     if world.options.level_cap_mode != 0:
@@ -85,6 +112,7 @@ def generate_output(world: EtrianOdysseyWorld):
         output_data["InitialValues"]["floor_limit"] = world.initial_floor_limit
 
     output_data["RemoveSkillsRequirements"] = bool(world.options.remove_skills_requirements)
+    output_data["MinimizeQuestMaterialGrind"] = bool(world.options.minimize_quest_material_grind)
     output_data["ShopUnlockMaterialCostDivider"] = int(world.options.shop_unlock_material_cost_divider.value)
     output_data["MaterialSellValueMultiplier"] = int(world.options.material_sell_value_multiplier.value)
 
@@ -115,7 +143,7 @@ def generate_output(world: EtrianOdysseyWorld):
 
     # Handle location item patching.
     for location in multiworld.get_locations(player):
-        __patch_individual_location(location, player, output_data)
+        __patch_individual_location(location, player, multiworld.player_name, hint_quest_rewards, output_data)
 
     return output_data
 

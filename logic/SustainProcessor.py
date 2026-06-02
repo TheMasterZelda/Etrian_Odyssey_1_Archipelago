@@ -188,7 +188,7 @@ class SustainProcessor:
         return effectiveness * 1.8 + 10
 
     def get_current_sustain_score(self, logic_data: AllLogicData) -> int:
-        current_level_cap = logic_data.current_level_cap
+        current_level_cap = logic_data.get_effective_level_cap()
         item_sustains = self.__get_sustain_items(logic_data.shop_unlock_logic_data)
         skill_sustains = self.__get_sustain_skills(logic_data.class_data, current_level_cap)
 

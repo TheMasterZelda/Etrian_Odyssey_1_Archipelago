@@ -331,12 +331,12 @@ class EO1SkillValueType(IntEnum):
     CHANGE_ATC_ATTR = 114,
     MUL_AFFINITY2 = 115,
 
-@dataclass
+@dataclass(frozen=True)
 class EO1SkillValue:
     skill_value_type: EO1SkillValueType
     value_per_level: list[int]
 
-@dataclass
+@dataclass(frozen=True)
 class EO1SkillData:
     id: int
     name: str

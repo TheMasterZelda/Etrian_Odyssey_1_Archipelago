@@ -242,7 +242,7 @@ ALL_REGIONS: set[str] = {
 }
 
 
-@dataclass
+@dataclass(frozen=True)
 class EO1RegionData:
     """
     This class represents the data for a region in Etrian Odyssey.
@@ -259,6 +259,7 @@ class EO1RegionData:
     encounters: list[int]
     foes: list[int] = field(default_factory=list)
     bosses: list[int] = field(default_factory=list)
+    is_always_survivable: bool = False
 
 
 ALL_REGION_DATA: list[EO1RegionData] = [
@@ -391,7 +392,7 @@ ALL_REGION_DATA: list[EO1RegionData] = [
     EO1RegionData(EO1Regions.B10F_CERNUNOS_LAIR, 10, 0, [
         StratumTransition(EO1Regions.B11F_MAIN),
     ], [0x48], bosses=[EO1Enemies.CERNUNOS]),
-    EO1RegionData(EO1Regions.B10F_VIOLET_CRYSTAL_ROOM, 10, 0, [], [0x49, 0x4A]),
+    EO1RegionData(EO1Regions.B10F_VIOLET_CRYSTAL_ROOM, 10, 0, [], [0x49, 0x4A], is_always_survivable=True),
     EO1RegionData(EO1Regions.B10F_SECRET_AREA, 10, 350, [
         StairsUp(EO1Regions.B9F_SECRET_AREA)
     ], [0x4A]),
@@ -475,7 +476,7 @@ ALL_REGION_DATA: list[EO1RegionData] = [
         MandatoryFight(EO1Regions.B17F_SECRET_AREA_WEST, [EO1Enemies.KINGDILE])
     ], [0x81], [EO1Enemies.KINGDILE, EO1Enemies.DESOULER]),
     EO1RegionData(EO1Regions.B17F_SECRET_AREA_WEST, 17, 600, [],
-                  [0x83], [EO1Enemies.KINGDILE, EO1Enemies.DESOULER, EO1Enemies.MANTICOR]),
+                  [0x83], [EO1Enemies.KINGDILE, EO1Enemies.DESOULER], bosses=[EO1Enemies.MANTICOR]),
 
     # B18F
     EO1RegionData(EO1Regions.B18F_MAIN, 18, 450, [
@@ -598,3 +599,19 @@ ALL_REGION_DATA: list[EO1RegionData] = [
 ]
 
 ALL_REGION_DATA_BY_NAME: dict[str, EO1RegionData] = {region_data.name:region_data for region_data in ALL_REGION_DATA}
+
+def generate_region_by_floor_dictionary()-> dict[int, list[str]]:
+    region_by_floor: dict[int, list[str]] = {}
+
+    def add_region(reg: str, floor_number: int):
+        if floor_number not in region_by_floor:
+            region_by_floor[floor_number] = []
+
+        region_by_floor[floor_number].append(reg)
+
+    for region_data in ALL_REGION_DATA:
+        add_region(region_data.name, region_data.floor_number)
+
+    return region_by_floor
+
+ALL_REGIONS_BY_FLOOR: dict[int, list[str]] = generate_region_by_floor_dictionary()

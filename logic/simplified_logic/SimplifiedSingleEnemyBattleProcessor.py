@@ -5,19 +5,35 @@ from ..LogicData import *
 from ...data.EnemyData import *
 from ..SingleEnemyBattleProcessor import *
 from .SimplifiedEnemyValues import *
+from .SimplifiedValuesCriteria import SVCriteria, AdventurerMatch
+from ...data.Generic import EO1Ailment
 
 
 class SimplifiedSingleEnemyBattleProcessor(SingleEnemyBattleProcessor):
     def __survive_level_requirement_met(self, enemy_data: EnemyData, logic_data: AllLogicData) -> bool:
         # For now, just use the raw level.
         effective_enemy_level = enemy_data.level
+        # TODO use effective level cap instead?
         return logic_data.current_level_cap >= max(1, effective_enemy_level)
 
     def __defeat_level_requirement_met(self, enemy_data: EnemyData, logic_data: AllLogicData) -> bool:
         # For now, just use the raw level.
         effective_enemy_level = enemy_data.level
-        return self.max_level_for_defeat(logic_data) >= max(1, effective_enemy_level)
-    
+        return logic_data.get_effective_level_cap() >= max(1, effective_enemy_level)
+
+    def __copy_and_inject_criteria(self, original_criteria: SVCriteria, criteria_to_inject: SVCriteria) -> SVCriteria:
+        if isinstance(original_criteria, PartySVCriteria):
+            new_criteria = cast(PartySVCriteria, original_criteria.copy())
+            new_criteria.extra_criteria.append(AdventurerMatch(1, criteria_to_inject))
+            return new_criteria
+        elif isinstance(original_criteria, TrueSVCriteria):
+            return criteria_to_inject
+        elif isinstance(original_criteria, ClassSVCriteria):
+            return AndSVCriteria([original_criteria.copy(), criteria_to_inject])
+        else:
+            raise Exception()
+        return original_criteria
+
     def can_survive_enemy(self, enemy_id: int, state: CollectionState, logic_data: AllLogicData) -> bool:
         enemy_data = self.get_enemy_data(enemy_id)
         if not self.__survive_level_requirement_met(enemy_data, logic_data):
@@ -30,7 +46,7 @@ class SimplifiedSingleEnemyBattleProcessor(SingleEnemyBattleProcessor):
         sv_enemy = SIMPLIFIED_ENEMY_VALUES_BY_ID[enemy_id]
 
         # If player has more than double the level, bypass other checks.
-        if enemy_data.level * 2 < logic_data.current_level_cap:
+        if enemy_data.level * 2 < logic_data.get_effective_level_cap():
             return True
 
         if sv_enemy.survive_criteria is None:
@@ -78,7 +94,7 @@ class SimplifiedSingleEnemyBattleProcessor(SingleEnemyBattleProcessor):
         if condition == DropCondition.STAB:
             raise Exception(f"Not implemented DropCondition {condition}")
         elif condition == DropCondition.FIRE:
-            raise Exception(f"Not implemented DropCondition {condition}")
+            sv_criteria = self.__copy_and_inject_criteria(sv_criteria, CanUseDamageSkill(damage_type=EO1Element.FIRE, ignore_immunities=True))
         elif condition == DropCondition.ICE:
             raise Exception(f"Not implemented DropCondition {condition}")
         elif condition == DropCondition.NOT_BASH:
@@ -94,17 +110,25 @@ class SimplifiedSingleEnemyBattleProcessor(SingleEnemyBattleProcessor):
             # Handle this condition by treating it as a damage type immunity.
             enemy_attributes.damage_type_immunity.append(EO1Element.FIRE)
         elif condition == DropCondition.KILL_1_TURNS:
+            # Stalker
+            # Mantis
             raise Exception(f"Not implemented DropCondition {condition}")
         elif condition == DropCondition.KILL_2_TURNS:
+            # Ogre
+            # Hunter
             raise Exception(f"Not implemented DropCondition {condition}")
         elif condition == DropCondition.KILL_3_TURNS:
+            # Wyvern
             raise Exception(f"Not implemented DropCondition {condition}")
         elif condition == DropCondition.KILL_7_TURNS:
+            # Manticor
             raise Exception(f"Not implemented DropCondition {condition}")
         elif condition == DropCondition.FULL_BIND:
+            # Cruella
+            # Diabolix
             raise Exception(f"Not implemented DropCondition {condition}")
         elif condition == DropCondition.INSTANT_DEATH:
-            raise Exception(f"Not implemented DropCondition {condition}")
+            sv_criteria = self.__copy_and_inject_criteria(sv_criteria, CanInflictAilment(EO1Ailment.INSTANT_DEATH))
         else:
             raise Exception(f"Unknown DropCondition {condition}")
 

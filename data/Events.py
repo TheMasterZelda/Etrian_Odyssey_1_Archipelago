@@ -20,62 +20,82 @@ class EventNames:
 class EventInfo:
     name: str
     item_name: str
+    required_stratum: int
 
 EVENT_FENRIR_DEFEATED = EventInfo(
     EventNames.FENRIR_DEFEATED,
-    "Fenrir Defeated")
+    "Fenrir Defeated",
+    required_stratum=1)
 
 EVENT_STRATUM_2_REACHED = EventInfo(
     EventNames.STRATUM_2_REACHED,
-    "Stratum 2 Reached")
+    "Stratum 2 Reached",
+    required_stratum=2)
 
 EVENT_DRAGON_EGG_OBTAINED = EventInfo(
     EventNames.DRAGON_EGG_OBTAINED,
-    "Dragon Egg Obtained")
+    "Dragon Egg Obtained",
+    required_stratum=2)
 
 EVENT_MISSION_3_COMPLETED = EventInfo(
     EventNames.MISSION_3_COMPLETED,
-    "Mission 3 Completed")
+    "Mission 3 Completed",
+    required_stratum=2)
 
 EVENT_CERNUNOS_DEFEATED = EventInfo(
     EventNames.CERNUNOS_DEFEATED,
-    "Cernunos defeated")
+    "Cernunos defeated",
+    required_stratum=2)
 
 EVENT_COTRANGL_DEFEATED = EventInfo(
     EventNames.COTRANGL_DEFEATED,
-    "Cotrangl defeated")
+    "Cotrangl defeated",
+    required_stratum=3)
 
 EVENT_DISCOVER_CLAW_MARK = EventInfo(
     EventNames.DISCOVER_CLAW_MARK,
-    "Discover Claw Mark")
+    "Discover Claw Mark",
+    required_stratum=4)
 
 EVENT_AZURE_COLOSSUS_QUEST_ACCEPTED = EventInfo(
     EventNames.AZURE_COLOSSUS_QUEST_ACCEPTED,
-    "Azure Colossus Quest Accepted")
+    "Azure Colossus Quest Accepted",
+    required_stratum=6)
 
 EVENT_ANNIHILATE_THE_FOREST_FOLK = EventInfo(
     EventNames.ANNIHILATE_THE_FOREST_FOLK,
-    "Forest Folk Annihilated")
+    "Forest Folk Annihilated",
+    required_stratum=4)
 
 EVENT_MISSION_7_COMPLETED = EventInfo(
     EventNames.MISSION_7_COMPLETED,
-    "Mission 7 Completed")
+    "Mission 7 Completed",
+    required_stratum=5)
 
 EVENT_ELEVATOR_ACTIVATED = EventInfo(
     EventNames.ELEVATOR_ACTIVATED,
-    "Elevator Activated")
+    "Elevator Activated",
+    required_stratum=5)
 
 EVENT_CARD_KEY_OBTAINED = EventInfo(
     EventNames.CARD_KEY_OBTAINED,
-    "Card Key Obtained")
+    "Card Key Obtained",
+    required_stratum=5)
 
 EVENT_ETREANT_DEFEATED = EventInfo(
     EventNames.ETREANT_DEFEATED,
-    "Etreant Defeated")
+    "Etreant Defeated",
+    required_stratum=5)
 
 EVENT_PRIMEVIL_DEFEATED = EventInfo(
     EventNames.PRIMEVIL_DEFEATED,
-    "Primevil Defeated")
+    "Primevil Defeated",
+    required_stratum=6)
+
+EVENT_OBTAIN_RADHA_NOTE = EventInfo(
+    "Obtain Radha Note",
+    "Radha Note",
+    required_stratum=1)
 
 EVENT_BY_NAME: dict[str, EventInfo] = {
     EVENT_FENRIR_DEFEATED.name: EVENT_FENRIR_DEFEATED,
@@ -91,5 +111,6 @@ EVENT_BY_NAME: dict[str, EventInfo] = {
     EVENT_ELEVATOR_ACTIVATED.name:EVENT_ELEVATOR_ACTIVATED,
     EVENT_CARD_KEY_OBTAINED.name:EVENT_CARD_KEY_OBTAINED,
     EVENT_ETREANT_DEFEATED.name:EVENT_ETREANT_DEFEATED,
-    EVENT_PRIMEVIL_DEFEATED.name:EVENT_PRIMEVIL_DEFEATED
+    EVENT_PRIMEVIL_DEFEATED.name:EVENT_PRIMEVIL_DEFEATED,
+    EVENT_OBTAIN_RADHA_NOTE.name:EVENT_OBTAIN_RADHA_NOTE
 }

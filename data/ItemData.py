@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from BaseClasses import ItemClassification
 
-@dataclass
+@dataclass(frozen=True)
 class EO1ProgressiveFloorLimit:
     ap_item_id: int
     name: str
@@ -28,7 +28,7 @@ ALL_PROGRESSIVE_FLOOR_LIMIT: list[EO1ProgressiveFloorLimit] = [
 PROGRESSIVE_FLOOR_LIMIT_BY_VALUE: dict[int, EO1ProgressiveFloorLimit] = {progressive_floor.floor_amount:progressive_floor for progressive_floor in ALL_PROGRESSIVE_FLOOR_LIMIT}
 ALL_PROGRESSIVE_FLOOR_BY_ITEM_ID: dict[int, EO1ProgressiveFloorLimit] = {progressive_floor.ap_item_id:progressive_floor for progressive_floor in ALL_PROGRESSIVE_FLOOR_LIMIT}
 
-@dataclass
+@dataclass(frozen=True)
 class EO1ProgressiveLevelCap:
     ap_item_id: int
     name: str
@@ -56,7 +56,7 @@ ALL_PROGRESSIVE_LEVEL_CAP: list[EO1ProgressiveLevelCap] = [
 PROGRESSIVE_LEVEL_CAP_BY_VALUE: dict[int, EO1ProgressiveLevelCap] = {progressive_level.level_amount:progressive_level for progressive_level in ALL_PROGRESSIVE_LEVEL_CAP}
 ALL_PROGRESSIVE_LEVEL_CAP_BY_ITEM_ID: dict[int, EO1ProgressiveLevelCap] = {progressive_level.ap_item_id:progressive_level for progressive_level in ALL_PROGRESSIVE_LEVEL_CAP}
 
-@dataclass
+@dataclass(frozen=True)
 class EO1Money:
     ap_item_id: int
     name: str

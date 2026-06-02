@@ -8,6 +8,7 @@ from ..data.EncounterGroupData import *
 from ..data.CodexData import *
 from ..data.CompendiumData import *
 from ..data.InventoryItemData import EO1ItemNames, EO1ItemID, CONSUMABLE_DATA
+from ..data.MaxLevelByFloor import MAX_LEVEL_BY_FLOOR
 
 if TYPE_CHECKING:
     from .. import EtrianOdysseyWorld
@@ -298,6 +299,9 @@ class AllLogicData:
         self.compendium_logic_data = CompendiumLogicData(fill_default)
         self.shop_unlock_logic_data = ShopUnlockLogicData(fill_default)
         # Sustain
+
+    def get_effective_level_cap(self):
+        return min(self.current_level_cap, MAX_LEVEL_BY_FLOOR[min(self.current_floor_limit, 30)])
 
     def copy(self) -> AllLogicData:
         new_copy = AllLogicData(fill_default=False)

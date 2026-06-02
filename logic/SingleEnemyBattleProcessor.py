@@ -21,8 +21,6 @@ class DefeatCondition(Enum):
     PHYSICAL = "PHYSICAL"
     NOT_PHYSICAL = "NOT_PHYSICAL"
 
-_MAX_FLOOR = 30
-
 
 class SingleEnemyBattleProcessor(ABC):
     def get_enemy_data(self, enemy_id: int) -> EnemyData:
@@ -40,15 +38,13 @@ class SingleEnemyBattleProcessor(ABC):
     def can_defeat_with_condition(self, enemy_id: int, condition: DropCondition, state: CollectionState, logic_data: AllLogicData) -> bool:
         pass
 
-    def max_level_for_defeat(self, logic_data: AllLogicData):
-        return min(logic_data.current_level_cap, MAX_LEVEL_BY_FLOOR[min(logic_data.current_floor_limit, _MAX_FLOOR)])
-
 class LevelOnlySingleEnemyBattleProcessor(SingleEnemyBattleProcessor):
     def can_survive_enemy(self, enemy_id: int, state: CollectionState, logic_data: AllLogicData) -> bool:
         enemy_data = self.get_enemy_data(enemy_id)
         # For now, just use the raw level.
         effective_enemy_level = enemy_data.level
         #enemy_data.level * (95/100) - 5
+        # TODO use effective level cap instead?
         return logic_data.current_level_cap >= max(1, effective_enemy_level)
 
     def can_defeat_enemy(self, enemy_id: int, state: CollectionState, logic_data: AllLogicData) -> bool:
@@ -56,7 +52,7 @@ class LevelOnlySingleEnemyBattleProcessor(SingleEnemyBattleProcessor):
         # For now, just use the raw level.
         effective_enemy_level = enemy_data.level
         #enemy_data.level * (95/100) - 5
-        return self.max_level_for_defeat(logic_data) >= max(1, effective_enemy_level)
+        return logic_data.get_effective_level_cap() >= max(1, effective_enemy_level)
 
     def can_defeat_with_condition(self, enemy_id: int, condition: DropCondition, state: CollectionState, logic_data: AllLogicData) -> bool:
         return self.can_defeat_enemy(enemy_id, state, logic_data)

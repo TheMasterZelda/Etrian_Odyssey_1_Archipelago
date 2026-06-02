@@ -13,13 +13,13 @@ class SkillItemType(IntEnum):
     PROGRESSIVE = 3
     MULTI_CLASS_GROUP = 4
 
-@dataclass
+@dataclass(frozen=True)
 class SkillItem:
     ap_item_id: int
     ap_item_name: str
     skill_item_type: SkillItemType
 
-@dataclass
+@dataclass(frozen=True)
 class GroupSkillItem:
     name: str
     ap_item_id: int
@@ -32,7 +32,7 @@ class GroupSkillItem:
     def to_skill_item(self) -> SkillItem:
         return SkillItem(self.ap_item_id, self.get_full_name(), SkillItemType.GROUP)
 
-@dataclass
+@dataclass(frozen=True)
 class MultiClassGroupSkillItem:
     name: str
     ap_item_id: int
@@ -41,7 +41,7 @@ class MultiClassGroupSkillItem:
     def to_skill_item(self) -> SkillItem:
         return SkillItem(self.ap_item_id, self.name, SkillItemType.MULTI_CLASS_GROUP)
 
-@dataclass
+@dataclass(frozen=True)
 class SkillUnlockData:
     ap_item_id: int
     ap_item_name: str

@@ -209,12 +209,12 @@ class CanUseSkill(Rule["EtrianOdysseyWorld"], game=GAME_NAME):
 
     class Resolved(Rule.Resolved):
         # noinspection PyDataclass
-        enemy_id: int
+        skill_id: int
 
         @override
         def _evaluate(self, state: CollectionState) -> bool:
             logic_manager = get_logic_manager(state, self.player)
-            return logic_manager.can_fill_codex_entry(state, self.enemy_id)
+            return logic_manager.can_fill_codex_entry(state, self.skill_id)
 
         @override
         def item_dependencies(self) -> dict[str, set[int]]:
@@ -245,6 +245,52 @@ class CanEscape(Rule["EtrianOdysseyWorld"], game=GAME_NAME):
             return {
                 **{item_name: {id(self)} for item_name in get_battle_item_dependencies()},
                 # TODO add Radha's letter.
+            }
+
+@dataclasses.dataclass()
+class CanStartQuest(Rule["EtrianOdysseyWorld"], game=GAME_NAME):
+    quest_id: int
+
+    @override
+    def _instantiate(self, world: EtrianOdysseyWorld) -> Rule.Resolved:
+        return self.Resolved(self.quest_id, player=world.player)#, caching_enabled=True)
+
+    class Resolved(Rule.Resolved):
+        # noinspection PyDataclass
+        quest_id: int
+
+        @override
+        def _evaluate(self, state: CollectionState) -> bool:
+            logic_manager = get_logic_manager(state, self.player)
+            return logic_manager.can_start_quest(state, self.quest_id)
+        @override
+        def item_dependencies(self) -> dict[str, set[int]]:
+            return {
+                **{item_name: {id(self)} for item_name in get_battle_item_dependencies()},
+                **{item_name: {id(self)} for item_name in get_location_item_dependencies()},
+            }
+
+@dataclasses.dataclass()
+class CanCompleteQuest(Rule["EtrianOdysseyWorld"], game=GAME_NAME):
+    quest_id: int
+
+    @override
+    def _instantiate(self, world: EtrianOdysseyWorld) -> Rule.Resolved:
+        return self.Resolved(self.quest_id, player=world.player)  # , caching_enabled=True)
+
+    class Resolved(Rule.Resolved):
+        # noinspection PyDataclass
+        quest_id: int
+
+        @override
+        def _evaluate(self, state: CollectionState) -> bool:
+            logic_manager = get_logic_manager(state, self.player)
+            return logic_manager.can_complete_quest(state, self.quest_id)
+        @override
+        def item_dependencies(self) -> dict[str, set[int]]:
+            return {
+                **{item_name: {id(self)} for item_name in get_battle_item_dependencies()},
+                **{item_name: {id(self)} for item_name in get_location_item_dependencies()},
             }
 
 

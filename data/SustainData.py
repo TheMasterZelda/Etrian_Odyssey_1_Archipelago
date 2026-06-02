@@ -33,7 +33,7 @@ class SustainValueType(IntEnum):
     H_TOUCH = 2 # H.Touch is weird.
 
 
-@dataclass
+@dataclass(frozen=True)
 class SustainData:
     related_id: int
     sustain_type: SustainType

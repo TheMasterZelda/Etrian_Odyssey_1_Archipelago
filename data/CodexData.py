@@ -1,5 +1,7 @@
 from enum import IntEnum
 from .EnemyData import *
+from .QuestData import EO1QuestID
+
 
 class CodexEncounterType(IntEnum):
     REGULAR = 1
@@ -7,6 +9,7 @@ class CodexEncounterType(IntEnum):
     BOSS = 3
     QUEST = 4
     MINION = 5
+    SPECIAL = 6
 
 class CodexData:
     enemy_id: int
@@ -14,19 +17,21 @@ class CodexData:
     location_id: int
     required_stratum: int
     encounter_type: CodexEncounterType
+    quest_id: int | None
 
-    def __init__(self, enemy_id: int, codex_id: int, location_id: int, required_stratum: int, encounter_type: CodexEncounterType) -> None:
+    def __init__(self, enemy_id: int, codex_id: int, location_id: int, required_stratum: int, encounter_type: CodexEncounterType, quest_id: int | None = None) -> None:
         self.enemy_id = enemy_id
         self.codex_id = codex_id
         self.location_id = location_id
         self.required_stratum = required_stratum
         self.encounter_type = encounter_type
+        self.quest_id = quest_id
 
     def get_full_name(self) -> str:
         return f"Codex entry #{self.codex_id}: {ENEMY_BY_ID[self.enemy_id].name}"
 
 ALL_CODEX_ENTRIES: list[CodexData] = [
-    CodexData(EO1Enemies.GOUDARAT, 0x0, 2000, 7, CodexEncounterType.QUEST), # Quest enemies not considered for now.
+    #CodexData(EO1Enemies.GOUDARAT, 0x0, 2000, 7, CodexEncounterType.QUEST, EO1QuestID.LOST_PET__REWARD_OFFERED), # This is technically not a codex entry.
     CodexData(EO1Enemies.TREERAT, 0x1, 2001, 1, CodexEncounterType.REGULAR),
     CodexData(EO1Enemies.WOODFLY, 0x2, 2002, 1, CodexEncounterType.REGULAR),
     CodexData(EO1Enemies.MOLE, 0x3, 2003, 1, CodexEncounterType.REGULAR),
@@ -101,13 +106,13 @@ ALL_CODEX_ENTRIES: list[CodexData] = [
     CodexData(EO1Enemies.METALION, 0x48, 2072, 6, CodexEncounterType.REGULAR),
     CodexData(EO1Enemies.LUCIFIRD, 0x49, 2073, 6, CodexEncounterType.REGULAR),
     CodexData(EO1Enemies.IRONCRAB, 0x4A, 2074, 6, CodexEncounterType.REGULAR),
-    CodexData(EO1Enemies.FIREATER, 0x4B, 2075, 7, CodexEncounterType.QUEST), # Quest enemies not considered for now.
-    CodexData(EO1Enemies.PONDCLAW, 0x4C, 2076, 7, CodexEncounterType.QUEST), # Quest enemies not considered for now.
-    CodexData(EO1Enemies.TOXINFLY, 0x4D, 2077, 7, CodexEncounterType.QUEST), # Quest enemies not considered for now.
-    CodexData(EO1Enemies.OMNIVORE, 0x4E, 2078, 7, CodexEncounterType.QUEST), # Quest enemies not considered for now.
-    CodexData(EO1Enemies.NIGHTOAD, 0x4F, 2079, 7, CodexEncounterType.QUEST), # Quest enemies not considered for now.
-    CodexData(EO1Enemies.HEXTOAD, 0x50, 2080, 7, CodexEncounterType.QUEST), # Quest enemies not considered for now.
-    CodexData(EO1Enemies.STEELWEB, 0x51, 2081, 7, CodexEncounterType.QUEST), # Quest enemies not considered for now.
+    CodexData(EO1Enemies.FIREATER, 0x4B, 2075, 2, CodexEncounterType.QUEST, EO1QuestID.THE_LUCKY_COIN),
+    CodexData(EO1Enemies.PONDCLAW, 0x4C, 2076, 2, CodexEncounterType.SPECIAL),
+    CodexData(EO1Enemies.TOXINFLY, 0x4D, 2077, 3, CodexEncounterType.QUEST, EO1QuestID.PEST_CONTROL),
+    CodexData(EO1Enemies.OMNIVORE, 0x4E, 2078, 3, CodexEncounterType.QUEST, EO1QuestID.OFFICIAL_BUSINESS_I),
+    CodexData(EO1Enemies.NIGHTOAD, 0x4F, 2079, 4, CodexEncounterType.QUEST, EO1QuestID.VERSUS_THE_UNKNOWN),
+    CodexData(EO1Enemies.HEXTOAD, 0x50, 2080, 4, CodexEncounterType.QUEST, EO1QuestID.VERSUS_THE_UNKNOWN),
+    CodexData(EO1Enemies.STEELWEB, 0x51, 2081, 6, CodexEncounterType.QUEST, EO1QuestID.OFFICIAL_BUSINESS_II),
     CodexData(EO1Enemies.RAGELOPE, 0x52, 2082, 1, CodexEncounterType.FOE),
     CodexData(EO1Enemies.KUYUTHA, 0x53, 2083, 1, CodexEncounterType.FOE),
     CodexData(EO1Enemies.WOLF, 0x54, 2084, 1, CodexEncounterType.FOE),
@@ -147,13 +152,13 @@ ALL_CODEX_ENTRIES: list[CodexData] = [
     CodexData(EO1Enemies.REN, 0x76, 2118, 5, CodexEncounterType.BOSS),
     CodexData(EO1Enemies.TLACHTGA, 0x77, 2119, 5, CodexEncounterType.BOSS),
     CodexData(EO1Enemies.ETREANT, 0x78, 2120, 6, CodexEncounterType.BOSS), # Not a check for stratum 5 goals.
-    CodexData(EO1Enemies.GOLEM, 0x79, 2121, 7, CodexEncounterType.BOSS), # Is in stratum 1 but require stratum 3.
+    CodexData(EO1Enemies.GOLEM, 0x79, 2121, 3, CodexEncounterType.QUEST, EO1QuestID.THE_BANDITS_TREASURE), # Is in stratum 1 but require stratum 3.
     CodexData(EO1Enemies.WYVERN, 0x7A, 2122, 4, CodexEncounterType.BOSS), # Is in stratum 2, but is stronger than the stratum 3 boss.
-    CodexData(EO1Enemies.MANTICOR, 0x7B, 2123, 7, CodexEncounterType.BOSS),
-    CodexData(EO1Enemies.ALRAUNE, 0x7C, 2124, 7, CodexEncounterType.BOSS), # Is in stratum 2 but require stratum 5.
-    CodexData(EO1Enemies.WYRM, 0x7D, 2125, 7, CodexEncounterType.BOSS),# Quest enemies not considered for now.
-    CodexData(EO1Enemies.DRAKE, 0x7E, 2126, 7, CodexEncounterType.BOSS),# Quest enemies not considered for now.
-    CodexData(EO1Enemies.DRAGON, 0x7F, 2127, 7, CodexEncounterType.BOSS),# Quest enemies not considered for now.
+    CodexData(EO1Enemies.MANTICOR, 0x7B, 2123, 5, CodexEncounterType.BOSS), #TODO decide if stratum 4 goal should include Manticor.
+    CodexData(EO1Enemies.ALRAUNE, 0x7C, 2124, 5, CodexEncounterType.QUEST, EO1QuestID.PHANTOM_OF_THE_FOREST), # Is in stratum 2 but require stratum 5.
+    CodexData(EO1Enemies.WYRM, 0x7D, 2125, 6, CodexEncounterType.QUEST, EO1QuestID.THE_DREAD_WYRM),
+    CodexData(EO1Enemies.DRAKE, 0x7E, 2126, 6, CodexEncounterType.QUEST, EO1QuestID.THE_AZURE_COLOSSUS),
+    CodexData(EO1Enemies.DRAGON, 0x7F, 2127, 6, CodexEncounterType.QUEST, EO1QuestID.AWAKENING_THE_SERPENT),
     CodexData(EO1Enemies.PRIMEVIL, 0x80, 2128, 7, CodexEncounterType.BOSS), # Not a check for stratum 6 goals.
     CodexData(EO1Enemies.SPROUT, 0x81, 2129, 2, CodexEncounterType.REGULAR),
     CodexData(EO1Enemies.BUD, 0x82, 2130, 4, CodexEncounterType.FOE),
