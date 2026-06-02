@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from abc import ABC, abstractmethod
 
+from .ILogicManager import ExecutionContext
 from .StateInterface import StateInterface
 from ..Options import *
 from ..Constant import *
@@ -49,17 +50,17 @@ class EncounterGroupBattleProcessor(ABC):
         return encounter_list
 
     @abstractmethod
-    def can_survive_encounter_group(self, encounter_group_id: int, state: StateInterface, logic_data: AllLogicData) -> bool:
+    def can_survive_encounter_group(self, encounter_group_id: int, context: ExecutionContext) -> bool:
         pass
 
 class SimpleEncounterGroupBattleProcessor(EncounterGroupBattleProcessor):
-    def can_survive_encounter_group(self, encounter_group_id: int, state: StateInterface, logic_data: AllLogicData) -> bool:
+    def can_survive_encounter_group(self, encounter_group_id: int, context: ExecutionContext) -> bool:
         encounter_group_data = self.get_encounter_group_data(encounter_group_id)
 
         encounter_list = self.get_all_encounters(encounter_group_data)
 
         for encounter_id in encounter_list:
-            if encounter_id in logic_data.survivable_encounter.unsurvivable_encounters:
+            if encounter_id in context.logic_data.survivable_encounter.unsurvivable_encounters:
                 return False
 
         return True

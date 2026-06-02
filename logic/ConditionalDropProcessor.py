@@ -1,3 +1,4 @@
+from .ILogicManager import ExecutionContext
 from .StateInterface import StateInterface
 from ..data.EnemyData import *
 from .LogicData import *
@@ -68,7 +69,7 @@ class ConditionalDropProcessor:
                     return True
         return False
 
-    def can_defeat_without_fulfilling_drop_condition(self, enemy_id: int, logic_data: AllLogicData) -> bool:
+    def can_defeat_without_fulfilling_drop_condition(self, enemy_id: int, context: ExecutionContext) -> bool:
         enemy_data = ENEMY_BY_ID[enemy_id]
 
         # If the conditional drop isn't a guaranteed drop override, ignore everything else.
@@ -85,50 +86,50 @@ class ConditionalDropProcessor:
 
         raise Exception(f"enemy {enemy_id}")
 
-    def can_fulfill_drop_condition(self, enemy_id: int, logic_data: AllLogicData, state: StateInterface) -> bool:
+    def can_fulfill_drop_condition(self, enemy_id: int, context: ExecutionContext) -> bool:
         enemy_data = ENEMY_BY_ID[enemy_id]
 
         def can_defeat_with_condition() -> bool:
-            return self.single_enemy_battle_processor.can_defeat_with_condition(enemy_id, enemy_data.drop_condition, state, logic_data)
+            return self.single_enemy_battle_processor.can_defeat_with_condition(enemy_id, enemy_data.drop_condition, context)
 
         if enemy_data.drop_condition == DropCondition.STAB:
-            if not self.__any_usable_skill_deal_damage_type(logic_data.class_data.unlocked_classes, EO1Element.STAB):
+            if not self.__any_usable_skill_deal_damage_type(context.logic_data.class_data.unlocked_classes, EO1Element.STAB):
                 return False
             return can_defeat_with_condition()
         if enemy_data.drop_condition == DropCondition.FIRE:
-            if not self.__any_usable_skill_deal_damage_type(logic_data.class_data.unlocked_classes, EO1Element.FIRE):
+            if not self.__any_usable_skill_deal_damage_type(context.logic_data.class_data.unlocked_classes, EO1Element.FIRE):
                 return False
             return can_defeat_with_condition()
         if enemy_data.drop_condition == DropCondition.ICE:
-            if not self.__any_usable_skill_deal_damage_type(logic_data.class_data.unlocked_classes, EO1Element.ICE):
+            if not self.__any_usable_skill_deal_damage_type(context.logic_data.class_data.unlocked_classes, EO1Element.ICE):
                 return False
             return can_defeat_with_condition()
         if enemy_data.drop_condition == DropCondition.NOT_BASH:
-            if not self.__any_usable_skill_deal_not_damage_type(logic_data.class_data.unlocked_classes, EO1Element.BASH):
+            if not self.__any_usable_skill_deal_not_damage_type(context.logic_data.class_data.unlocked_classes, EO1Element.BASH):
                 return False
             return can_defeat_with_condition()
         if enemy_data.drop_condition == DropCondition.NOT_STAB:
-            if not self.__any_usable_skill_deal_not_damage_type(logic_data.class_data.unlocked_classes, EO1Element.STAB):
+            if not self.__any_usable_skill_deal_not_damage_type(context.logic_data.class_data.unlocked_classes, EO1Element.STAB):
                 return False
             return can_defeat_with_condition()
         if enemy_data.drop_condition == DropCondition.NOT_PHYSICAL:
-            if not self.__any_usable_skill_deal_not_physical(logic_data.class_data.unlocked_classes):
+            if not self.__any_usable_skill_deal_not_physical(context.logic_data.class_data.unlocked_classes):
                 return False
             return can_defeat_with_condition()
         if enemy_data.drop_condition == DropCondition.NOT_FIRE:
-            if not self.__any_usable_skill_deal_not_damage_type(logic_data.class_data.unlocked_classes, EO1Element.FIRE):
+            if not self.__any_usable_skill_deal_not_damage_type(context.logic_data.class_data.unlocked_classes, EO1Element.FIRE):
                 return False
             return can_defeat_with_condition()
         if enemy_data.drop_condition == DropCondition.INSTANT_DEATH:
-            if not self.__any_usable_skill_can_inflict_ailment(logic_data.class_data.unlocked_classes, EO1Ailment.INSTANT_DEATH):
+            if not self.__any_usable_skill_can_inflict_ailment(context.logic_data.class_data.unlocked_classes, EO1Ailment.INSTANT_DEATH):
                 return False
             return can_defeat_with_condition()
         if enemy_data.drop_condition == DropCondition.FULL_BIND:
-            if not self.__any_usable_skill_can_inflict_ailment(logic_data.class_data.unlocked_classes, EO1Ailment.HEAD_BIND):
+            if not self.__any_usable_skill_can_inflict_ailment(context.logic_data.class_data.unlocked_classes, EO1Ailment.HEAD_BIND):
                 return False
-            if not self.__any_usable_skill_can_inflict_ailment(logic_data.class_data.unlocked_classes, EO1Ailment.ARM_BIND):
+            if not self.__any_usable_skill_can_inflict_ailment(context.logic_data.class_data.unlocked_classes, EO1Ailment.ARM_BIND):
                 return False
-            if not self.__any_usable_skill_can_inflict_ailment(logic_data.class_data.unlocked_classes, EO1Ailment.LEG_BIND):
+            if not self.__any_usable_skill_can_inflict_ailment(context.logic_data.class_data.unlocked_classes, EO1Ailment.LEG_BIND):
                 return False
             # Player can inflict all 3 binds individually. Leave the battle processor determine if it is realistic to do.
             return can_defeat_with_condition()

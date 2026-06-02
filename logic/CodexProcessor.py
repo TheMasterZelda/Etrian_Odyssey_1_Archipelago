@@ -1,3 +1,4 @@
+from .ILogicManager import ExecutionContext
 from .QuestProcessor import QuestProcessor
 from .StateInterface import StateInterface
 
@@ -125,11 +126,11 @@ class CodexProcessor:
         self.quest_processor = quest_processor
         self.region_cache = None
 
-    def can_fill_codex_entry(self, enemy_id: int, state: StateInterface, logic_data: AllLogicData) -> bool:
+    def can_fill_codex_entry(self, enemy_id: int, context: ExecutionContext) -> bool:
         if self.region_cache is None:
-            self.region_cache = set(state.get_regions())
+            self.region_cache = set(context.state.get_regions())
 
-        if enemy_id not in logic_data.defeatable_enemy.defeatable_enemies:
+        if enemy_id not in context.logic_data.defeatable_enemy.defeatable_enemies:
             return False
 
         codex_data = CODEX_DATA_BY_ENEMY_ID[enemy_id]
@@ -138,21 +139,21 @@ class CodexProcessor:
             return False
 
         if codex_data.encounter_type == CodexEncounterType.REGULAR:
-            return self.__can_fill_regular_entry(codex_data, state, logic_data)
+            return self.__can_fill_regular_entry(codex_data, context)
         elif codex_data.encounter_type == CodexEncounterType.FOE:
-            return self.__can_fill_foe_entry(codex_data, state, logic_data)
+            return self.__can_fill_foe_entry(codex_data, context)
         elif codex_data.encounter_type == CodexEncounterType.BOSS:
-            return self.__can_fill_boss_entry(codex_data, state, logic_data)
+            return self.__can_fill_boss_entry(codex_data, context)
         elif codex_data.encounter_type == CodexEncounterType.MINION:
-            return self.__can_fill_minion_entry(codex_data, state, logic_data)
+            return self.__can_fill_minion_entry(codex_data, context)
         elif codex_data.encounter_type == CodexEncounterType.QUEST:
-            return self.__can_fill_quest_entry(codex_data, state, logic_data)
+            return self.__can_fill_quest_entry(codex_data, context)
         elif codex_data.encounter_type == CodexEncounterType.SPECIAL:
-            return self.__can_fill_special_entry(codex_data, state, logic_data)
+            return self.__can_fill_special_entry(codex_data, context)
 
         raise Exception("Not implemented")
 
-    def __can_reach_any_regions(self, regions: list[str], state: StateInterface, logic_data: AllLogicData) -> bool:
+    def __can_reach_any_regions(self, regions: list[str], context: ExecutionContext) -> bool:
         for region in regions:
             # Skip regions not in the seed (depending on goal).
             if region not in self.region_cache:
@@ -160,13 +161,13 @@ class CodexProcessor:
 
             # Optimization: Doing a floor number check is much, much faster than doing a "can_reach_region" check.
             region_data = ALL_REGION_DATA_BY_NAME[region]
-            if region_data.floor_number > logic_data.current_floor_limit:
+            if region_data.floor_number > context.logic_data.current_floor_limit:
                 continue
-            if state.can_reach_region(region):
+            if context.state.can_reach_region(region):
                 return True
         return False
 
-    def __can_fill_regular_entry(self, codex_data: CodexData, state: StateInterface, logic_data: AllLogicData) -> bool:
+    def __can_fill_regular_entry(self, codex_data: CodexData, context: ExecutionContext) -> bool:
         # Temporary, since we only support regular encounter monsters.
         #if codex_data.enemy_id not in ENCOUNTER_BY_MONSTER:
         #    return False
@@ -174,44 +175,44 @@ class CodexProcessor:
         encounters = ENCOUNTER_BY_MONSTER[codex_data.enemy_id]
 
         for encounter_id in encounters:
-            if encounter_id not in logic_data.defeatable_encounter.defeatable_encounters:
+            if encounter_id not in context.logic_data.defeatable_encounter.defeatable_encounters:
                 continue
 
             regions = REGION_BY_ENCOUNTER[encounter_id]
-            if self.__can_reach_any_regions(regions, state, logic_data):
+            if self.__can_reach_any_regions(regions, context):
                 return True
 
         # If we got here, this mean none of the encounters are both defeatable and reachable.
         return False
 
-    def __can_fill_foe_entry(self, codex_data, state, logic_data) -> bool:
+    def __can_fill_foe_entry(self, codex_data, context: ExecutionContext) -> bool:
         regions = REGION_BY_FOE[codex_data.enemy_id]
-        return self.__can_reach_any_regions(regions, state, logic_data)
+        return self.__can_reach_any_regions(regions, context)
 
-    def __can_fill_boss_entry(self, codex_data, state, logic_data) -> bool:
+    def __can_fill_boss_entry(self, codex_data, context: ExecutionContext) -> bool:
         # Bosses are more complex, since they can be locked behind questlines.
         # However, for now quest related bosses are unsupported.
         regions = REGION_BY_BOSS[codex_data.enemy_id]
-        return self.__can_reach_any_regions(regions, state, logic_data)
+        return self.__can_reach_any_regions(regions, context)
 
-    def __can_fill_minion_entry(self, codex_data, state, logic_data) -> bool:
+    def __can_fill_minion_entry(self, codex_data, context: ExecutionContext) -> bool:
         # For this game, there is only one minion type enemy, so this function is hard coded for them.
-        if EO1Enemies.CERNUNOS not in logic_data.defeatable_encounter.defeatable_encounters:
+        if EO1Enemies.CERNUNOS not in context.logic_data.defeatable_encounter.defeatable_encounters:
             return False
 
         # This is recursive, but it's controlled.
         # If other minion types get added, add a validation the enemy type here isn't also minion (to avoid stackoverflow mistakes).
-        return self.can_fill_codex_entry(EO1Enemies.CERNUNOS, state, logic_data)
+        return self.can_fill_codex_entry(EO1Enemies.CERNUNOS, context)
 
-    def __can_fill_quest_entry(self, codex_data, state, logic_data) -> bool:
+    def __can_fill_quest_entry(self, codex_data, context: ExecutionContext) -> bool:
         if codex_data.quest_id is None:
             raise Exception(f"Codex entry {codex_data.codex_id} of type Quest is lacking a defined Quest ID.")
 
-        return self.quest_processor.can_complete_quest(codex_data.quest_id, logic_data, state)
+        return self.quest_processor.can_complete_quest(codex_data.quest_id, context)
 
-    def __can_fill_special_entry(self, codex_data, state, logic_data) -> bool:
+    def __can_fill_special_entry(self, codex_data, context: ExecutionContext) -> bool:
         if codex_data.enemy_id == EO1Enemies.PONDCLAW:
             # Pondclaw requires access to B8F to start a miniquest, and fight it on B7F.
-            return self.__can_reach_any_regions([EO1Regions.B8F_MAIN], state, logic_data)
+            return self.__can_reach_any_regions([EO1Regions.B8F_MAIN], context)
         else:
             raise Exception(f"Unimplemented Special Codex entry {codex_data.codex_id} for enemy {codex_data.enemy_id}")
