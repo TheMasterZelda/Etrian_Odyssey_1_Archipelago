@@ -15,6 +15,8 @@ class EtrianOdysseyGoal(Choice):
     - **Defeat Etreant:** Defeat the boss of the 5th Stratum (and the normal end of the game), Etreant (B25F) (Lvl 70).
     - **Defeat Primevil:** Defeat the boss of the 6th Stratum (postgame), Primevil (B30F) (Lvl 70). WARNING: NOT RECOMMENDED
       UNLESS YOU KNOW WHAT YOU ARE GETTING INTO
+    - **Fully Complete Codex and Compendium:** Don't. Why is this even an option. (B30F) (Lvl 70). WARNING: NOT RECOMMENDED
+      UNLESS YOU KNOW WHAT YOU ARE GETTING INTO. PLEASE RECONSIDER. Note: To goal, you need to collect the Town Crown at Radha Hall.
     """
 
     display_name = "Goal"
@@ -23,8 +25,9 @@ class EtrianOdysseyGoal(Choice):
     option_defeat_cotrangl = EO1Goal.defeat_cotrangl.value
     option_annihilate_the_forest_folk = EO1Goal.annihilate_the_forest_folk.value
     option_defeat_etreant  = EO1Goal.defeat_etreant.value
-    #option_defeat_primevil = EO1Goal.defeat_primevil.value
-    default = EO1Goal.defeat_etreant.value
+    option_defeat_primevil = EO1Goal.defeat_primevil.value
+    option_fully_complete_codex_and_compendium = EO1Goal.fully_complete_codex_and_compendium.value
+    default = EO1Goal.defeat_cernunos.value
 
 class ExperienceModifier(Range):
     """
@@ -393,6 +396,21 @@ class QuestCompletionRewardHint(DefaultOnToggle):
     """
     display_name = "Quest Completion Reward Hint"
 
+# Shop Unlock sanity
+class ShopUnlockSanity(Toggle):
+    """
+    Shuffles Shop Item Unlocks as Locations. Does not change the actual shop items.
+    """
+    display_name = "Shop Unlock Sanity"
+
+# Key Items
+class ShuffleRadhaNote(Toggle):
+    """
+    When enabled, add the Radha Note to the item pool and remove it from the first mission rewards.
+    WARNING: Radha Note is necessary to unlock Warp Wires in the shop, enabling this can make a seed incredibly harder.
+    """
+    display_name = "Shuffle Radha Note"
+
 # QoL options
 class MinimizeQuestMaterialGrind(DefaultOnToggle):
     """
@@ -484,6 +502,8 @@ class EtrianOdysseyOptions(PerGameCommonOptions):
     compendium_sanity_include_conditional_drops: CompendiumSanityIncludeConditionalDrops
     quest_sanity: QuestSanity
     quest_completion_reward_hint: QuestCompletionRewardHint
+    shop_unlock_sanity: ShopUnlockSanity
+    shuffle_radha_note: ShuffleRadhaNote
     minimize_quest_material_grind: MinimizeQuestMaterialGrind
     shop_unlock_material_cost_divider: ShopUnlockMaterialCostDivider
     material_sell_value_multiplier: MaterialSellValueMultiplier

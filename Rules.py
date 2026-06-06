@@ -200,6 +200,30 @@ class CanFillCompendiumEntry(Rule["EtrianOdysseyWorld"], game=GAME_NAME):
             }
 
 @dataclasses.dataclass()
+class CanUnlockShopItem(Rule["EtrianOdysseyWorld"], game=GAME_NAME):
+    item_id: int
+
+    @override
+    def _instantiate(self, world: EtrianOdysseyWorld) -> Rule.Resolved:
+        return self.Resolved(self.item_id, player=world.player)
+
+    class Resolved(Rule.Resolved):
+        # noinspection PyDataclass
+        item_id: int
+
+        @override
+        def _evaluate(self, state: CollectionState) -> bool:
+            logic_manager = get_logic_manager(state, self.player)
+            return logic_manager.can_unlock_shop_item(state, self.item_id)
+
+        @override
+        def item_dependencies(self) -> dict[str, set[int]]:
+            return {
+                **{item_name: {id(self)} for item_name in get_battle_item_dependencies()},
+                **{item_name: {id(self)} for item_name in get_location_item_dependencies()},
+            }
+
+@dataclasses.dataclass()
 class CanUseSkill(Rule["EtrianOdysseyWorld"], game=GAME_NAME):
     skill_id: int
 
@@ -235,16 +259,13 @@ class CanEscape(Rule["EtrianOdysseyWorld"], game=GAME_NAME):
         # noinspection PyDataclass
         @override
         def _evaluate(self, state: CollectionState) -> bool:
-            # TODO implement when Radha's letter get shuffled.
-            return True
-            #logic_manager = get_logic_manager(state, self.player)
-            #return logic_manager.can_fill_codex_entry(state, self.enemy_id)
+            # TODO support skills or Magnet too.
+            return state.has(EO1ItemNames.RADHA_NOTE, self.player)
 
         @override
         def item_dependencies(self) -> dict[str, set[int]]:
             return {
-                **{item_name: {id(self)} for item_name in get_battle_item_dependencies()},
-                # TODO add Radha's letter.
+                EO1ItemNames.RADHA_NOTE: {id(self)},
             }
 
 @dataclasses.dataclass()
@@ -293,6 +314,26 @@ class CanCompleteQuest(Rule["EtrianOdysseyWorld"], game=GAME_NAME):
                 **{item_name: {id(self)} for item_name in get_location_item_dependencies()},
             }
 
+@dataclasses.dataclass()
+class CanFullyCompleteCodexAndCompendium(Rule["EtrianOdysseyWorld"], game=GAME_NAME):
+    @override
+    def _instantiate(self, world: EtrianOdysseyWorld) -> Rule.Resolved:
+        return self.Resolved(player=world.player)  # , caching_enabled=True)
+
+    class Resolved(Rule.Resolved):
+        # noinspection PyDataclass
+
+        @override
+        def _evaluate(self, state: CollectionState) -> bool:
+            logic_manager = get_logic_manager(state, self.player)
+            return logic_manager.can_fully_complete_codex_and_compendium(state)
+        @override
+        def item_dependencies(self) -> dict[str, set[int]]:
+            return {
+                **{item_name: {id(self)} for item_name in get_battle_item_dependencies()},
+                **{item_name: {id(self)} for item_name in get_location_item_dependencies()},
+            }
+
 
 def resolve_entrance_rule(world: EtrianOdysseyWorld, source_region: EO1RegionData, exit_data: EO1Entrance) -> Rule:
     destination_data = ALL_REGION_DATA_BY_NAME[exit_data.destination]
@@ -326,6 +367,13 @@ def resolve_entrance_rule(world: EtrianOdysseyWorld, source_region: EO1RegionDat
         entrance_rule = Has(event_info.item_name)
     elif exit_data.entrance_type == EntranceType.MandatoryFight:
         entrance_rule = CanDefeatEncounter(tuple(exit_data.enemies))
+    elif exit_data.entrance_type == EntranceType.OneWayFightOrEscape:
+        entrance_rule = Or(
+            CanDefeatEncounter(tuple(exit_data.enemies)),
+            CanEscape()
+        )
+    elif exit_data.entrance_type == EntranceType.DragonDoor:
+        entrance_rule = CanFillCodexEntry(exit_data.enemy_id)
     else:
         raise Exception(f"Unknown entrance type: {exit_data.entrance_type}")
 

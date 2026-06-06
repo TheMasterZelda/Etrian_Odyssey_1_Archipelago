@@ -29,6 +29,8 @@ class OptionKeys:
     COMPENDIUM_SANITY_INCLUDE_CONDITIONAL_DROPS = "compendium_sanity_include_conditional_drops"
     QUEST_SANITY = "quest_sanity"
     QUEST_COMPLETION_REWARD_HINT = "quest_completion_reward_hint"
+    SHOP_UNLOCK_SANITY = "shop_unlock_sanity"
+    SHUFFLE_RADHA_NOTE = "shuffle_radha_note"
     #shop_unlock_material_cost_divider: ShopUnlockMaterialCostDivider irrelevant to the generation
 
 class OptionSets:
@@ -42,6 +44,7 @@ class OptionSets:
         OptionKeys.COMPENDIUM_SANITY: True,
         OptionKeys.COMPENDIUM_SANITY_INCLUDE_CONDITIONAL_DROPS: True,
         OptionKeys.QUEST_SANITY: True,
+        OptionKeys.SHOP_UNLOCK_SANITY: True,
     }
     DISABLE_ALL_OPTIONAL_LOCATIONS = {
         OptionKeys.CODEX_SANITY: False,
@@ -49,6 +52,7 @@ class OptionSets:
         OptionKeys.COMPENDIUM_SANITY: False,
         OptionKeys.COMPENDIUM_SANITY_INCLUDE_CONDITIONAL_DROPS: False,
         OptionKeys.QUEST_SANITY: False,
+        OptionKeys.SHOP_UNLOCK_SANITY: False,
     }
     NO_LEVEL_SHUFFLING = {
         OptionKeys.LEVEL_CAP_MODE: LevelCapMode.option_none,
@@ -63,7 +67,8 @@ class OptionSets:
         OptionKeys.CLASS_SANITY_MODE: ClassSanityType.start_with_all.value,
     }
     ENABLE_ALL_OPTIONAL_LOGIC_OPTIONS = {
-        OptionKeys.SUSTAIN_LOGIC_ENABLED: True
+        OptionKeys.SUSTAIN_LOGIC_ENABLED: True,
+        OptionKeys.SHUFFLE_RADHA_NOTE: True
     }
 
 class APGenSteps:

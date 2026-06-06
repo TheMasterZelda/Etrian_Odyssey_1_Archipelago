@@ -1,5 +1,8 @@
 from dataclasses import dataclass
 
+from .InventoryItemData import EO1ItemNames
+
+
 class EventNames:
     FENRIR_DEFEATED = "Fenrir Defeated"
     STRATUM_2_REACHED = "Stratum 2 Reached"
@@ -15,6 +18,7 @@ class EventNames:
     CARD_KEY_OBTAINED = "Card Key Obtained"
     ETREANT_DEFEATED = "Etreant Defeat"
     PRIMEVIL_DEFEATED = "Primevil Defeated"
+    OBTAINED_THE_TOWN_CROWN = "Obtained the Town Crown"
 
 @dataclass
 class EventInfo:
@@ -92,9 +96,14 @@ EVENT_PRIMEVIL_DEFEATED = EventInfo(
     "Primevil Defeated",
     required_stratum=6)
 
+EVENT_OBTAIN_THE_TOWN_CROWN = EventInfo(
+    EventNames.OBTAINED_THE_TOWN_CROWN,
+    "Why would you do this",
+    required_stratum=7)
+
 EVENT_OBTAIN_RADHA_NOTE = EventInfo(
     "Obtain Radha Note",
-    "Radha Note",
+    EO1ItemNames.RADHA_NOTE,
     required_stratum=1)
 
 EVENT_BY_NAME: dict[str, EventInfo] = {
@@ -112,5 +121,6 @@ EVENT_BY_NAME: dict[str, EventInfo] = {
     EVENT_CARD_KEY_OBTAINED.name:EVENT_CARD_KEY_OBTAINED,
     EVENT_ETREANT_DEFEATED.name:EVENT_ETREANT_DEFEATED,
     EVENT_PRIMEVIL_DEFEATED.name:EVENT_PRIMEVIL_DEFEATED,
+    EVENT_OBTAIN_THE_TOWN_CROWN.name:EVENT_OBTAIN_THE_TOWN_CROWN,
     EVENT_OBTAIN_RADHA_NOTE.name:EVENT_OBTAIN_RADHA_NOTE
 }

@@ -595,6 +595,95 @@ class CanUseAOEDamageMitigationSkill(CanUseActiveSkill):
         # Not any of the damage mitigation skill types.
         return False
 
+@dataclass(frozen=True)
+class CanUseAOEDamageNegationSkill(CanUseActiveSkill):
+    damage_type: EO1Element | None = None
+
+    def copy(self) -> SVCriteria:
+        return CanUseAOEDamageNegationSkill(
+            self.skill_count,
+            self.damage_type_resistances.copy(),
+            self.ailment_resistances.copy(),
+            self.skill_viability_level,
+            self.ignore_immunities,
+            self.damage_type)
+
+    def evaluate_single_skill(self, skill: SkillLogicData, enemy_attributes: EnemyAttributes, class_data: SingleClassLogicData, all_logic_data: AllLogicData) -> bool:
+        if not super(CanUseAOEDamageNegationSkill, self).evaluate_single_skill(skill, enemy_attributes, class_data, all_logic_data):
+            return False
+
+        if self.damage_type is None:
+            raise Exception("Missing damage type in CanUseAOEDamageNegationSkill criteria.")
+
+        simplified_values = self.get_simplified_values(skill)
+        skill_data = self.get_skill_data(skill)
+
+        if simplified_values.get_skill_type() == SkillType.GUARD:
+            guard_skill = cast(GuardSkillValues, simplified_values)
+            if guard_skill.target_type == SkillTargetType.SINGLE:
+                return False
+            if guard_skill.target_type != SkillTargetType.ALL:
+                return False
+
+            # Can mitigate the necessary damage type?
+            if self.damage_type in guard_skill.damage_types:
+                return True
+
+            if self.damage_type in EO1ElementGroup.PHYSICAL:
+                return False
+
+            if self.damage_type == EO1Element.FIRE:
+                return skill.skill_id == EO1Skills.PROTECTOR_ANTIFIRE
+            if self.damage_type == EO1Element.ICE:
+                return skill.skill_id == EO1Skills.PROTECTOR_ANTICOLD
+            if self.damage_type == EO1Element.THUNDER:
+                return skill.skill_id == EO1Skills.PROTECTOR_ANTIVOLT
+
+            return False
+
+        # Not any of the damage mitigation skill types.
+        return False
+
+@dataclass(frozen=True)
+class CanRemoveIceblock(CanUseActiveSkill):
+    def copy(self) -> SVCriteria:
+        return CanRemoveIceblock(
+            self.skill_count,
+            self.damage_type_resistances.copy(),
+            self.ailment_resistances.copy(),
+            self.skill_viability_level,
+            self.ignore_immunities)
+
+    def evaluate_single_skill(self, skill: SkillLogicData, enemy_attributes: EnemyAttributes, class_data: SingleClassLogicData, all_logic_data: AllLogicData) -> bool:
+        if not super(CanRemoveIceblock, self).evaluate_single_skill(skill, enemy_attributes, class_data, all_logic_data):
+            return False
+
+        if skill.skill_id == EO1Skills.TROUBADOUR_ERASURE:
+            return True
+        if skill.skill_id == EO1Skills.HEXER_FRAILTY:
+            return True
+
+        return False
+
+@dataclass(frozen=True)
+class CanUseSpecificActiveSkill(CanUseActiveSkill):
+    skill_id: list[int] = field(default_factory=list)
+
+    def copy(self) -> SVCriteria:
+        return CanUseSpecificActiveSkill(
+            self.skill_count,
+            self.damage_type_resistances.copy(),
+            self.ailment_resistances.copy(),
+            self.skill_viability_level,
+            self.ignore_immunities,
+            self.skill_id.copy())
+
+    def evaluate_single_skill(self, skill: SkillLogicData, enemy_attributes: EnemyAttributes, class_data: SingleClassLogicData, all_logic_data: AllLogicData) -> bool:
+        if not super(CanUseSpecificActiveSkill, self).evaluate_single_skill(skill, enemy_attributes, class_data, all_logic_data):
+            return False
+
+        return skill.skill_id in self.skill_id
+
 class CanUseAOEHealSkill(CanUseActiveSkill):
     def copy(self) -> SVCriteria:
         return CanUseAOEHealSkill(

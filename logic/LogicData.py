@@ -8,6 +8,7 @@ from ..data.EncounterGroupData import *
 from ..data.CodexData import *
 from ..data.CompendiumData import *
 from ..data.InventoryItemData import EO1ItemNames, EO1ItemID, CONSUMABLE_DATA
+from ..data.ItemCompoundData import ITEM_COMPOUND_TABLE
 from ..data.MaxLevelByFloor import MAX_LEVEL_BY_FLOOR
 
 if TYPE_CHECKING:
@@ -256,11 +257,11 @@ class ShopUnlockLogicData(DualIntSetLogicData):
         return new_copy
 
     def fill_default(self) -> None:
-        for consumable_data in CONSUMABLE_DATA:
+        for item_compound_data in ITEM_COMPOUND_TABLE:
             # Warp wires are a special kind of unlock item handled differently.
-            if consumable_data.item_id == EO1ItemID.WARP_WIRE:
+            if item_compound_data.item_id == EO1ItemID.WARP_WIRE:
                 continue
-            self.non_unlockable_shop_items.add(consumable_data.item_id)
+            self.non_unlockable_shop_items.add(item_compound_data.item_id)
 
     @property
     def non_unlockable_shop_items(self) -> set[int]:
@@ -338,4 +339,7 @@ class AllLogicData:
     def set_location_stale(self):
         self.codex_logic_data.set_stale(True)
         self.compendium_logic_data.set_stale(True)
+        self.shop_unlock_logic_data.set_stale(True)
+
+    def set_shop_unlock_stale(self):
         self.shop_unlock_logic_data.set_stale(True)

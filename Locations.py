@@ -4,6 +4,7 @@ from BaseClasses import Location, ItemClassification
 from .Items import EtrianOdysseyItem, EtrianOdysseyItemType
 from .Rules import *
 from .data.EnemyData import EO1Enemies
+from .data.ItemCompoundData import EO1ItemCompound, SHOP_UNLOCK_BY_LOCATION_ID
 from .data.QuestData import QuestData, ALL_QUEST_DATA
 from .data.RegionData import EO1Regions, ALL_REGIONS
 from .data.TreasureData import *
@@ -23,6 +24,7 @@ if TYPE_CHECKING:
 # Codex use id 2000 to 2131.
 # Compendium use id 3000 to 3195.
 # Quests use id 4000 to 4999.
+# Shop use id 5000 to 5999.
 
 class EtrianOdysseyLocationType(Enum):
     TREASURE_BOX = 0
@@ -30,6 +32,7 @@ class EtrianOdysseyLocationType(Enum):
     QUEST_COMPLETION = 2
     CODEX_ENTRY = 3
     COMPENDIUM_ENTRY = 4
+    SHOP_ENTRY = 5
     #FOE
     #LABYRINTH_EVENT
     #TILE
@@ -64,6 +67,11 @@ def create_location_from_quest_data(quest_data: QuestData) -> EtrianOdysseyLocat
     location.location_type = EtrianOdysseyLocationType.QUEST_COMPLETION
     return location
 
+def create_location_from_shop_data(shop_data: EO1ItemCompound) -> EtrianOdysseyLocation:
+    location = EtrianOdysseyLocation(None, shop_data.get_full_location_name())
+    location.location_type = EtrianOdysseyLocationType.SHOP_ENTRY
+    return location
+
 def location_is_handled_in_game(location_id: int) -> bool:
     if location_id == -1:
         return False
@@ -79,6 +87,7 @@ ALL_LOCATIONS_BY_ID: dict[int, EtrianOdysseyLocation] = {
     **{codex_data.location_id: create_location_from_codex_data(codex_data) for codex_data in ALL_CODEX_ENTRIES},
     **{compendium_data.location_id: create_location_from_compendium_data(compendium_data) for compendium_data in COMPENDIUM_TABLE},
     **{quest_data.location_id: create_location_from_quest_data(quest_data) for quest_data in ALL_QUEST_DATA},
+    **{shop_data.ap_location_id: create_location_from_shop_data(shop_data) for shop_data in SHOP_UNLOCK_BY_LOCATION_ID.values()}
 }
 ALL_LOCATIONS_ID_BY_NAME: dict[str, int] = {ALL_LOCATIONS_BY_ID[location_id].name:location_id for location_id in ALL_LOCATIONS_BY_ID}
 
@@ -94,6 +103,80 @@ def create_all_locations(world: EtrianOdysseyWorld) -> None:
 
     if bool(world.options.quest_sanity.value):
         create_quest_completion_locations(world)
+
+    if bool(world.options.shop_unlock_sanity.value):
+        create_shop_locations(world)
+
+def __any_enemy_in_goal(enemy_list: set[int], max_stratum: int) -> bool:
+    for enemy_id in enemy_list:
+        codex_data = CODEX_DATA_BY_ENEMY_ID[enemy_id]
+        if codex_data.required_stratum > max_stratum:
+            continue
+        # TODO Filter on options for Quest Monsters here? Only affect optional boss drops.
+        return True
+    return False
+
+def __any_gathering_spot_in_goal(gathering_spot_list: set[int], regions: set[str]) -> bool:
+    for gathering_spot_unique_id in gathering_spot_list:
+        gathering_spot_data = GATHERING_SPOT_BY_UNIQUE_ID[gathering_spot_unique_id]
+
+        if gathering_spot_data.region in regions:
+            return True
+    return False
+
+def __compendium_entry_is_in_goal(compendium_entry: CompendiumData, max_stratum: int, regions: set[str], options: EtrianOdysseyOptions) -> bool:
+    if compendium_entry.conditional_drop:
+        if not bool(options.compendium_sanity_include_conditional_drops):
+            return False
+
+    if compendium_entry.required_stratum is not None:
+        if compendium_entry.required_stratum > max_stratum:
+            return False
+
+    if compendium_entry.source == CompendiumSource.MONSTER:
+        return __any_enemy_in_goal(ENEMY_BY_DROP_ID[compendium_entry.item_id], max_stratum)
+    elif compendium_entry.source == CompendiumSource.GATHERING:
+        return __any_gathering_spot_in_goal(GATHERING_SPOT_BY_ITEM_ID[compendium_entry.item_id], regions)
+    elif compendium_entry.source == CompendiumSource.BOTH:
+        if __any_enemy_in_goal(ENEMY_BY_DROP_ID[compendium_entry.item_id], max_stratum):
+            return True
+        if __any_gathering_spot_in_goal(GATHERING_SPOT_BY_ITEM_ID[compendium_entry.item_id], regions):
+            return True
+        return False
+    else:
+        raise Exception(f"Unknown compendium source: {compendium_entry.source}")
+
+def create_shop_locations(world: EtrianOdysseyWorld) -> None:
+    shop_region = world.get_region(EO1Regions.SHILLEKA)
+    max_stratum = get_max_stratum_for_goal(EO1Goal(world.options.goal.value))
+    regions: set[str] = {region.name for region in world.get_regions()}
+
+    def create_location(shop_entry: EO1ItemCompound):
+        location = EtrianOdysseyLocation(world.player, shop_entry.get_full_location_name(), shop_entry.ap_location_id, shop_region)
+        shop_region.locations.append(location)
+        access_rule = CanUnlockShopItem(shop_entry.item_id)
+        world.set_rule(location, access_rule)
+
+    def material_is_in_goal(item_id: int) -> bool:
+        if item_id == 0:
+            return True
+
+        if item_id not in COMPENDIUM_BY_ITEM_ID:
+            raise Exception(f"Unknown material item id: {item_id}")
+
+        compendium_entry = COMPENDIUM_BY_ITEM_ID[item_id]
+        return __compendium_entry_is_in_goal(compendium_entry, max_stratum, regions, world.options)
+
+    for shop_data in SHOP_UNLOCK_BY_LOCATION_ID.values():
+        if not material_is_in_goal(shop_data.material_1_id):
+            continue
+        if not material_is_in_goal(shop_data.material_2_id):
+            continue
+        if not material_is_in_goal(shop_data.material_3_id):
+            continue
+
+        create_location(shop_data)
+
 
 def create_quest_completion_locations(world: EtrianOdysseyWorld) -> None:
     pub_region = world.get_region(EO1Regions.PUB)
@@ -145,43 +228,9 @@ def create_compendium_locations(world: EtrianOdysseyWorld) -> None:
         access_rule = CanFillCompendiumEntry(compendium.item_id)
         world.set_rule(location, access_rule)
 
-    def any_enemy_in_goal(enemy_list: set[int]) -> bool:
-        for enemy_id in enemy_list:
-            codex_data = CODEX_DATA_BY_ENEMY_ID[enemy_id]
-            if codex_data.required_stratum > max_stratum:
-                continue
-            return True
-        return False
-
-    def any_gathering_spot_in_goal(gathering_spot_list: set[int]) -> bool:
-        for gathering_spot_unique_id in gathering_spot_list:
-            gathering_spot_data = GATHERING_SPOT_BY_UNIQUE_ID[gathering_spot_unique_id]
-
-            if gathering_spot_data.region in regions:
-                return True
-        return False
-
-    def compendium_entry_is_in_goal(compendium_entry: CompendiumData) -> bool:
-        if compendium_entry.source == CompendiumSource.MONSTER:
-            return any_enemy_in_goal(ENEMY_BY_DROP_ID[compendium_data.item_id])
-        elif compendium_entry.source == CompendiumSource.GATHERING:
-            return any_gathering_spot_in_goal(GATHERING_SPOT_BY_ITEM_ID[compendium_data.item_id])
-        elif compendium_entry.source == CompendiumSource.BOTH:
-            if any_enemy_in_goal(ENEMY_BY_DROP_ID[compendium_data.item_id]):
-                return True
-            if any_gathering_spot_in_goal(GATHERING_SPOT_BY_ITEM_ID[compendium_data.item_id]):
-                return True
-            return False
-        else:
-            raise Exception(f"Unknown compendium source: {compendium_entry.source}")
-
     for compendium_data in COMPENDIUM_TABLE:
-        if not compendium_entry_is_in_goal(compendium_data):
+        if not __compendium_entry_is_in_goal(compendium_data, max_stratum, regions, world.options):
             continue
-
-        if compendium_data.conditional_drop:
-            if not bool(world.options.compendium_sanity_include_conditional_drops):
-                continue
 
         create_location(compendium_data)
 
@@ -299,8 +348,9 @@ def create_goal_event(world: EtrianOdysseyWorld) -> None:
         create_event(EVENT_ETREANT_DEFEATED, EO1Regions.B25F_ETREANT_ROOM, CanDefeatEnemy(EO1Enemies.ETREANT))
     elif goal == EO1Goal.defeat_primevil:
         # Primevil Defeated
-        # todo this is wrong but the correct region doesn't exist yet.
-        create_event(EVENT_PRIMEVIL_DEFEATED, EO1Regions.B30F_MAIN, CanDefeatEnemy(EO1Enemies.PRIMEVIL))
+        create_event(EVENT_PRIMEVIL_DEFEATED, EO1Regions.B30F_PRIMEVIL_ROOM, CanDefeatEnemy(EO1Enemies.PRIMEVIL))
+    elif goal == EO1Goal.fully_complete_codex_and_compendium:
+        create_event(EVENT_OBTAIN_THE_TOWN_CROWN, EO1Regions.B30F_PRIMEVIL_ROOM, CanFullyCompleteCodexAndCompendium())
     else:
         raise Exception(f"Goal {goal} not implemented")
 
@@ -353,4 +403,5 @@ def create_events(world: EtrianOdysseyWorld) -> None:
     create_event(EVENT_CARD_KEY_OBTAINED, EO1Regions.B21F_MAIN, CanDefeatEncounter((EO1Enemies.REN, EO1Enemies.TLACHTGA)))
 
     # Quest Items
-    create_event(EVENT_OBTAIN_RADHA_NOTE, EO1Regions.RADHA_HALL, CanReachLocation(MISSION_1_DATA.get_full_name(), EO1Regions.RADHA_HALL))
+    if not bool(world.options.shuffle_radha_note):
+        create_event(EVENT_OBTAIN_RADHA_NOTE, EO1Regions.RADHA_HALL, CanReachLocation(MISSION_1_DATA.get_full_name(), EO1Regions.RADHA_HALL))

@@ -64,6 +64,8 @@ class EO1Regions:
     B15F_MAIN = "B15F Main"
     B15F_COTRANGL_ROOM = "B15F Cotrangl Room"
     B15F_SECRET_AREA = "B15F Secret Area"
+    B15F_SECRET_AREA_WEST = "B15F Secret Area West"
+    B15F_DRAKE_ROOM = "B15F Drake Room"
     B16F_MAIN = "B16F Main"
     B16F_SECRET_AREA = "B16F Secret Area"
     B16F_EAST_SECRET_AREA = "B16F East Secret Area"
@@ -81,7 +83,7 @@ class EO1Regions:
     B20F_NORTH_ROOM = "B20F North Room"
     B20F_VIOLET_CRYSTAL_ROOM = "B20F Violet Crystal Room"
 
-    # This probably needs to be redone, especially to account for unavoidable fights.
+    # This needs further subdivision for gathering spots.
     B21F_MAIN = "B21F Main" # West area.
     B21F_EAST = "B21F East"
     B21F_SOUTH_EAST = "B21F South East"
@@ -105,14 +107,28 @@ class EO1Regions:
     B25F_WEST_ELEVATOR = "B25F West Elevator"
     B25F_ETREANT_ROOM = "B25F Etreant Room"
 
-    # Stratum 6 is a very rough implementation for now.
+    # Stratum 6.
+    B26F_NORTH = "B26F North"
     B26F_MAIN = "B26F Main"
-    B27F_MAIN = "B27F Main"
+    B26F_EAST_MINE_ROOM = "B26F East Mine Room"
+    B26F_NORTH_EAST_ROOM = "B26F North East Room"
+    B26F_SOUTH_EAST_SONGBIRD_ROOM = "B26F South East Songbird Room"
+    B26F_SOUTH_WEST_SONGBIRD_ROOM = "B26F South West East Songbird Room"
+    B27F_MAIN = "B27F Main" # TODO
+    B27F_END_OF_MAZE ="B27F End of Maze"
     B27F_NORTH = "B27F North"
     B28F_DEATHPIT = "B28F Death Pit"
     B28F_MAIN = "B28F Main"
+    B28F_NORTH_WEST_STAIRS_ROOM = "B28F North West Stairs Room"
     B29F_MAIN = "B29F Main"
     B30F_MAIN = "B30F Main"
+    B30F_HEAL_ROOM = "B30F Heal Room"
+    B30F_WARP_ROOM = "B30F Warp Room"
+    B30F_GAUNTLET_ROOM = "B30F Gauntlet Room"
+    B30F_DRAKOID_ROOM = "B30F Drakoid Room"
+    B30F_DRAGOID_ROOM = "B30F Dragoid Room"
+    B30F_WYRMOID_ROOM = "B30F Wyrmoid Room"
+    B30F_PRIMEVIL_ROOM = "B30F Primevil Room"
 
 TOWN: set[str] = {
     EO1Regions.ETRIA,
@@ -175,7 +191,9 @@ STRATUM_3: set[str] = {
     EO1Regions.B14F_MAIN,
     EO1Regions.B15F_MAIN,
     EO1Regions.B15F_COTRANGL_ROOM,
-    EO1Regions.B15F_SECRET_AREA
+    EO1Regions.B15F_SECRET_AREA,
+    EO1Regions.B15F_SECRET_AREA_WEST,
+    EO1Regions.B15F_DRAKE_ROOM
 }
 
 STRATUM_4: set[str] = {
@@ -222,13 +240,27 @@ STRATUM_5: set[str] = {
 }
 
 STRATUM_6: set[str] = {
+    EO1Regions.B26F_NORTH,
     EO1Regions.B26F_MAIN,
+    EO1Regions.B26F_EAST_MINE_ROOM,
+    EO1Regions.B26F_NORTH_EAST_ROOM,
+    EO1Regions.B26F_SOUTH_EAST_SONGBIRD_ROOM,
+    EO1Regions.B26F_SOUTH_WEST_SONGBIRD_ROOM,
     EO1Regions.B27F_MAIN,
+    EO1Regions.B27F_END_OF_MAZE,
     EO1Regions.B27F_NORTH,
     EO1Regions.B28F_DEATHPIT,
     EO1Regions.B28F_MAIN,
+    EO1Regions.B28F_NORTH_WEST_STAIRS_ROOM,
     EO1Regions.B29F_MAIN,
-    EO1Regions.B30F_MAIN
+    EO1Regions.B30F_MAIN,
+    EO1Regions.B30F_HEAL_ROOM,
+    EO1Regions.B30F_WARP_ROOM,
+    EO1Regions.B30F_GAUNTLET_ROOM,
+    EO1Regions.B30F_DRAKOID_ROOM,
+    EO1Regions.B30F_DRAGOID_ROOM,
+    EO1Regions.B30F_WYRMOID_ROOM,
+    EO1Regions.B30F_PRIMEVIL_ROOM,
 }
 
 ALL_REGIONS: set[str] = {
@@ -445,7 +477,13 @@ ALL_REGION_DATA: list[EO1RegionData] = [
     EO1RegionData(EO1Regions.B15F_COTRANGL_ROOM, 15, 0, [
         StratumTransition(EO1Regions.B16F_MAIN)
     ], [0x65], bosses=[EO1Enemies.COTRANGL]),
-    EO1RegionData(EO1Regions.B15F_SECRET_AREA, 15, 1000, [], [0x68, 0x69, 0x6A, 0x6B, 0x6C], [EO1Enemies.TERALICH]),
+    EO1RegionData(EO1Regions.B15F_SECRET_AREA, 15, 1000, [
+        MandatoryFight(EO1Regions.B15F_SECRET_AREA_WEST, [EO1Enemies.TERALICH]),
+    ], [0x68, 0x69, 0x6A, 0x6B, 0x6C], [EO1Enemies.TERALICH]),
+    EO1RegionData(EO1Regions.B15F_SECRET_AREA_WEST, 15, 1000, [
+        Entrance(EO1Regions.B15F_DRAKE_ROOM)
+    ], [0x6C], [EO1Enemies.TERALICH]),
+    EO1RegionData(EO1Regions.B15F_DRAKE_ROOM, 15, 1000, [], [], [], bosses=[EO1Enemies.DRAKE]),
 
     # -------------------------------------------------
     # Stratum 4
@@ -569,33 +607,72 @@ ALL_REGION_DATA: list[EO1RegionData] = [
         CardKeyDoor(EO1Regions.B25F_ETREANT_ROOM)
     ], [0xB2, 0xB3, 0xB4, 0xB5, 0xB6, 0xB7], [EO1Enemies.TREETUSK, EO1Enemies.DESOULER, EO1Enemies.KINGDILE]),
     EO1RegionData(EO1Regions.B25F_ETREANT_ROOM, 25, 0, [
-        StratumTransition(EO1Regions.B26F_MAIN),
+        StratumTransition(EO1Regions.B26F_NORTH),
     ], [0xB6], bosses=[EO1Enemies.ETREANT]),
     EO1RegionData(EO1Regions.B25F_WEST_ELEVATOR, 25, 0, [], [0xB2]),
 
     # ---------------------------------------------------------------
     # Stratum 6
+    EO1RegionData(EO1Regions.B26F_NORTH, 26, 1000, [
+        OneWayFightOrEscape(EO1Regions.B26F_MAIN, [EO1Enemies.SHELLORD], name_prefix="To B26F Main"),
+        OneWayFightOrEscape(EO1Regions.B26F_NORTH_EAST_ROOM, [EO1Enemies.SHELLORD], name_suffix="To B26F North East Room"),
+    ], [0xB9]),
     EO1RegionData(EO1Regions.B26F_MAIN, 26, 1000, [
+        MandatoryFight(EO1Regions.B26F_EAST_MINE_ROOM, [EO1Enemies.SONGBIRD]),
+        OneWayFightOrEscape(EO1Regions.B26F_NORTH_EAST_ROOM, [EO1Enemies.SHELLORD], name_suffix="To B26F North East Room"),
+        OneWayFightOrEscape(EO1Regions.B26F_SOUTH_EAST_SONGBIRD_ROOM, [EO1Enemies.SONGBIRD], name_suffix="To B26F South East Songbird Room"),
+        OneWayFightOrEscape(EO1Regions.B26F_SOUTH_WEST_SONGBIRD_ROOM, [EO1Enemies.SONGBIRD], name_suffix="To B26F South West Songbird Room"),
         StairsDown(EO1Regions.B27F_MAIN)
     ], [0xB9, 0xBA, 0xBB, 0xBC, 0xBD, 0xBE], [EO1Enemies.SHELLORD, EO1Enemies.TERALICH, EO1Enemies.SONGBIRD]),
+    EO1RegionData(EO1Regions.B26F_NORTH_EAST_ROOM, 26, 1000, [], [0xBC], [EO1Enemies.SHELLORD]),
+    EO1RegionData(EO1Regions.B26F_EAST_MINE_ROOM, 26, 1000, [], [0xBD]),
+    EO1RegionData(EO1Regions.B26F_SOUTH_EAST_SONGBIRD_ROOM, 26, 1000, [], [0xBC], [EO1Enemies.SONGBIRD]),
+    EO1RegionData(EO1Regions.B26F_SOUTH_WEST_SONGBIRD_ROOM, 26, 1000, [], [0xBC], [EO1Enemies.SONGBIRD]),
+
     EO1RegionData(EO1Regions.B27F_MAIN, 27, 1000, [
-        StairsDown(EO1Regions.B28F_MAIN),
-        #EO1Entrances.B27F_STAIRS,
+        MandatoryFight(EO1Regions.B27F_END_OF_MAZE, [EO1Enemies.SHELLORD]),
+        StairsDown(EO1Regions.B28F_DEATHPIT),
         Pitfall(EO1Regions.B28F_DEATHPIT)
     ], [0xBF, 0xC0, 0xC1, 0xC2, 0xC3, 0xC4], [EO1Enemies.SHELLORD, EO1Enemies.SONGBIRD]),
-    EO1RegionData(EO1Regions.B27F_NORTH, 27, 1000, [
+    EO1RegionData(EO1Regions.B27F_END_OF_MAZE, 27, 1000, [
         StairsDown(EO1Regions.B28F_MAIN)
+    ], []),
+    EO1RegionData(EO1Regions.B27F_NORTH, 27, 1000, [
+        StairsDown(EO1Regions.B28F_NORTH_WEST_STAIRS_ROOM)
     ], [0xC3, 0xC4, 0xC5]),
+
     EO1RegionData(EO1Regions.B28F_DEATHPIT, 28, 1000, [], [0xC6, 0xC7, 0xC8, 0xC9], [EO1Enemies.MACABRE]),
     EO1RegionData(EO1Regions.B28F_MAIN, 28, 1000, [
         StairsUp(EO1Regions.B27F_NORTH),
+    ], [0xC9]),
+    EO1RegionData(EO1Regions.B28F_NORTH_WEST_STAIRS_ROOM, 28, 1000, [
         StairsDown(EO1Regions.B29F_MAIN)
     ], [0xC9]),
+
     EO1RegionData(EO1Regions.B29F_MAIN, 29, 1000, [
         StairsDown(EO1Regions.B30F_MAIN)
     ], [0xCD, 0xCE, 0xCF, 0xDB], [EO1Enemies.SHELLORD]),
-    EO1RegionData(EO1Regions.B30F_MAIN, 30, 1000, [], [0xD3, 0xD4, 0xD5, 0xD6, 0xDC], [EO1Enemies.SONGBIRD, EO1Enemies.TERALICH]),
 
+    EO1RegionData(EO1Regions.B30F_MAIN, 30, 1000, [
+        DragonDoor(EO1Regions.B30F_HEAL_ROOM, EO1Enemies.DRAKE, name_prefix="Heal Room"),
+        DragonDoor(EO1Regions.B30F_WARP_ROOM, EO1Enemies.DRAGON, name_prefix="Warp Room"),
+        DragonDoor(EO1Regions.B30F_GAUNTLET_ROOM, EO1Enemies.WYRM, name_prefix="Gauntlet Room"),
+    ], [0xD3, 0xD4, 0xD5, 0xD6, 0xDC], [EO1Enemies.SONGBIRD, EO1Enemies.TERALICH]),
+    EO1RegionData(EO1Regions.B30F_HEAL_ROOM, 30, 1000, [], []),
+    EO1RegionData(EO1Regions.B30F_WARP_ROOM, 30, 1000, [], []),
+    EO1RegionData(EO1Regions.B30F_GAUNTLET_ROOM, 30, 1000, [
+        Entrance(EO1Regions.B30F_DRAKOID_ROOM)
+    ], []),
+    EO1RegionData(EO1Regions.B30F_DRAKOID_ROOM, 30, 1000, [
+        MandatoryFight(EO1Regions.B30F_DRAGOID_ROOM, [EO1Enemies.DRAKOID])
+    ], [], [EO1Enemies.DRAKOID]),
+    EO1RegionData(EO1Regions.B30F_DRAGOID_ROOM, 30, 1000, [
+        MandatoryFight(EO1Regions.B30F_WYRMOID_ROOM, [EO1Enemies.DRAGOID])
+    ], [], [EO1Enemies.DRAGOID]),
+    EO1RegionData(EO1Regions.B30F_WYRMOID_ROOM, 30, 1000, [
+        MandatoryFight(EO1Regions.B30F_PRIMEVIL_ROOM, [EO1Enemies.WYRMOID])
+    ], [], [EO1Enemies.WYRMOID]),
+    EO1RegionData(EO1Regions.B30F_PRIMEVIL_ROOM, 30, 1000, [], [], bosses=[EO1Enemies.PRIMEVIL]),
 ]
 
 ALL_REGION_DATA_BY_NAME: dict[str, EO1RegionData] = {region_data.name:region_data for region_data in ALL_REGION_DATA}

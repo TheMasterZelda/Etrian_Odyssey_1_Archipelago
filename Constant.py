@@ -30,6 +30,7 @@ class EO1Goal(IntEnum):
     annihilate_the_forest_folk = 4
     defeat_etreant = 5
     defeat_primevil = 6
+    fully_complete_codex_and_compendium = 666
 
 class ClassSanityType(IntEnum):
     vanilla = 0
@@ -67,6 +68,8 @@ def get_max_floor_for_goal(goal: EO1Goal) -> int:
         return 25
     elif goal == EO1Goal.defeat_primevil:
         return MAX_FLOOR
+    elif goal == EO1Goal.fully_complete_codex_and_compendium:
+        return MAX_FLOOR
     else:
         raise Exception(f"Goal {goal} not implemented")
 
@@ -82,6 +85,8 @@ def get_max_level_for_goal(goal: EO1Goal) -> int:
     elif goal == EO1Goal.defeat_etreant:
         return MAX_LEVEL
     elif goal == EO1Goal.defeat_primevil:
+        return MAX_LEVEL
+    elif goal == EO1Goal.fully_complete_codex_and_compendium:
         return MAX_LEVEL
     else:
         raise Exception(f"Goal {goal} not implemented")
@@ -99,6 +104,8 @@ def get_max_stratum_for_goal(goal: EO1Goal) -> int:
         return 5
     elif goal == EO1Goal.defeat_primevil:
         return 6
+    elif goal == EO1Goal.fully_complete_codex_and_compendium:
+        return 7 # This includes Primevil and its related items
     else:
         raise Exception(f"Goal {goal} not implemented")
 

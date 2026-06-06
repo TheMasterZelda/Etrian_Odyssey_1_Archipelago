@@ -18,6 +18,7 @@ MISSION_6_DATA = MissionData(6, 0x6, "Lurker in the rainforest", 0x5B)
 MISSION_7_DATA = MissionData(7, 0x7, "Annihilate the forest folk", 0x5D)
 
 MISSION_7_CLEAR_FLAG = 0x1A6
+TOWN_CROWN_FLAG = 0x2FF
 
 ALL_MISSION_DATA = [
     MISSION_1_DATA,

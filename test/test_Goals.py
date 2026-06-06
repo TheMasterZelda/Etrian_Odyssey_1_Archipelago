@@ -89,8 +89,14 @@ class DefeatEtreantFullTest(EtrianOdysseyTestBase):
         **FULL_OPTIONS,
     }
 
-#class DefeatPrimevilTest(EtrianOdysseyTestBase):
-#    options = {
-#        OptionKeys.GOAL: EO1Goal.defeat_primevil.value,
-#        **BASE_OPTIONS,
-#    }
+class DefeatPrimevilTest(EtrianOdysseyTestBase):
+    options = {
+        OptionKeys.GOAL: EO1Goal.defeat_primevil.value,
+        **BASE_OPTIONS,
+    }
+
+class DefeatPrimevilFullTest(EtrianOdysseyTestBase):
+    options = {
+        OptionKeys.GOAL: EO1Goal.defeat_primevil.value,
+        **FULL_OPTIONS,
+    }

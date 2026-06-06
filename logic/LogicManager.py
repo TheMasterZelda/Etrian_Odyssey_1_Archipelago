@@ -121,6 +121,7 @@ class LogicManager:
             self.logic_data.set_skill_stale() # Don't automatically set battle as stale, it will be done if there is a change.
             self.logic_data.set_battle_stale()
         elif item.item_type == EtrianOdysseyItemType.EVENT:
+            self.logic_data.set_battle_stale()
             self.logic_data.set_location_stale()
 
         #floor_ = 1
@@ -234,8 +235,15 @@ class LogicManager:
         return enemy in self.logic_data.defeatable_enemy.defeatable_enemies
 
     def can_fill_codex_entry(self, state: CollectionState, enemy_id: int) -> bool:
+        if enemy_id in [EO1Enemies.DRAKE, EO1Enemies.ALRAUNE]:
+            self.logic_data.set_location_stale()
+
         self.__update_fillable_codex_entries(state)
         return enemy_id in self.logic_data.codex_logic_data.fillable_codex_entries
+
+    def can_unlock_shop_item(self, state: CollectionState, shop_item_id: int) -> bool:
+        self.__update_shop_entries(state)
+        return shop_item_id in self.logic_data.shop_unlock_logic_data.unlockable_shop_items
 
     def can_fill_compendium_entry(self, state: CollectionState, item_id: int) -> bool:
         self.__update_fillable_compendium_entries(state)
@@ -255,6 +263,16 @@ class LogicManager:
         self.__update_fillable_compendium_entries(state)
         self.__update_shop_entries(state)
         return self.quest_processor.can_complete_quest(quest_id, self.logic_data, state)
+
+    def can_fully_complete_codex_and_compendium(self, state: CollectionState) -> bool:
+        self.__update_fillable_codex_entries(state)
+        self.__update_fillable_compendium_entries(state)
+
+        if len(self.logic_data.codex_logic_data.unfillable_codex_entries) > 0:
+            return False
+        if len(self.logic_data.compendium_logic_data.unfillable_compendium_entries) > 0:
+            return False
+        return True
 
     def __update_defeatable_enemies(self, state: CollectionState) -> None:
         self.__update_class_data(state)
@@ -307,37 +325,14 @@ class LogicManager:
 
         if self.logic_data.compendium_logic_data.is_stale():
             changed = self.__update_set_logic_data(self.logic_data.compendium_logic_data, self.compendium_processor.can_fill_compendium_entry, state)
-            #if changed:
-                #self.logic_data.set_shop_consumable_stale()
+            if changed:
+                self.logic_data.set_shop_unlock_stale()
 
     def __update_shop_entries(self, state: CollectionState) -> None:
         self.__update_fillable_compendium_entries(state)
 
         if self.logic_data.shop_unlock_logic_data.is_stale():
             self.__update_set_logic_data(self.logic_data.shop_unlock_logic_data, self.shop_unlock_processor.can_unlock_item, state)
-    #    # This have dependencies on compendium entries, but this makes a circular reference.
-    #    # To avoid infinite looping, do a direct update of the compendium entries here, instead of a delayed one.
-    #    # This will have the impact of logic being delayed by one step, but it also
-    #    # somewhat represent the need to go back to town anyway.
-    #    is_stale = self.logic_data.shop_consumable_unlock_logic_data.is_stale()
-    #
-    #    self.__update_class_data(state)
-    #
-    #    # Update Codex and Compendium, in order, if they are stale.
-    #    if self.logic_data.codex_logic_data.is_stale():
-    #        self.__update_set_logic_data(self.logic_data.codex_logic_data, self.codex_processor.can_fill_codex_entry, state)
-    #        # But keep it stale.
-    #        self.logic_data.codex_logic_data.set_stale(True)
-    #    if self.logic_data.compendium_logic_data.is_stale():
-    #        is_stale |= self.__update_set_logic_data(self.logic_data.compendium_logic_data, self.compendium_processor.can_fill_compendium_entry, state)
-    #        # But keep it stale.
-    #        self.logic_data.compendium_logic_data.set_stale(True)
-
-    #    # Now compendium is as up to date as can be without being unsafe.
-    #    if is_stale:
-    #        changed = self.__update_set_logic_data(self.logic_data.shop_consumable_unlock_logic_data, self.shop_unlock_processor.can_unlock_item, state)
-    #        if changed:
-    #            self.logic_data.set_battle_stale()
 
     def __update_class_data(self, state: CollectionState) -> None:
         if self.logic_data.class_data.is_stale():

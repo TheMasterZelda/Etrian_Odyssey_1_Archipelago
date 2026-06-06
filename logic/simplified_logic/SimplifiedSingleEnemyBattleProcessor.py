@@ -59,10 +59,6 @@ class SimplifiedSingleEnemyBattleProcessor(SingleEnemyBattleProcessor):
         if not self.__defeat_level_requirement_met(enemy_data, logic_data):
             return False
 
-        # TODO Temporary
-        if enemy_id not in SIMPLIFIED_ENEMY_VALUES_BY_ID:
-            return False
-
         sv_enemy = SIMPLIFIED_ENEMY_VALUES_BY_ID[enemy_id]
 
         # If player has more than double the level, bypass other checks.
@@ -79,9 +75,6 @@ class SimplifiedSingleEnemyBattleProcessor(SingleEnemyBattleProcessor):
         enemy_data = self.get_enemy_data(enemy_id)
         if not self.__defeat_level_requirement_met(enemy_data, logic_data):
             return False
-        # TODO Temporary
-        if enemy_id not in SIMPLIFIED_ENEMY_VALUES_BY_ID:
-            return False
 
         sv_enemy = SIMPLIFIED_ENEMY_VALUES_BY_ID[enemy_id]
 
@@ -92,11 +85,11 @@ class SimplifiedSingleEnemyBattleProcessor(SingleEnemyBattleProcessor):
         sv_criteria = sv_enemy.defeat_criteria
 
         if condition == DropCondition.STAB:
-            raise Exception(f"Not implemented DropCondition {condition}")
+            sv_criteria = self.__copy_and_inject_criteria(sv_criteria, CanUseDamageSkill(damage_type=EO1Element.STAB, ignore_immunities=True))
         elif condition == DropCondition.FIRE:
             sv_criteria = self.__copy_and_inject_criteria(sv_criteria, CanUseDamageSkill(damage_type=EO1Element.FIRE, ignore_immunities=True))
         elif condition == DropCondition.ICE:
-            raise Exception(f"Not implemented DropCondition {condition}")
+            sv_criteria = self.__copy_and_inject_criteria(sv_criteria, CanUseDamageSkill(damage_type=EO1Element.ICE, ignore_immunities=True))
         elif condition == DropCondition.NOT_BASH:
             # Handle this condition by treating it as a damage type immunity.
             enemy_attributes.damage_type_immunity.append(EO1Element.BASH)
@@ -111,22 +104,37 @@ class SimplifiedSingleEnemyBattleProcessor(SingleEnemyBattleProcessor):
             enemy_attributes.damage_type_immunity.append(EO1Element.FIRE)
         elif condition == DropCondition.KILL_1_TURNS:
             # Stalker
+            if enemy_id == EO1Enemies.STALKER:
+                if logic_data.get_effective_level_cap() < 50:
+                    return False
             # Mantis
-            raise Exception(f"Not implemented DropCondition {condition}")
+            elif enemy_id == EO1Enemies.MANTIS:
+                if logic_data.get_effective_level_cap() < 45:
+                    return False
+            else:
+                raise Exception(f"Unknown Enemy {enemy_id} for DropCondition Kill in 1 turn")
         elif condition == DropCondition.KILL_2_TURNS:
             # Ogre
             # Hunter
-            raise Exception(f"Not implemented DropCondition {condition}")
+            # Similarly hard to kill enemies.
+            if logic_data.get_effective_level_cap() < 65:
+                return False
+            sv_criteria = self.__copy_and_inject_criteria(sv_criteria, CanUseSpecificActiveSkill(skill_id=[EO1Skills.TROUBADOUR_BRAVERY, EO1Skills.HEXER_FRAILTY]))
         elif condition == DropCondition.KILL_3_TURNS:
             # Wyvern
-            raise Exception(f"Not implemented DropCondition {condition}")
+            if logic_data.get_effective_level_cap() < 70:
+                return False
+            sv_criteria = self.__copy_and_inject_criteria(sv_criteria, CanUseSpecificActiveSkill(skill_id=[EO1Skills.TROUBADOUR_BRAVERY, EO1Skills.HEXER_FRAILTY]))
         elif condition == DropCondition.KILL_7_TURNS:
             # Manticor
-            raise Exception(f"Not implemented DropCondition {condition}")
+            if logic_data.get_effective_level_cap() < 55:
+                return False
         elif condition == DropCondition.FULL_BIND:
             # Cruella
             # Diabolix
-            raise Exception(f"Not implemented DropCondition {condition}")
+            sv_criteria = self.__copy_and_inject_criteria(sv_criteria, CanInflictAilment(ailment=EO1Ailment.HEAD_BIND))
+            sv_criteria = self.__copy_and_inject_criteria(sv_criteria, CanInflictAilment(ailment=EO1Ailment.ARM_BIND))
+            sv_criteria = self.__copy_and_inject_criteria(sv_criteria, CanInflictAilment(ailment=EO1Ailment.LEG_BIND))
         elif condition == DropCondition.INSTANT_DEATH:
             sv_criteria = self.__copy_and_inject_criteria(sv_criteria, CanInflictAilment(EO1Ailment.INSTANT_DEATH))
         else:

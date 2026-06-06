@@ -115,6 +115,7 @@ def generate_output(world: EtrianOdysseyWorld):
     output_data["MinimizeQuestMaterialGrind"] = bool(world.options.minimize_quest_material_grind)
     output_data["ShopUnlockMaterialCostDivider"] = int(world.options.shop_unlock_material_cost_divider.value)
     output_data["MaterialSellValueMultiplier"] = int(world.options.material_sell_value_multiplier.value)
+    output_data["RadhaNoteIsShuffed"] = bool(world.options.shuffle_radha_note)
 
     output_data["InitialValues"]["experience_modifier"] = int(world.options.experience_modifier)
 

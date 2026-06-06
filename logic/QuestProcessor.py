@@ -189,7 +189,9 @@ class QuestProcessor:
         elif quest_data.quest_unlock_requirement == QuestRequirement.QUEST:
             return self.can_complete_quest(quest_data.quest_unlock_requirement_value, logic_data, state)
         elif quest_data.quest_unlock_requirement == QuestRequirement.BEAT_STORY:
-            raise NotImplementedError("Quest Requirement BEAT_STORY not implemented")
+            if not state.can_reach_region(EO1Regions.B25F_ETREANT_ROOM, self.player_id):
+                return False
+            return EO1Enemies.ETREANT in logic_data.defeatable_enemy.defeatable_enemies
         else:
             raise Exception(f"Unknown QuestRequirement: {quest_data.quest_unlock_requirement}")
 

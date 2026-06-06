@@ -15,15 +15,19 @@ class EntranceType(IntEnum):
     CardKeyDoor = 8
     EventLockedShortcut = 9
     MandatoryFight = 10
+    OneWayFightOrEscape = 11
+    DragonDoor = 12
 
 
 class EO1Entrance(ABC):
     destination: str
     name_prefix: Optional[str]
+    name_suffix: Optional[str]
 
-    def __init__(self, destination: str, name_prefix: Optional[str] = ""):
+    def __init__(self, destination: str, name_prefix: Optional[str] = "", name_suffix: Optional[str] = ""):
         self.destination = destination
         self.name_prefix = name_prefix
+        self.name_suffix = name_suffix
 
     #@property
     #def is_stratum_transition(self) -> bool:
@@ -36,7 +40,12 @@ class EO1Entrance(ABC):
 
     @property
     def full_name(self) -> str:
-        return f"{self.name_prefix} {self.name}" if self.name_prefix else self.name
+        name = self.name
+        if self.name_prefix:
+            name = f"{self.name_prefix} {name}"
+        if self.name_suffix:
+            name = f"{name} {self.name_suffix}"
+        return name
 
     @property
     @abstractmethod
@@ -101,3 +110,22 @@ class MandatoryFight(EO1Entrance):
     def __init__(self, destination: str, enemies: list[int], name_prefix: Optional[str] = ""):
         super().__init__(destination, name_prefix)
         self.enemies = enemies
+
+class OneWayFightOrEscape(EO1Entrance):
+    name = "One Way"
+    entrance_type = EntranceType.OneWayFightOrEscape
+    enemies: list[int]
+
+    def __init__(self, destination: str, enemies: list[int], name_prefix: Optional[str] = "", name_suffix: Optional[str] = ""):
+        super().__init__(destination, name_prefix, name_suffix)
+        self.enemies = enemies
+
+class DragonDoor(EO1Entrance):
+    name = "Dragon Door"
+    entrance_type = EntranceType.DragonDoor
+    enemy_id: int
+
+    def __init__(self, destination: str, enemy_id: int, name_prefix: Optional[str] = "", name_suffix: Optional[str] = ""):
+        super().__init__(destination, name_prefix, name_suffix)
+        self.enemy_id = enemy_id
+

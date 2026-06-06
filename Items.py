@@ -328,6 +328,9 @@ def get_shuffled_key_items(world: EtrianOdysseyWorld) -> list[EtrianOdysseyItem]
         create_item_from_item_data(KEY_ITEM_DATA_BY_ITEM_ID[EO1ItemID.VIOLET_KEY], world.player)
     ]
 
+    if bool(world.options.shuffle_radha_note):
+        key_items.append(create_item_from_item_data(KEY_ITEM_DATA_BY_ITEM_ID[EO1ItemID.RADHA_NOTE], world.player))
+
     return key_items
 
 def create_all_items(world: EtrianOdysseyWorld) -> list[EtrianOdysseyItem]:

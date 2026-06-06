@@ -12,6 +12,7 @@ from .Locations import *
 from .data.InventoryItemData import *
 from .data.ItemData import *
 from .data.QuestData import QUEST_DATA_BY_LOCATION_ID, QUEST_DATA_BY_QUEST_ID
+from .data.ItemCompoundData import SHOP_UNLOCK_BY_LOCATION_ID
 from .data.TreasureData import *
 from .Constant import *
 
@@ -35,6 +36,7 @@ class EtrianOdysseyClientCustomCommands(IntEnum):
     NONE = 0
     DEBUG_EO_SET_FLAG_OFF = 1
     DEBUG_EO_SET_FLAG_ON = 2
+    DEBUG_EO_WRITE_RAW = 3
 
 def cmd_debug_eo_set_flag_off(self: "BizHawkClientCommandProcessor", flag_id: str):
     client = get_client_as_command_processor(self)
@@ -45,6 +47,11 @@ def cmd_debug_eo_set_flag_on(self: "BizHawkClientCommandProcessor", flag_id: str
     client = get_client_as_command_processor(self)
     client.custom_command_to_run = EtrianOdysseyClientCustomCommands.DEBUG_EO_SET_FLAG_ON
     client.custom_command_parameter = int(flag_id)
+
+def cmd_debug_eo_write_raw(self: "BizHawkClientCommandProcessor", address: str, size: str, value: str):
+    client = get_client_as_command_processor(self)
+    client.custom_command_to_run = EtrianOdysseyClientCustomCommands.DEBUG_EO_WRITE_RAW
+    client.custom_command_parameter = [int(address), int(size), int(value)]
 
 class EtrianOdysseyClient(BizHawkClient):
     game = GAME_NAME
@@ -66,6 +73,7 @@ class EtrianOdysseyClient(BizHawkClient):
     def register_custom_commands(self, ctx: "BizHawkClientContext"):
         ctx.command_processor.commands["debug_eo_set_flag_off"] = cmd_debug_eo_set_flag_off
         ctx.command_processor.commands["debug_eo_set_flag_on"] = cmd_debug_eo_set_flag_on
+        ctx.command_processor.commands["debug_eo_write_raw"] = cmd_debug_eo_write_raw
 
         self.custom_command_to_run = EtrianOdysseyClientCustomCommands.NONE
         self.custom_command_parameter = None
@@ -147,6 +155,10 @@ class EtrianOdysseyClient(BizHawkClient):
             return False
 
         return True
+
+    def check_shop_entry(self, item_id: int, shop_table: bytes) -> bool:
+        effective_item_id = get_modified_item_id_for_lookup(item_id)
+        return self.check_flag(shop_table, effective_item_id)
 
     @staticmethod
     def load_reception_inventory_item_from_index(sc_data: bytes, index: int) -> int:
@@ -302,7 +314,7 @@ class EtrianOdysseyClient(BizHawkClient):
 
         await bizhawk.guarded_write(ctx.bizhawk_ctx, writes, writes_guards)
 
-    async def handle_location_checking(self, ctx: "BizHawkClientContext", save_pointer: int, flag_table: bytes, coco_table: bytes):
+    async def handle_location_checking(self, ctx: "BizHawkClientContext", save_pointer: int, flag_table: bytes, coco_table: bytes, shop_table: bytes):
         new_checks: list[int] = []
 
         def check_flag(flag_id_to_check: int) -> bool:
@@ -332,6 +344,10 @@ class EtrianOdysseyClient(BizHawkClient):
                 quest_data = QUEST_DATA_BY_LOCATION_ID[location_id]
                 if check_flag(quest_data.completion_flag):
                     new_checks.append(location_id)
+            elif location_type == EtrianOdysseyLocationType.SHOP_ENTRY:
+                shop_data = SHOP_UNLOCK_BY_LOCATION_ID[location_id]
+                if self.check_shop_entry(shop_data.item_id, shop_table):
+                    new_checks.append(location_id)
             else:
                 raise NotImplementedError(f"Unknown location type: {location_type}")
 
@@ -358,6 +374,8 @@ class EtrianOdysseyClient(BizHawkClient):
             goal_filled = self.check_codex_entry(EO1Enemies.ETREANT, codex_table, reported_only=False)
         elif self.goal == EO1Goal.defeat_primevil:
             goal_filled = self.check_codex_entry(EO1Enemies.PRIMEVIL, codex_table, reported_only=False)
+        elif self.goal == EO1Goal.fully_complete_codex_and_compendium:
+            goal_filled = check_flag(TOWN_CROWN_FLAG)
         else:
             raise Exception(f"Goal {self.goal} not implemented")
 
@@ -474,6 +492,7 @@ class EtrianOdysseyClient(BizHawkClient):
                     (save_pointer + FLAG_TABLE_OFFSET, FLAG_TABLE_SIZE, BIZHAWK_ARM9_DOMAIN),
                     (save_pointer + COMPENDIUM_CODEX_TABLE_OFFSET, COMPENDIUM_CODEX_TABLE_SIZE, BIZHAWK_ARM9_DOMAIN),
                     (save_pointer + INVENTORY_START_OFFSET, INVENTORY_ITEM_SIZE * 2, BIZHAWK_ARM9_DOMAIN),
+                    (save_pointer + SHOP_ITEM_FLAG_TABLE_OFFSET, SHOP_ITEM_FLAG_TABLE_SIZE, BIZHAWK_ARM9_DOMAIN),
                 ],
                 list(guards.values())
             )
@@ -482,7 +501,7 @@ class EtrianOdysseyClient(BizHawkClient):
                 return
 
             await self.handle_received_items(ctx, save_pointer, read_results[0], read_results[1], guards)
-            await self.handle_location_checking(ctx, save_pointer, read_results[2], read_results[3])
+            await self.handle_location_checking(ctx, save_pointer, read_results[2], read_results[3], read_results[5])
             await self.handle_goal(ctx, read_results[3], read_results[2])
 
             await self.handle_key_item_flags(ctx, save_pointer + FLAG_TABLE_OFFSET, read_results[2], read_results[4], guards)
@@ -524,6 +543,18 @@ class EtrianOdysseyClient(BizHawkClient):
             ctx.bizhawk_ctx,
             [
                 (quest_window_obj_addr + QUEST_WINDOW_OBJ_QUEST_ARRAY_OFFSET, 2 * 5, BIZHAWK_ARM9_DOMAIN),
+                (quest_window_obj_addr + QUEST_WINDOW_OBJ_CURRENT_QUEST_INDEX_OFFSET, 4, BIZHAWK_ARM9_DOMAIN),
+            ], list(guards.values()))
+
+        if read_results is None:
+            return []
+
+        quest_index = int.from_bytes(read_results[1], byteorder='little')
+
+        read_results = await bizhawk.guarded_read(
+            ctx.bizhawk_ctx,
+            [
+                (quest_window_obj_addr + QUEST_WINDOW_OBJ_QUEST_ARRAY_OFFSET, 2 * (quest_index + 1), BIZHAWK_ARM9_DOMAIN),
                 (quest_window_obj_addr + QUEST_WINDOW_OBJ_CURRENT_QUEST_INDEX_OFFSET, 4, BIZHAWK_ARM9_DOMAIN),
             ], list(guards.values()))
 
@@ -592,6 +623,8 @@ class EtrianOdysseyClient(BizHawkClient):
             writes.append((flag_value_address, new_flag_value.to_bytes(1, "little"), BIZHAWK_ARM9_DOMAIN))
 
             await bizhawk.guarded_write(ctx.bizhawk_ctx, writes, writes_guards)
+        elif self.custom_command_to_run == EtrianOdysseyClientCustomCommands.DEBUG_EO_WRITE_RAW:
+            await bizhawk.write(ctx.bizhawk_ctx, [(self.custom_command_parameter[0], int(self.custom_command_parameter[2]).to_bytes(self.custom_command_parameter[1], "little"), BIZHAWK_ARM9_DOMAIN)])
         else:
             raise Exception(f"Unknown custom_command_to_run: {self.custom_command_to_run}")
 

@@ -115,7 +115,7 @@ ALL_TREASURE_DATA: list[TreasureData] = [
     TreasureData(14, 2, "D4", TreasureContentType.Item, 4281, EO1Regions.B14F_MAIN, 1079),  # B14F At [16,15], 0x10B9 - Medica III
     TreasureData(14, 3, "F2", TreasureContentType.Item, 4312, EO1Regions.B14F_MAIN, 1080),  # B14F At [6,28], 0x10D8 - Ice Mist
     TreasureData(15, 0, "A3", TreasureContentType.Item, 4308, EO1Regions.B15F_SECRET_AREA, 1081),  # B15F At [10,2], 0x10D4 - Stonard II
-    TreasureData(15, 1, "B2", TreasureContentType.Item, 4303, EO1Regions.B15F_SECRET_AREA, 1082),  # B15F At [8,6], 0x10CF - Axcela III
+    TreasureData(15, 1, "B2", TreasureContentType.Item, 4303, EO1Regions.B15F_SECRET_AREA_WEST, 1082),  # B15F At [8,6], 0x10CF - Axcela III
     TreasureData(15, 2, "C5", TreasureContentType.Item, 4306, EO1Regions.B15F_SECRET_AREA, 1083),  # B15F At [23,13], 0x10D2 - Bravant II
     TreasureData(15, 3, "D5", TreasureContentType.Item, 1025, EO1Regions.B15F_SECRET_AREA, 1084),  # B15F At [23,16], 0x0401 - Surcoat
     TreasureData(15, 4, "D7", TreasureContentType.Money, 1500, EO1Regions.B15F_SECRET_AREA, 1085),  # B15F At [30,16], 1500en

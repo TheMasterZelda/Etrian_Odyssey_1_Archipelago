@@ -328,9 +328,9 @@ ALL_QUEST_DATA: list[QuestData] = [
     QuestData(EO1QuestID.REVERSAL_OF_THE_POLES, 4062, "Reversal of the poles", 23, -1, 5, 0x924,
 	              quest_completion_requirements=[CanReachRegion(EO1Regions.B18F_MAIN)]),
     QuestData(EO1QuestID.LOST_PET__REWARD_OFFERED, 4063, "Lost pet; reward offered", 29, -1, 6, 0x935,
-	              quest_completion_requirements=[]), # TODO complete when b26f subregions are done. Also Quest Item Gouda
+	              quest_completion_requirements=[CanReachRegion(EO1Regions.B26F_MAIN), CanReachRegion(EO1Regions.B26F_SOUTH_WEST_SONGBIRD_ROOM), CanReachRegion(EO1Regions.B26F_SOUTH_EAST_SONGBIRD_ROOM), CanDefeatEncounter([EO1Enemies.GOUDARAT])]), # TODO Quest Item Gouda
     QuestData(EO1QuestID.OFFICIAL_BUSINESS_III, 4064, "Official business III", 30, -1, 6, 0x94D, QuestRequirement.QUEST, EO1QuestID.GOURMANDS_REQUEST,
-	              quest_completion_requirements=[]), # TODO Quest Item (Shiny Disc, Soft Glass, Copper Top, Token, Clam Tool), decide how to handle.
+	              quest_completion_requirements=[CanReachRegion(EO1Regions.B26F_NORTH), CanReachRegion(EO1Regions.B27F_MAIN), CanReachRegion(EO1Regions.B28F_DEATHPIT), CanReachRegion(EO1Regions.B29F_MAIN), CanReachRegion(EO1Regions.B30F_MAIN)]), # TODO Quest Item (Shiny Disc, Soft Glass, Copper Top, Token, Clam Tool), decide how to handle.
     QuestData(EO1QuestID.PHANTOM_OF_THE_FOREST, 4065, "Phantom of the forest", 21, 50, 5, 0x952,
 	              quest_completion_requirements=[CanReachRegion(EO1Regions.B7F_SECRET_AREA), CanDefeatEncounter([EO1Enemies.ALRAUNE])]),
     QuestData(EO1QuestID.THE_BANDITS_TREASURE, 4066, "The bandit's treasure", 11, -1, 3, 0x963, QuestRequirement.KEY_ITEM, EO1ItemID.CLEAR_KEY,
@@ -342,9 +342,9 @@ ALL_QUEST_DATA: list[QuestData] = [
     QuestData(EO1QuestID.PROOF_OF_HEROISM, 4069, "Proof of heroism", -1, -1, 6, 0x992, QuestRequirement.BEAT_STORY,
 	              quest_completion_requirements=[CanReachRegion(EO1Regions.B15F_COTRANGL_ROOM)]), # TODO Quest Item Frozen Arm
     QuestData(EO1QuestID.THE_AZURE_COLOSSUS, 4070, "The azure colossus", -1, -1, 6, 0x9A3, QuestRequirement.QUEST, EO1QuestID.PROOF_OF_HEROISM,
-	              quest_completion_requirements=[CanReachRegion(EO1Regions.B15F_SECRET_AREA), CanDefeatEncounter([EO1Enemies.DRAKE])]), # TODO Region
+	              quest_completion_requirements=[CanReachRegion(EO1Regions.B15F_DRAKE_ROOM), CanDefeatEncounter([EO1Enemies.DRAKE])]),
     QuestData(EO1QuestID.REMNANTS_OF_AN_AGE_PAST, 4071, "Remnants of an age past", -1, -1, 6, 0x9B7, QuestRequirement.BEAT_STORY,
-	              quest_completion_requirements=[]), # TODO Quest Item Ankh A, B, C, D, E + Regions
+	              quest_completion_requirements=[CanReachRegion(EO1Regions.B21F_SOUTH_WEST), CanReachRegion(EO1Regions.B22F_SOUTH_AREA_EAST), CanReachRegion(EO1Regions.B23F_MAIN), CanReachRegion(EO1Regions.B24F_NORTH), CanReachRegion(EO1Regions.B24F_MAIN)]), # TODO Quest Item Ankh A, B, C, D, E
     QuestData(EO1QuestID.AWAKENING_THE_SERPENT, 4072, "Awakening the serpent", -1, -1, 6, 0x9C3, QuestRequirement.QUEST, EO1QuestID.REMNANTS_OF_AN_AGE_PAST,
 	              quest_completion_requirements=[CanReachRegion(EO1Regions.B21F_SOUTH_WEST), CanReachRegion(EO1Regions.B25F_ETREANT_ROOM), CanDefeatEncounter([EO1Enemies.DRAGON])]),
 ]

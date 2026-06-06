@@ -65,6 +65,7 @@ class NoLogicSingleEnemyBattleProcessor(SingleEnemyBattleProcessor):
         return True
 
     def can_defeat_with_condition(self, enemy_id: int, condition: DropCondition, state: CollectionState, logic_data: AllLogicData) -> bool:
+        # TODO Check for actual things for the "Kill in X Turns" drop conditions.
         return True
 
 
