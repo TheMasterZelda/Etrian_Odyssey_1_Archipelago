@@ -294,6 +294,9 @@ class EtrianOdysseyClient(BizHawkClient):
                     writes_to_perform[address] = (0x00, ITEM_PER_AP_ITEM_ID[item_id].item_id, 2)
                     break
 
+                if 0x00 not in items_reception_array[current_item_reception_index:]:
+                    break
+
         if save_last_received_item_index != last_received_item_index:
             address = save_pointer + CUSTOM_SAVE_DATA_OFFSET + SC_LAST_RECEIVED_ITEM_INDEX
             writes_to_perform[address] = (save_last_received_item_index, last_received_item_index, 4)
