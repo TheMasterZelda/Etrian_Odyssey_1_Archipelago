@@ -103,11 +103,11 @@ class SimplifiedSingleEnemyBattleProcessor(SingleEnemyBattleProcessor):
         elif condition == DropCondition.KILL_1_TURNS:
             # Stalker
             if enemy_id == EO1Enemies.STALKER:
-                if logic_data.get_effective_level_cap() < 50:
+                if context.logic_data.get_effective_level_cap() < 50:
                     return False
             # Mantis
             elif enemy_id == EO1Enemies.MANTIS:
-                if logic_data.get_effective_level_cap() < 45:
+                if context.logic_data.get_effective_level_cap() < 45:
                     return False
             else:
                 raise Exception(f"Unknown Enemy {enemy_id} for DropCondition Kill in 1 turn")
@@ -115,17 +115,17 @@ class SimplifiedSingleEnemyBattleProcessor(SingleEnemyBattleProcessor):
             # Ogre
             # Hunter
             # Similarly hard to kill enemies.
-            if logic_data.get_effective_level_cap() < 65:
+            if context.logic_data.get_effective_level_cap() < 65:
                 return False
             sv_criteria = self.__copy_and_inject_criteria(sv_criteria, CanUseSpecificActiveSkill(skill_id=[EO1Skills.TROUBADOUR_BRAVERY, EO1Skills.HEXER_FRAILTY]))
         elif condition == DropCondition.KILL_3_TURNS:
             # Wyvern
-            if logic_data.get_effective_level_cap() < 70:
+            if context.logic_data.get_effective_level_cap() < 70:
                 return False
             sv_criteria = self.__copy_and_inject_criteria(sv_criteria, CanUseSpecificActiveSkill(skill_id=[EO1Skills.TROUBADOUR_BRAVERY, EO1Skills.HEXER_FRAILTY]))
         elif condition == DropCondition.KILL_7_TURNS:
             # Manticor
-            if logic_data.get_effective_level_cap() < 55:
+            if context.logic_data.get_effective_level_cap() < 55:
                 return False
         elif condition == DropCondition.FULL_BIND:
             # Cruella

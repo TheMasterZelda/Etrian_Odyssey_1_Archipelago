@@ -242,8 +242,9 @@ class CanUnlockShopItem(Rule["EtrianOdysseyWorld"], game=GAME_NAME):
 
         @override
         def _evaluate(self, state: CollectionState) -> bool:
-            logic_manager = get_logic_manager(state, self.player)
-            return logic_manager.can_unlock_shop_item(state, self.item_id)
+            logic_proxy = get_logic_proxy(state, self.player)
+            state_interface = get_ap_state_interface(state, self.player)
+            return logic_proxy.can_unlock_shop_item(state_interface, self.item_id)
 
         @override
         def item_dependencies(self) -> dict[str, set[int]]:
@@ -357,8 +358,9 @@ class CanFullyCompleteCodexAndCompendium(Rule["EtrianOdysseyWorld"], game=GAME_N
 
         @override
         def _evaluate(self, state: CollectionState) -> bool:
-            logic_manager = get_logic_manager(state, self.player)
-            return logic_manager.can_fully_complete_codex_and_compendium(state)
+            logic_proxy = get_logic_proxy(state, self.player)
+            state_interface = get_ap_state_interface(state, self.player)
+            return logic_proxy.can_fully_complete_codex_and_compendium(state_interface)
         @override
         def item_dependencies(self) -> dict[str, set[int]]:
             return {
