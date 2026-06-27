@@ -100,3 +100,9 @@ class DefeatPrimevilFullTest(EtrianOdysseyTestBase):
         OptionKeys.GOAL: EO1Goal.defeat_primevil.value,
         **FULL_OPTIONS,
     }
+
+class FullyCompleteCodexAndCompendiumFullTest(EtrianOdysseyTestBase):
+    options = {
+        OptionKeys.GOAL: EO1Goal.fully_complete_codex_and_compendium.value,
+        **FULL_OPTIONS,
+    }

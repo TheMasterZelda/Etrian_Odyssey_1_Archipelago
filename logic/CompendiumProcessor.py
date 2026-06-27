@@ -54,7 +54,7 @@ class CompendiumProcessor:
 
     def __can_fill_monster_entry(self, compendium_data: CompendiumData, context: ExecutionContext) -> bool:
         for enemy_id in ENEMY_BY_DROP_ID[compendium_data.item_id]:
-            if enemy_id not in context.logic_data.codex_logic_data.fillable_codex_entries:
+            if not context.logic_manager.can_fill_codex_entry(enemy_id, context):
                 continue
             enemy_data = ENEMY_BY_ID[enemy_id]
             has_conditional_drop = enemy_data.item_drop_3 != 0

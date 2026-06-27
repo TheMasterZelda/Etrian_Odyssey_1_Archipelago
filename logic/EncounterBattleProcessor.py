@@ -49,7 +49,7 @@ class EncounterBattleProcessor(ABC):
 class SimpleEncounterBattleProcessor(EncounterBattleProcessor):
     def can_defeat_enemy_group(self, enemies: list[int], context: ExecutionContext) -> bool:
         for enemy_id in enemies:
-            if enemy_id in context.logic_data.defeatable_enemy.undefeatable_enemies:
+            if not context.logic_manager.can_defeat_enemy(enemy_id, context):
                 return False
 
         return True
@@ -59,7 +59,7 @@ class SimpleEncounterBattleProcessor(EncounterBattleProcessor):
         enemy_list = self.get_all_encounter_enemies(encounter_data)
 
         for enemy_id in enemy_list:
-            if enemy_id in context.logic_data.survivable_enemy.unsurvivable_enemies:
+            if not context.logic_manager.can_survive_enemy(enemy_id, context):
                 return False
 
         return True

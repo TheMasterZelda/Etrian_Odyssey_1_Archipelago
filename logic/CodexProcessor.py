@@ -130,7 +130,7 @@ class CodexProcessor:
         if self.region_cache is None:
             self.region_cache = set(context.state.get_regions())
 
-        if enemy_id not in context.logic_data.defeatable_enemy.defeatable_enemies:
+        if not context.logic_manager.can_defeat_enemy(enemy_id, context):
             return False
 
         codex_data = CODEX_DATA_BY_ENEMY_ID[enemy_id]
@@ -175,7 +175,7 @@ class CodexProcessor:
         encounters = ENCOUNTER_BY_MONSTER[codex_data.enemy_id]
 
         for encounter_id in encounters:
-            if encounter_id not in context.logic_data.defeatable_encounter.defeatable_encounters:
+            if not context.logic_manager.can_defeat_encounter(encounter_id, context):
                 continue
 
             regions = REGION_BY_ENCOUNTER[encounter_id]
@@ -197,7 +197,7 @@ class CodexProcessor:
 
     def __can_fill_minion_entry(self, codex_data, context: ExecutionContext) -> bool:
         # For this game, there is only one minion type enemy, so this function is hard coded for them.
-        if EO1Enemies.CERNUNOS not in context.logic_data.defeatable_encounter.defeatable_encounters:
+        if not context.logic_manager.can_defeat_enemy(EO1Enemies.CERNUNOS, context):
             return False
 
         # This is recursive, but it's controlled.

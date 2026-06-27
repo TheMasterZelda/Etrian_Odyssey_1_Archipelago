@@ -11,7 +11,6 @@ from ..data.RegionData import *
 from .LogicData import *
 
 class QuestProcessor:
-    encounter_battle_processor: EncounterBattleProcessor
     region_cache: set[str] | None
 
     def __can_reach_region_requirement(self, param: CanReachRegion, context: ExecutionContext) -> bool:
@@ -19,7 +18,7 @@ class QuestProcessor:
 
     def __can_obtain_material_requirement(self, param: CanObtainMaterial, context: ExecutionContext) -> bool:
         for material_id in param.item_id:
-            if material_id not in context.logic_data.compendium_logic_data.fillable_compendium_entries:
+            if not context.logic_manager.can_fill_compendium_entry(material_id, context):
                 return False
 
         # Passed all items.
@@ -63,18 +62,18 @@ class QuestProcessor:
         if param.enemy_id == EO1Enemies.CUTTER:
             if context.logic_data.get_effective_level_cap() < enemy_data.level + 10:
                 return False
-            if EO1ItemID.MEDICA_III not in context.logic_data.shop_unlock_logic_data.unlockable_shop_items:
-                if EO1ItemID.MEDICA_IV not in context.logic_data.shop_unlock_logic_data.unlockable_shop_items:
+            if not context.logic_manager.can_unlock_shop_item(EO1ItemID.MEDICA_III, context):
+                if not context.logic_manager.can_unlock_shop_item(EO1ItemID.MEDICA_IV, context):
                     return False
         elif param.enemy_id == EO1Enemies.KILLCLAW:
             if context.logic_data.get_effective_level_cap() < enemy_data.level + 10:
                 return False
-            if EO1ItemID.MEDICA_IV not in context.logic_data.shop_unlock_logic_data.unlockable_shop_items:
+            if not context.logic_manager.can_unlock_shop_item(EO1ItemID.MEDICA_IV, context):
                 return False
         elif param.enemy_id == EO1Enemies.SICKWOOD:
             if context.logic_data.get_effective_level_cap() < enemy_data.level + 10:
                 return False
-            if EO1ItemID.MEDICA_IV not in context.logic_data.shop_unlock_logic_data.unlockable_shop_items:
+            if not context.logic_manager.can_unlock_shop_item(EO1ItemID.MEDICA_IV, context):
                 return False
         else:
             raise Exception(f"Can Solo Enemy quest requirement not implemented for enemy {param.enemy_id}")
@@ -121,15 +120,15 @@ class QuestProcessor:
         return False
 
     def __can_fill_x_monster_codex_entries_requirement(self, param: CanFillXMonsterCodexEntries, context: ExecutionContext) -> bool:
-        currently_fillable_count = len(context.logic_data.codex_logic_data.fillable_codex_entries)
+        currently_fillable_count = context.logic_manager.get_fillable_codex_entry_count(context)
         return currently_fillable_count >= param.entries_count
 
     def __can_fill_x_item_compendium_entries_requirement(self, param: CanFillXItemCompendiumEntries, context: ExecutionContext) -> bool:
-        currently_fillable_count = len(context.logic_data.compendium_logic_data.fillable_compendium_entries)
+        currently_fillable_count = context.logic_manager.get_fillable_compendium_entry_count(context)
         return currently_fillable_count >= param.entries_count
 
     def __can_defeat_encounter_requirement(self, param: CanDefeatEncounter, context: ExecutionContext) -> bool:
-        return self.encounter_battle_processor.can_defeat_enemy_group(param.enemies, context)
+        return context.logic_manager.can_defeat_special_encounter(param.enemies, context)
 
     quest_completion_requirement_lookup: dict[QuestCompletionRequirementType, Callable[[QuestProcessor, QuestCompletionRequirement, ExecutionContext], bool]] = {
         QuestCompletionRequirementType.CAN_REACH_REGION: __can_reach_region_requirement,
@@ -143,8 +142,7 @@ class QuestProcessor:
         QuestCompletionRequirementType.CAN_DEFEAT_ENCOUNTER: __can_defeat_encounter_requirement,
     }
 
-    def __init__(self, encounter_battle_processor: EncounterBattleProcessor) -> None:
-        self.encounter_battle_processor = encounter_battle_processor
+    def __init__(self) -> None:
         self.region_cache = None
 
     def __requirement_met(self, requirement: QuestCompletionRequirement, context: ExecutionContext) -> bool:
@@ -194,7 +192,7 @@ class QuestProcessor:
         elif quest_data.quest_unlock_requirement == QuestRequirement.BEAT_STORY:
             if not context.state.can_reach_region(EO1Regions.B25F_ETREANT_ROOM):
                 return False
-            return EO1Enemies.ETREANT in context.logic_data.defeatable_enemy.defeatable_enemies
+            return context.logic_manager.can_defeat_enemy(EO1Enemies.ETREANT, context)
         else:
             raise Exception(f"Unknown QuestRequirement: {quest_data.quest_unlock_requirement}")
 

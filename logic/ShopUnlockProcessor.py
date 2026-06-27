@@ -21,10 +21,11 @@ class ShopUnlockProcessor:
         if material_item_id == 0:
             return True
 
-        if material_item_id in context.logic_data.compendium_logic_data.fillable_compendium_entries:
+        if context.logic_manager.can_fill_compendium_entry(material_item_id, context):
             return True
 
-        if material_item_id not in context.logic_data.compendium_logic_data.unfillable_compendium_entries:
+        # TODO doesn't make sense to do this here anymore.
+        if not not context.logic_manager.can_fill_compendium_entry(material_item_id, context):
             raise Exception(f"Unknown material item id: {material_item_id}")
 
         return False

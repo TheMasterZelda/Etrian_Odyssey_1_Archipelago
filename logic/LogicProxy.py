@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from .LogicManager import LogicManager
+from .LogicCacheData import AllLogicCacheData
+from .LogicManager import LogicManager, EO1ExecutionContext
 from .StateInterface import StateInterface
 from . import QuestProcessor
 from .SustainProcessor import SustainProcessor
@@ -30,61 +31,42 @@ from .simplified_logic.SimplifiedSingleEnemyBattleProcessor import SimplifiedSin
 
 class LogicProxy:
     logic_data: AllLogicData
+    logic_cache_data: AllLogicCacheData
     options: EtrianOdysseyOptions
-
-    # Processors.
-    class_processor: ClassProcessor
-    enemy_battle_processor: SingleEnemyBattleProcessor
-    encounter_battle_processor: EncounterBattleProcessor
-    encounter_group_battle_processor: EncounterGroupBattleProcessor
-    codex_processor: CodexProcessor
-    compendium_processor: CompendiumProcessor
-    conditional_drop_processor: ConditionalDropProcessor
-    shop_unlock_processor: ShopUnlockProcessor
-    sustain_processor: SustainProcessor
-    quest_processor: QuestProcessor.QuestProcessor
-
     logic_manager: LogicManager
 
     def __init__(self, options: EtrianOdysseyOptions, fill_default=True) -> None:
-        self.logic_data = AllLogicData(fill_default)
-        self.logic_data.current_level_cap = options.get_effective_initial_level_cap()
-        self.logic_data.current_floor_limit = options.get_effective_initial_floor_limit()
         self.options = options
 
-        self.class_processor = ClassProcessor()
-        self.sustain_processor = SustainProcessor()
-        self.enemy_battle_processor = self.__create_single_enemy_battle_processor_from_options(options)
-        self.encounter_battle_processor = self.__create_encounter_battle_processor_from_options(options)
-        self.encounter_group_battle_processor = self.__create_encounter_group_battle_processor_from_options(options)
+        self.logic_data = AllLogicData(fill_default)
+        self.logic_cache_data = AllLogicCacheData()
+        self.logic_data.current_level_cap = options.get_effective_initial_level_cap()
+        self.logic_data.current_floor_limit = options.get_effective_initial_floor_limit()
+
         max_stratum = get_max_stratum_for_goal(EO1Goal(options.goal.value))
 
-        self.conditional_drop_processor = ConditionalDropProcessor(self.enemy_battle_processor)
-        self.quest_processor = QuestProcessor(self.encounter_battle_processor)
-        self.codex_processor = CodexProcessor(max_stratum, self.quest_processor)
-        self.compendium_processor = CompendiumProcessor(max_stratum, self.conditional_drop_processor)
-        self.shop_unlock_processor = ShopUnlockProcessor()
-
         self.logic_manager = LogicManager()
-        self.logic_manager.class_processor = self.class_processor
-        self.logic_manager.enemy_battle_processor = self.enemy_battle_processor
-        self.logic_manager.encounter_battle_processor = self.encounter_battle_processor
-        self.logic_manager.encounter_group_battle_processor = self.encounter_group_battle_processor
-        self.logic_manager.codex_processor = self.codex_processor
-        self.logic_manager.compendium_processor = self.compendium_processor
-        self.logic_manager.conditional_drop_processor = self.conditional_drop_processor
-        self.logic_manager.shop_unlock_processor = self.shop_unlock_processor
-        self.logic_manager.sustain_processor = self.sustain_processor
-        self.logic_manager.quest_processor = self.quest_processor
+        self.logic_manager.class_processor = ClassProcessor()
+        self.logic_manager.enemy_battle_processor = self.__create_single_enemy_battle_processor_from_options(options)
+        self.logic_manager.encounter_battle_processor = self.__create_encounter_battle_processor_from_options(options)
+        self.logic_manager.encounter_group_battle_processor = self.__create_encounter_group_battle_processor_from_options(options)
+        self.logic_manager.quest_processor = QuestProcessor()
+        self.logic_manager.codex_processor = CodexProcessor(max_stratum, self.logic_manager.quest_processor)
+        self.logic_manager.conditional_drop_processor = ConditionalDropProcessor(self.logic_manager.enemy_battle_processor)
+        self.logic_manager.compendium_processor = CompendiumProcessor(max_stratum, self.logic_manager.conditional_drop_processor)
+        self.logic_manager.shop_unlock_processor = ShopUnlockProcessor()
+        self.logic_manager.sustain_processor = SustainProcessor()
 
         if fill_default:
             # Initialize class data
-            self.class_processor.initialize_data(self.logic_data.class_data, bool(options.remove_skills_requirements))
+            self.logic_manager.class_processor.initialize_data(self.logic_data.class_data, bool(options.remove_skills_requirements))
+            self.logic_manager.initialize_cache(self.logic_cache_data)
             pass
 
-    def __make_execution_context(self, state: StateInterface) -> ExecutionContext:
-        context = ExecutionContext()
+    def __make_execution_context(self, state: StateInterface) -> EO1ExecutionContext:
+        context = EO1ExecutionContext()
         context.logic_data = self.logic_data
+        context.cache_data = self.logic_cache_data
         context.logic_manager = self.logic_manager
         context.state = state
         return context
@@ -92,7 +74,8 @@ class LogicProxy:
     def copy(self) -> LogicProxy:
         new_copy = LogicProxy(self.options, fill_default=False)
         new_copy.logic_data = self.logic_data.copy()
-        # Don't copy the processors, they will be generated anew, and they are stateless by design.
+        new_copy.logic_cache_data = self.logic_cache_data.copy()
+        new_copy.logic_manager = self.logic_manager # Copy reference only
         return new_copy
 
 # todo move the processor creation to a dedicated file.
@@ -120,26 +103,7 @@ class LogicProxy:
         if not hasattr(item, "item_type"):
             raise Exception(f"Expected an item_type to be defined for {item.name}")
 
-        # Don't restrict to max value, so we support remove properly too.
-        if item.item_type == EtrianOdysseyItemType.PROGRESSIVE_LEVEL_CAP:
-            self.logic_data.current_level_cap += ALL_PROGRESSIVE_LEVEL_CAP_BY_ITEM_ID[item.code].level_amount
-            self.logic_data.set_battle_stale()
-        elif item.item_type == EtrianOdysseyItemType.PROGRESSIVE_FLOOR_LIMIT:
-            self.logic_data.current_floor_limit += ALL_PROGRESSIVE_FLOOR_BY_ITEM_ID[item.code].floor_amount
-            self.logic_data.set_battle_stale()
-            self.logic_data.set_location_stale()
-        elif item.item_type == EtrianOdysseyItemType.CLASS:
-            self.logic_data.set_battle_stale()
-        elif item.item_type == EtrianOdysseyItemType.INVENTORY:
-            item_type = ITEM_PER_AP_ITEM_ID[item.code].type
-            if item_type == EO1ItemType.Key or item_type == EO1ItemType.Quest:
-                self.logic_data.set_location_stale()
-        elif item.item_type == EtrianOdysseyItemType.SKILL:
-            self.logic_data.set_skill_stale() # Don't automatically set battle as stale, it will be done if there is a change.
-            self.logic_data.set_battle_stale()
-        elif item.item_type == EtrianOdysseyItemType.EVENT:
-            self.logic_data.set_battle_stale()
-            self.logic_data.set_location_stale()
+        self.logic_manager.on_item_collect(item.code, item.item_type, self.__make_execution_context(state))
 
         #floor_ = 1
         #for floor_limit in ALL_PROGRESSIVE_FLOOR_LIMIT:
@@ -153,266 +117,52 @@ class LogicProxy:
         if not hasattr(item, "item_type"):
             raise Exception(f"Expected an item_type to be defined for {item.name}")
 
-        if item.item_type == EtrianOdysseyItemType.PROGRESSIVE_LEVEL_CAP:
-            self.logic_data.current_level_cap -= ALL_PROGRESSIVE_LEVEL_CAP_BY_ITEM_ID[item.code].level_amount
-        elif item.item_type == EtrianOdysseyItemType.PROGRESSIVE_FLOOR_LIMIT:
-            self.logic_data.current_floor_limit -= ALL_PROGRESSIVE_FLOOR_BY_ITEM_ID[item.code].floor_amount
-
-        def recalculate_battle():
-            # Recalculate all battle related state data
-            self.__recalculate_class_data(state)
-            self.__recalculate_set_logic_data(self.logic_data.defeatable_enemy,
-                                              self.enemy_battle_processor.can_defeat_enemy, state)
-            self.__recalculate_set_logic_data(self.logic_data.survivable_enemy,
-                                              self.enemy_battle_processor.can_survive_enemy, state)
-            self.__recalculate_set_logic_data(self.logic_data.defeatable_encounter,
-                                              self.encounter_battle_processor.can_defeat_encounter, state)
-            self.__recalculate_set_logic_data(self.logic_data.survivable_encounter,
-                                              self.encounter_battle_processor.can_survive_encounter, state)
-            self.__recalculate_set_logic_data(self.logic_data.encounter_group,
-                                              self.encounter_group_battle_processor.can_survive_encounter_group, state)
-            self.__recalculate_set_logic_data(self.logic_data.codex_logic_data,
-                                              self.codex_processor.can_fill_codex_entry, state)
-            self.__recalculate_set_logic_data(self.logic_data.compendium_logic_data,
-                                              self.compendium_processor.can_fill_compendium_entry, state)
-            self.__recalculate_set_logic_data(self.logic_data.shop_unlock_logic_data,
-                                              self.shop_unlock_processor.can_unlock_item, state)
-
-        def recalculate_location():
-            self.__recalculate_set_logic_data(self.logic_data.codex_logic_data,
-                                              self.codex_processor.can_fill_codex_entry, state)
-            self.__recalculate_set_logic_data(self.logic_data.compendium_logic_data,
-                                              self.compendium_processor.can_fill_compendium_entry, state)
-            self.__recalculate_set_logic_data(self.logic_data.shop_unlock_logic_data,
-                                              self.shop_unlock_processor.can_unlock_item, state)
-
-        def recalculate_skill():
-            self.__recalculate_class_data(state)
-
-        # Do the remove recalculations directly here.
-        # If this become too costly, split the stale variable into positive and negative recalculation.
-        if item.item_type == EtrianOdysseyItemType.PROGRESSIVE_LEVEL_CAP:
-            recalculate_battle()
-        elif item.item_type == EtrianOdysseyItemType.CLASS:
-            recalculate_battle()
-        elif item.item_type == EtrianOdysseyItemType.PROGRESSIVE_FLOOR_LIMIT:
-            recalculate_battle()
-            recalculate_location()
-        elif item.item_type == EtrianOdysseyItemType.INVENTORY:
-            item_type = ITEM_PER_AP_ITEM_ID[item.code].type
-            if item_type == EO1ItemType.Key or item_type == EO1ItemType.Quest:
-                recalculate_location()
-        elif item.item_type == EtrianOdysseyItemType.SKILL:
-            recalculate_skill()
-            recalculate_battle()
-            recalculate_location()
-        elif item.item_type == EtrianOdysseyItemType.EVENT:
-            recalculate_location()
+        self.logic_manager.on_item_remove(item.code, item.item_type, self.__make_execution_context(state))
 
     def get_current_floor_limit(self) -> int:
         return self.logic_data.current_floor_limit
 
     def can_survive_region(self, state: StateInterface, region_name: str) -> bool:
+        context = self.__make_execution_context(state)
         region_data = ALL_REGION_DATA_BY_NAME[region_name]
-        self.__update_encounter_group(state)
 
         if region_data.is_always_survivable:
             return True
 
         for encounter_group_id in region_data.encounters:
-            if encounter_group_id not in self.logic_data.encounter_group.survivable_encounter_groups:
+            if not self.logic_manager.can_survive_encounter_group(encounter_group_id, context):
                 return False
 
         if not bool(self.options.sustain_logic_enabled):
             return True
 
-        # Optimization: Skip sustain check if the region requires none.
-        if region_data.sustain_score == 0:
-            return True
-
-        # TODO Because codex and compendium need to perform region access checks, removing the stale state here will cause generation to sometimes fail. This has extremely high generation cost, so a fix must be found.
-        codex_stale = self.logic_data.codex_logic_data.is_stale()
-        compendium_stale = self.logic_data.compendium_logic_data.is_stale()
-        self.__update_shop_entries(state)
-        self.logic_data.codex_logic_data.set_stale(codex_stale)
-        self.logic_data.compendium_logic_data.set_stale(compendium_stale)
-
-        sustain_score = self.sustain_processor.get_current_sustain_score(self.logic_data)
-
-        #print(f"score={sustain_score},region={region_data.sustain_score}")
-
-        return sustain_score >= region_data.sustain_score
+        return self.logic_manager.can_sustain_region(region_data.sustain_score, context)
 
     def can_defeat_enemies(self, state: StateInterface, enemies: list[int]) -> bool:
-        self.__update_defeatable_enemies(state)
-        return self.encounter_battle_processor.can_defeat_enemy_group(enemies, self.__make_execution_context(state))
+        return self.logic_manager.can_defeat_special_encounter(enemies, self.__make_execution_context(state))
 
     def can_defeat_enemy(self, state: StateInterface, enemy: int) -> bool:
-        self.__update_defeatable_enemies(state)
-        return enemy in self.logic_data.defeatable_enemy.defeatable_enemies
+        return self.logic_manager.can_defeat_enemy(enemy, self.__make_execution_context(state))
 
     def can_fill_codex_entry(self, state: StateInterface, enemy_id: int) -> bool:
-        if enemy_id in [EO1Enemies.DRAKE, EO1Enemies.ALRAUNE]:
-            self.logic_data.set_location_stale()
-        self.__update_fillable_codex_entries(state)
-        return enemy_id in self.logic_data.codex_logic_data.fillable_codex_entries
+        return self.logic_manager.can_fill_codex_entry(enemy_id, self.__make_execution_context(state))
 
     def can_fill_compendium_entry(self, state: StateInterface, item_id: int) -> bool:
-        self.__update_fillable_compendium_entries(state)
-        return item_id in self.logic_data.compendium_logic_data.fillable_compendium_entries
+        return self.logic_manager.can_fill_compendium_entry(item_id, self.__make_execution_context(state))
 
     def can_unlock_shop_item(self, state: StateInterface, shop_item_id: int) -> bool:
-        self.__update_shop_entries(state)
-        return shop_item_id in self.logic_data.shop_unlock_logic_data.unlockable_shop_items
+        return self.logic_manager.can_unlock_shop_item(shop_item_id, self.__make_execution_context(state))
 
     def can_fully_complete_codex_and_compendium(self, state: StateInterface) -> bool:
-        self.__update_fillable_codex_entries(state)
-        self.__update_fillable_compendium_entries(state)
-
-        if len(self.logic_data.codex_logic_data.unfillable_codex_entries) > 0:
+        context = self.__make_execution_context(state)
+        if self.logic_manager.get_fillable_codex_entry_count(context) != 131:
             return False
-        if len(self.logic_data.compendium_logic_data.unfillable_compendium_entries) > 0:
+        if self.logic_manager.get_fillable_compendium_entry_count(context) != 196:
             return False
         return True
 
     def can_start_quest(self, state: StateInterface, quest_id: int) -> bool:
-        self.__update_class_data(state)
-        self.__update_defeatable_enemies(state)
-        #self.__update_fillable_codex_entries(state)
-        #self.__update_fillable_compendium_entries(state)
-        return self.quest_processor.can_start_quest(quest_id, self.__make_execution_context(state))
+        return self.logic_manager.can_start_quest(quest_id, self.__make_execution_context(state))
 
     def can_complete_quest(self, state: StateInterface, quest_id: int) -> bool:
-        self.__update_class_data(state)
-        self.__update_defeatable_enemies(state)
-        self.__update_fillable_codex_entries(state)
-        self.__update_fillable_compendium_entries(state)
-        self.__update_shop_entries(state)
-        return self.quest_processor.can_complete_quest(quest_id, self.__make_execution_context(state))
-
-    def __update_defeatable_enemies(self, state: StateInterface) -> None:
-        self.__update_class_data(state)
-
-        # Note: This may seems like a circular reference (and it logically is), but it is handled by delaying
-        #self.__update_shop_consumable_entries(state)
-
-        if self.logic_data.defeatable_enemy.is_stale():
-            self.__update_set_logic_data(self.logic_data.defeatable_enemy, self.enemy_battle_processor.can_defeat_enemy, state)
-
-    def __update_survivable_enemies(self, state: StateInterface) -> None:
-        self.__update_class_data(state)
-
-        if self.logic_data.survivable_enemy.is_stale():
-            self.__update_set_logic_data(self.logic_data.survivable_enemy, self.enemy_battle_processor.can_survive_enemy, state)
-
-    def __update_defeatable_encounters(self, state: StateInterface) -> None:
-        self.__update_class_data(state)
-        self.__update_defeatable_enemies(state)
-
-        if self.logic_data.defeatable_encounter.is_stale():
-            self.__update_set_logic_data(self.logic_data.defeatable_encounter, self.encounter_battle_processor.can_defeat_encounter, state)
-
-    def __update_survivable_encounters(self, state: StateInterface) -> None:
-        self.__update_class_data(state)
-        self.__update_survivable_enemies(state)
-
-        if self.logic_data.survivable_encounter.is_stale():
-            self.__update_set_logic_data(self.logic_data.survivable_encounter, self.encounter_battle_processor.can_survive_encounter, state)
-
-    def __update_encounter_group(self, state: StateInterface) -> None:
-        self.__update_class_data(state)
-        self.__update_survivable_enemies(state)
-        self.__update_survivable_encounters(state)
-
-        if self.logic_data.encounter_group.is_stale():
-            self.__update_set_logic_data(self.logic_data.encounter_group, self.encounter_group_battle_processor.can_survive_encounter_group, state)
-
-    def __update_fillable_codex_entries(self, state: StateInterface) -> None:
-        self.__update_class_data(state)
-        self.__update_defeatable_encounters(state)
-
-        if self.logic_data.codex_logic_data.is_stale():
-            self.__update_set_logic_data(self.logic_data.codex_logic_data, self.codex_processor.can_fill_codex_entry, state)
-
-    def __update_fillable_compendium_entries(self, state: StateInterface) -> None:
-        self.__update_class_data(state)
-        self.__update_defeatable_encounters(state)
-        self.__update_fillable_codex_entries(state)
-
-        if self.logic_data.compendium_logic_data.is_stale():
-            changed = self.__update_set_logic_data(self.logic_data.compendium_logic_data, self.compendium_processor.can_fill_compendium_entry, state)
-            if changed:
-                self.logic_data.set_shop_unlock_stale()
-
-    def __update_shop_entries(self, state: StateInterface) -> None:
-        self.__update_fillable_compendium_entries(state)
-
-        if self.logic_data.shop_unlock_logic_data.is_stale():
-            self.__update_set_logic_data(self.logic_data.shop_unlock_logic_data, self.shop_unlock_processor.can_unlock_item, state)
-    #    # This have dependencies on compendium entries, but this makes a circular reference.
-    #    # To avoid infinite looping, do a direct update of the compendium entries here, instead of a delayed one.
-    #    # This will have the impact of logic being delayed by one step, but it also
-    #    # somewhat represent the need to go back to town anyway.
-    #    is_stale = self.logic_data.shop_consumable_unlock_logic_data.is_stale()
-    #
-    #    self.__update_class_data(state)
-    #
-    #    # Update Codex and Compendium, in order, if they are stale.
-    #    if self.logic_data.codex_logic_data.is_stale():
-    #        self.__update_set_logic_data(self.logic_data.codex_logic_data, self.codex_processor.can_fill_codex_entry, state)
-    #        # But keep it stale.
-    #        self.logic_data.codex_logic_data.set_stale(True)
-    #    if self.logic_data.compendium_logic_data.is_stale():
-    #        is_stale |= self.__update_set_logic_data(self.logic_data.compendium_logic_data, self.compendium_processor.can_fill_compendium_entry, state)
-    #        # But keep it stale.
-    #        self.logic_data.compendium_logic_data.set_stale(True)
-
-    #    # Now compendium is as up to date as can be without being unsafe.
-    #    if is_stale:
-    #        changed = self.__update_set_logic_data(self.logic_data.shop_consumable_unlock_logic_data, self.shop_unlock_processor.can_unlock_item, state)
-    #        if changed:
-    #            self.logic_data.set_battle_stale()
-
-    def __update_class_data(self, state: StateInterface) -> None:
-        if self.logic_data.class_data.is_stale():
-            if self.class_processor.update_class_data(self.logic_data, state):
-                self.logic_data.set_battle_stale()
-            self.logic_data.class_data.set_stale(False)
-
-    def __update_set_logic_data(self, logic_data: DualIntSetLogicData, can_access: Callable[int, ExecutionContext], state: StateInterface) -> bool:
-        new_accessible = set()
-        context = self.__make_execution_context(state)
-        for identifier in logic_data.unaccessible:
-            if can_access(identifier, context):
-                new_accessible.add(identifier)
-
-        for identifier in new_accessible:
-            logic_data.unaccessible.remove(identifier)
-            logic_data.accessible.add(identifier)
-
-        logic_data.set_stale(False)
-        changed = len(new_accessible) > 0
-        return changed
-
-    def __recalculate_class_data(self, state: StateInterface) -> bool:
-        changed = self.class_processor.recalculate_class_data(self.logic_data, state)
-        # TODO decide if this is omitted. Do not set to False, since the data could already be stale.
-        self.logic_data.class_data.set_stale(True)
-        return changed
-
-    def __recalculate_set_logic_data(self, logic_data: DualIntSetLogicData, can_access: Callable[int, ExecutionContext], state: StateInterface) -> bool:
-        new_unaccessible = set()
-        context = self.__make_execution_context(state)
-        for identifier in logic_data.accessible:
-            if not can_access(identifier, context):
-                new_unaccessible.add(identifier)
-
-        for identifier in new_unaccessible:
-            logic_data.accessible.remove(identifier)
-            logic_data.unaccessible.add(identifier)
-
-        # TODO decide if this is omitted. Do not set to False, since the data could already be stale.
-        logic_data.set_stale(True) # For safety.
-
-        changed = len(new_unaccessible) > 0
-        return changed
+        return self.logic_manager.can_complete_quest(quest_id, self.__make_execution_context(state))
