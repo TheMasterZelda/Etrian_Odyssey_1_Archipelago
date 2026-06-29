@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from enum import IntEnum
 
 class EO1Ailment(IntEnum):
@@ -38,3 +39,16 @@ class EO1BodyPart(IntEnum):
     ARM = 2
     LEG = 3
     #ALL = 4
+
+class IEtrianOdysseyLocationData(ABC):
+    @abstractmethod
+    def get_full_name(self) -> str:
+        pass
+
+    @abstractmethod
+    def get_location_id(self) -> int:
+        pass
+
+    @abstractmethod
+    def get_required_stratum(self) -> int | None:
+        pass

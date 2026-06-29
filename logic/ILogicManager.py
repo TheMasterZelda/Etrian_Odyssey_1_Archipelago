@@ -63,3 +63,7 @@ class ILogicManager(ABC):
     @abstractmethod
     def get_fillable_compendium_entry_count(self, context: ExecutionContext) -> int:
         pass
+
+    @abstractmethod
+    def can_complete_quest(self, quest_id: int, context: ExecutionContext) -> bool:
+        pass

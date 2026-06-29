@@ -5,6 +5,7 @@ GAME_NAME = "Etrian Odyssey"
 GAME_VERSION = "0.1.0"
 MAX_LEVEL = 70
 MAX_FLOOR = 30
+UT_GLITCH_LOGIC_ITEM_NAME = "ut_glitch_logic"
 
 #class BattleLogicModeType(IntEnum):
 #    generous = 1
@@ -113,6 +114,7 @@ class SlotDataKeys:
     GOAL = "goal"
     QUEST_SANITY = "quest_sanity"
     QUEST_COMPLETION_REWARD_HINT = "quest_completion_reward_hint"
+    RANDOMIZED_GAME_DATA = "randomized_game_data"
 #    PROGRESSIVE_LEVEL_CAP_VALUE = "level_cap_increase_value"
 #    PROGRESSIVE_FLOOR_LIMIT_VALUE = "floor_limit_increase_value"
 

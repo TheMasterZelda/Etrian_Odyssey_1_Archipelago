@@ -8,7 +8,6 @@ from .SkillHelper import *
 
 
 class ConditionalDropProcessor:
-
     single_enemy_battle_processor: SingleEnemyBattleProcessor
 
     def __init__(self, single_enemy_battle_processor: SingleEnemyBattleProcessor):

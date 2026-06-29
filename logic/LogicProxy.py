@@ -35,10 +35,13 @@ class LogicProxy:
     options: EtrianOdysseyOptions
     logic_manager: LogicManager
 
-    def __init__(self, options: EtrianOdysseyOptions, fill_default=True) -> None:
+    def __init__(self, options: EtrianOdysseyOptions, initialize=True) -> None:
         self.options = options
 
-        self.logic_data = AllLogicData(fill_default)
+        if not initialize:
+            return
+
+        self.logic_data = AllLogicData()
         self.logic_cache_data = AllLogicCacheData()
         self.logic_data.current_level_cap = options.get_effective_initial_level_cap()
         self.logic_data.current_floor_limit = options.get_effective_initial_floor_limit()
@@ -51,17 +54,15 @@ class LogicProxy:
         self.logic_manager.encounter_battle_processor = self.__create_encounter_battle_processor_from_options(options)
         self.logic_manager.encounter_group_battle_processor = self.__create_encounter_group_battle_processor_from_options(options)
         self.logic_manager.quest_processor = QuestProcessor()
-        self.logic_manager.codex_processor = CodexProcessor(max_stratum, self.logic_manager.quest_processor)
+        self.logic_manager.codex_processor = CodexProcessor(max_stratum)
         self.logic_manager.conditional_drop_processor = ConditionalDropProcessor(self.logic_manager.enemy_battle_processor)
         self.logic_manager.compendium_processor = CompendiumProcessor(max_stratum, self.logic_manager.conditional_drop_processor)
         self.logic_manager.shop_unlock_processor = ShopUnlockProcessor()
         self.logic_manager.sustain_processor = SustainProcessor()
 
-        if fill_default:
-            # Initialize class data
-            self.logic_manager.class_processor.initialize_data(self.logic_data.class_data, bool(options.remove_skills_requirements))
-            self.logic_manager.initialize_cache(self.logic_cache_data)
-            pass
+        # Initialize class data
+        self.logic_manager.class_processor.initialize_data(self.logic_data.class_data, bool(options.remove_skills_requirements))
+        self.logic_manager.initialize_cache(self.logic_cache_data)
 
     def __make_execution_context(self, state: StateInterface) -> EO1ExecutionContext:
         context = EO1ExecutionContext()
@@ -72,7 +73,7 @@ class LogicProxy:
         return context
 
     def copy(self) -> LogicProxy:
-        new_copy = LogicProxy(self.options, fill_default=False)
+        new_copy = LogicProxy(self.options, initialize=False)
         new_copy.logic_data = self.logic_data.copy()
         new_copy.logic_cache_data = self.logic_cache_data.copy()
         new_copy.logic_manager = self.logic_manager # Copy reference only
@@ -100,18 +101,14 @@ class LogicProxy:
         return SimpleEncounterGroupBattleProcessor()
 
     def collect(self, state: StateInterface, item: EtrianOdysseyItem) -> None:
+        if item.name == UT_GLITCH_LOGIC_ITEM_NAME:
+            self.logic_manager.on_ut_glitch_logic(self.__make_execution_context(state))
+            return
+
         if not hasattr(item, "item_type"):
             raise Exception(f"Expected an item_type to be defined for {item.name}")
 
         self.logic_manager.on_item_collect(item.code, item.item_type, self.__make_execution_context(state))
-
-        #floor_ = 1
-        #for floor_limit in ALL_PROGRESSIVE_FLOOR_LIMIT:
-        #    count = state.count(floor_limit.name, 1)
-        #    floor_ += floor_limit.floor_amount * count
-
-        #if floor_ != self.logic_data.current_floor_limit:
-        #    raise Exception("not match")
 
     def remove(self, state: StateInterface, item: EtrianOdysseyItem) -> None:
         if not hasattr(item, "item_type"):
@@ -133,6 +130,7 @@ class LogicProxy:
             if not self.logic_manager.can_survive_encounter_group(encounter_group_id, context):
                 return False
 
+        # TODO handle for glitched logic.
         if not bool(self.options.sustain_logic_enabled):
             return True
 

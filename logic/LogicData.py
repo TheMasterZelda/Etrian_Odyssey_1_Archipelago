@@ -111,7 +111,7 @@ class AllLogicData:
 
     class_data: ClassLogicData
 
-    def __init__(self, fill_default: bool):
+    def __init__(self):
         # The management of the default values is left to the LogicManager.
         self.current_level_cap = 0
         self.current_floor_limit = 0
@@ -122,7 +122,7 @@ class AllLogicData:
         return min(self.current_level_cap, MAX_LEVEL_BY_FLOOR[min(self.current_floor_limit, 30)])
 
     def copy(self) -> AllLogicData:
-        new_copy = AllLogicData(fill_default=False)
+        new_copy = AllLogicData()
 
         new_copy.current_level_cap = self.current_level_cap
         new_copy.current_floor_limit = self.current_floor_limit

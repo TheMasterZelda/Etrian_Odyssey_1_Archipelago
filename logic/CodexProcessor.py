@@ -118,12 +118,10 @@ REGION_BY_BOSS: dict[int, list[str]] = generate_region_by_boss_dictionary()
 
 class CodexProcessor:
     max_stratum: int
-    quest_processor: QuestProcessor
     region_cache: set[str] | None
 
-    def __init__(self, max_stratum: int, quest_processor: QuestProcessor):
+    def __init__(self, max_stratum: int):
         self.max_stratum = max_stratum
-        self.quest_processor = quest_processor
         self.region_cache = None
 
     def can_fill_codex_entry(self, enemy_id: int, context: ExecutionContext) -> bool:
@@ -208,7 +206,7 @@ class CodexProcessor:
         if codex_data.quest_id is None:
             raise Exception(f"Codex entry {codex_data.codex_id} of type Quest is lacking a defined Quest ID.")
 
-        return self.quest_processor.can_complete_quest(codex_data.quest_id, context)
+        return context.logic_manager.can_complete_quest(codex_data.quest_id, context)
 
     def __can_fill_special_entry(self, codex_data, context: ExecutionContext) -> bool:
         if codex_data.enemy_id == EO1Enemies.PONDCLAW:

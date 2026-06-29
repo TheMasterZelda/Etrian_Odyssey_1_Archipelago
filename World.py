@@ -14,6 +14,7 @@ from worlds.AutoWorld import World
 from .Constant import *
 
 from .Options import EtrianOdysseyOptions
+from .RandomizedGameData import RandomizedGameData
 from .data.InventoryItemData import *
 from .data.TreasureData import *
 from .Items import *
@@ -62,7 +63,7 @@ class EtrianOdysseyWorld(World):
     options_dataclass = EtrianOdysseyOptions
     options: EtrianOdysseyOptions
     settings: typing.ClassVar[EtrianOdysseySettings]
-    topology_present = True
+    topology_present = False # Keep to False, Topology data is quite heavy due to the structure of etrian odyssey.
     explicit_indirect_conditions = False
 
     location_name_to_id = ALL_LOCATIONS_ID_BY_NAME
@@ -90,10 +91,13 @@ class EtrianOdysseyWorld(World):
 
     origin_region_name = EO1Regions.ETRIA
 
+    glitches_item_name = UT_GLITCH_LOGIC_ITEM_NAME
+    is_ut: bool
     starting_classes: list[str]
     starting_skills: list[SkillItem]
     initial_floor_limit: int
     initial_level_cap: int
+    randomized_game_data: RandomizedGameData
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
@@ -101,6 +105,8 @@ class EtrianOdysseyWorld(World):
         self.initial_level_cap = MAX_LEVEL
         self.starting_classes = []
         self.starting_skills = []
+        self.randomized_game_data = RandomizedGameData()
+        self.is_ut = getattr(self.multiworld, "generation_is_fake", False)
 
     def collect(self, state: "CollectionState", item: "Item") -> bool:
         change = super().collect(state, item)
@@ -117,8 +123,14 @@ class EtrianOdysseyWorld(World):
         return change
 
     def generate_early(self) -> None:
-        # TODO Options validation.
+        # UT check.
+        re_gen_passthrough = getattr(self.multiworld, "re_gen_passthrough", {})
+        if re_gen_passthrough and self.game in re_gen_passthrough:
+            # TODO handle UT with options.
+            # TODO make option class for internal use?
+            slot_data: dict[str, Any] = re_gen_passthrough[self.game]
 
+        # TODO Options validation.
         starting_classes = get_starting_classes(self)
         self.starting_classes = [class_data.name for class_data in starting_classes]
 
@@ -144,6 +156,11 @@ class EtrianOdysseyWorld(World):
         create_events(self)
 
     def create_item(self, name: str) -> Items.EtrianOdysseyItem:
+        if name == UT_GLITCH_LOGIC_ITEM_NAME:
+            item = EtrianOdysseyItem(UT_GLITCH_LOGIC_ITEM_NAME, ItemClassification.progression, None, self.player)
+            item.item_type = EtrianOdysseyItemType.EVENT
+            return item
+
         return Items.create_item_from_name(self, name)
 
     def get_filler_item_name(self) -> str:
@@ -155,6 +172,7 @@ class EtrianOdysseyWorld(World):
             SlotDataKeys.QUEST_SANITY,
             SlotDataKeys.QUEST_COMPLETION_REWARD_HINT,
         )
+        slot_data[SlotDataKeys.RANDOMIZED_GAME_DATA] = self.randomized_game_data.serialize()
         return slot_data
 
     def generate_output(self, output_directory: str) -> None:
@@ -173,6 +191,11 @@ class EtrianOdysseyWorld(World):
 
         # Uncomment to print region diagram (and validate region accessibility).
         #self.output_region_diagram()
+
+    # UT function
+    def interpret_slot_data(self, slot_data: dict[str, Any]) -> None:
+        if SlotDataKeys.RANDOMIZED_GAME_DATA in slot_data:
+            self.randomized_game_data.deserialize(slot_data[SlotDataKeys.RANDOMIZED_GAME_DATA])
 
     def output_region_diagram(self):
         from Utils import visualize_regions

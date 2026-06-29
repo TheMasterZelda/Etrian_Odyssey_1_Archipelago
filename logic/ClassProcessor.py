@@ -123,6 +123,7 @@ class ClassProcessor:
             skill_data.required_skills = set()
             skill_data.required_level = 1
 
+            # TODO adjust to handle skill requirement rando.
             if remove_skills_requirements:
                 if skill.id in SKILL_HARD_DEPENDENCIES:
                     skill_data.required_level += 1

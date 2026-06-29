@@ -80,6 +80,14 @@ class LogicManager(ILogicManager):
             context.cache_data.set_battle_stale()
             context.cache_data.set_location_stale()
 
+        #floor_ = 1
+        #for floor_limit in ALL_PROGRESSIVE_FLOOR_LIMIT:
+        #    count = state.count(floor_limit.name, 1)
+        #    floor_ += floor_limit.floor_amount * count
+
+        #if floor_ != self.logic_data.current_floor_limit:
+        #    raise Exception("not match")
+
     def on_item_remove(self, item_id: int, item_type: EtrianOdysseyItemType, context: EO1ExecutionContext) -> None:
         if item_type == EtrianOdysseyItemType.PROGRESSIVE_LEVEL_CAP:
             context.logic_data.current_level_cap -= ALL_PROGRESSIVE_LEVEL_CAP_BY_ITEM_ID[item_id].level_amount
@@ -148,6 +156,9 @@ class LogicManager(ILogicManager):
             recalculate_location()
         elif item_type == EtrianOdysseyItemType.EVENT:
             recalculate_location()
+
+    def on_ut_glitch_logic(self, context: EO1ExecutionContext):
+        self.enemy_battle_processor = NoLogicSingleEnemyBattleProcessor()
 
     def __get_defeatable_enemy_cache_manager(self, context: EO1ExecutionContext) -> DualIntSetLogicCacheDataManager:
         return DualIntSetLogicCacheDataManager(context.cache_data.defeatable_enemy, self.enemy_battle_processor.can_defeat_enemy)

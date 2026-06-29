@@ -572,6 +572,9 @@ class EtrianOdysseyClient(BizHawkClient):
 
         location_id = QUEST_DATA_BY_QUEST_ID[quest_id].location_id
 
+        if location_id not in ctx.missing_locations:
+            return []
+
         return [location_id]
 
     async def handle_scout(self, ctx: "BizHawkClientContext", save_pointer: int, game_state: int, guards: Dict[str, Tuple[int, bytes, str]]):
