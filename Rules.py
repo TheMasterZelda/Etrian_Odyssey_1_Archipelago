@@ -29,12 +29,18 @@ if TYPE_CHECKING:
 
 from rule_builder.rules import *
 
+
+def initialize_logic_proxy(world: EtrianOdysseyWorld) -> LogicProxy:
+    world.generate_randomized_game_data()
+    return LogicProxy(world.options, world.randomized_game_data)
+
 class EtrianOdysseyLogic(LogicMixin):
     etrianodyssey_logic_data: dict[int, LogicProxy] # per player
 
     def init_mixin(self, multiworld: MultiWorld) -> None:
+        # noinspection PyTypeChecker
         self.etrianodyssey_logic_data = {
-            player: LogicProxy(multiworld.worlds[player].options) for player in multiworld.get_game_players(GAME_NAME)
+            player: initialize_logic_proxy(multiworld.worlds[player]) for player in multiworld.get_game_players(GAME_NAME)
         }
 
     def copy_mixin(self, new_state: CollectionState) -> CollectionState:

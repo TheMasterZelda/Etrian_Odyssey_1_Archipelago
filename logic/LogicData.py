@@ -77,6 +77,7 @@ class ClassLogicData(LogicData):
     troubadour: SingleClassLogicData
     ronin: SingleClassLogicData
     hexer: SingleClassLogicData
+    #classes: list[SingleClassLogicData]
 
     def copy(self) -> ClassLogicData:
         new_copy = ClassLogicData()

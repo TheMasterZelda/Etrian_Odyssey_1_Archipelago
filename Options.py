@@ -385,8 +385,8 @@ class CompendiumSanityIncludeConditionalDrops(DefaultOnToggle):
 class QuestSanity(Toggle):
     """
     Shuffles Quest completions as Locations. See the Quest Document for more information.
-    TODO Link to Quest Document.
     """
+    # TODO Link to Quest Document.
 
     display_name = "Quest Sanity"
 

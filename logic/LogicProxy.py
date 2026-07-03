@@ -6,6 +6,7 @@ from .StateInterface import StateInterface
 from . import QuestProcessor
 from .SustainProcessor import SustainProcessor
 from ..Items import EtrianOdysseyItemType, EtrianOdysseyItem
+from ..RandomizedGameData import RandomizedGameData
 from ..data.ItemData import *
 from ..data.InventoryItemData import *
 from ..Options import *
@@ -34,9 +35,11 @@ class LogicProxy:
     logic_cache_data: AllLogicCacheData
     options: EtrianOdysseyOptions
     logic_manager: LogicManager
+    randomized_game_data: RandomizedGameData
 
-    def __init__(self, options: EtrianOdysseyOptions, initialize=True) -> None:
+    def __init__(self, options: EtrianOdysseyOptions, randomized_game_data: RandomizedGameData, initialize=True) -> None:
         self.options = options
+        self.randomized_game_data = randomized_game_data
 
         if not initialize:
             return
@@ -49,7 +52,8 @@ class LogicProxy:
         max_stratum = get_max_stratum_for_goal(EO1Goal(options.goal.value))
 
         self.logic_manager = LogicManager()
-        self.logic_manager.class_processor = ClassProcessor()
+        data_source = EtrianOdysseyDataSource()
+        self.logic_manager.class_processor = ClassProcessor(data_source)
         self.logic_manager.enemy_battle_processor = self.__create_single_enemy_battle_processor_from_options(options)
         self.logic_manager.encounter_battle_processor = self.__create_encounter_battle_processor_from_options(options)
         self.logic_manager.encounter_group_battle_processor = self.__create_encounter_group_battle_processor_from_options(options)
@@ -64,6 +68,9 @@ class LogicProxy:
         self.logic_manager.class_processor.initialize_data(self.logic_data.class_data, bool(options.remove_skills_requirements))
         self.logic_manager.initialize_cache(self.logic_cache_data)
 
+        #if self.randomized_game_data.test != "123":
+        #    raise Exception("no")
+
     def __make_execution_context(self, state: StateInterface) -> EO1ExecutionContext:
         context = EO1ExecutionContext()
         context.logic_data = self.logic_data
@@ -73,7 +80,7 @@ class LogicProxy:
         return context
 
     def copy(self) -> LogicProxy:
-        new_copy = LogicProxy(self.options, initialize=False)
+        new_copy = LogicProxy(self.options, self.randomized_game_data, initialize=False)
         new_copy.logic_data = self.logic_data.copy()
         new_copy.logic_cache_data = self.logic_cache_data.copy()
         new_copy.logic_manager = self.logic_manager # Copy reference only

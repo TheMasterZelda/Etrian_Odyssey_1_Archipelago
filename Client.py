@@ -60,7 +60,6 @@ class EtrianOdysseyClient(BizHawkClient):
     goal: EO1Goal | None
     scouted_locations: set[int]
     quest_completion_reward_hint: bool | None
-    key_items_to_process: set[int]
     custom_command_to_run: EtrianOdysseyClientCustomCommands
     custom_command_parameter: Any
 
@@ -68,7 +67,6 @@ class EtrianOdysseyClient(BizHawkClient):
         self.goal = None
         self.scouted_locations = set()
         self.quest_completion_reward_hint = None
-        self.key_items_to_process = {key_item.item_id for key_item in KEY_ITEMS_WITH_FLAG}
 
     def register_custom_commands(self, ctx: "BizHawkClientContext"):
         ctx.command_processor.commands["debug_eo_set_flag_off"] = cmd_debug_eo_set_flag_off
@@ -392,9 +390,6 @@ class EtrianOdysseyClient(BizHawkClient):
     async def handle_key_item_flags(self, ctx: "BizHawkClientContext", flag_table_save_pointer: int, flag_table: bytes, inventory_table: bytes, global_guards: Dict[str, Tuple[int, bytes, str]]) -> None:
         # This function is to handle flags that get set by events when obtaining key items.
         # This could also be handled within the game itself via assembly, but for now this is how it was chosen to be handled.
-        if len(self.key_items_to_process) == 0:
-            return
-
         @dataclass
         class MemoryValues:
             current_value: int
@@ -415,12 +410,12 @@ class EtrianOdysseyClient(BizHawkClient):
         memory_values: dict[int, MemoryValues] = {}
 
         for item_id in inventory_items:
-            if item_id not in self.key_items_to_process:
+            if item_id not in KEY_ITEMS_WITH_FLAG:
                 continue
 
             key_item_data = KEY_ITEM_DATA_BY_ITEM_ID[item_id]
             if self.check_flag(flag_table, key_item_data.associated_flag):
-                self.key_items_to_process.remove(item_id)
+                #self.key_items_to_process.remove(item_id)
                 continue
 
             flag_offset = get_flag_byte_offset(key_item_data.associated_flag)
@@ -432,6 +427,9 @@ class EtrianOdysseyClient(BizHawkClient):
 
             new_flag_value = flag_value | get_flag_to_set(key_item_data.associated_flag)
             memory_values[flag_value_address].new_value = new_flag_value
+
+        if len(memory_values) == 0:
+            return
 
         writes_to_perform: dict[int, tuple[int, int, int]] = {}
 
@@ -503,15 +501,22 @@ class EtrianOdysseyClient(BizHawkClient):
             if read_results is None:
                 return
 
-            await self.handle_received_items(ctx, save_pointer, read_results[0], read_results[1], guards)
-            await self.handle_location_checking(ctx, save_pointer, read_results[2], read_results[3], read_results[5])
-            await self.handle_goal(ctx, read_results[3], read_results[2])
+            raw_money = read_results[0]
+            sc_data = read_results[1]
+            flag_table = read_results[2]
+            coco_table = read_results[3]
+            inventory_table = read_results[4]
+            shop_table = read_results[5]
 
-            await self.handle_key_item_flags(ctx, save_pointer + FLAG_TABLE_OFFSET, read_results[2], read_results[4], guards)
+            await self.handle_received_items(ctx, save_pointer, raw_money, sc_data, guards)
+            await self.handle_location_checking(ctx, save_pointer, flag_table, coco_table, shop_table)
+            await self.handle_goal(ctx, coco_table, flag_table)
+
+            await self.handle_key_item_flags(ctx, save_pointer + FLAG_TABLE_OFFSET, flag_table, inventory_table, guards)
 
             await self.handle_scout(ctx, save_pointer, game_state, guards)
 
-            await self.process_custom_commands(ctx, save_pointer + FLAG_TABLE_OFFSET, read_results[2], guards)
+            await self.process_custom_commands(ctx, save_pointer + FLAG_TABLE_OFFSET, flag_table, guards)
         except bizhawk.RequestFailedError:
             # Exit handler and return to main loop to reconnect
             pass

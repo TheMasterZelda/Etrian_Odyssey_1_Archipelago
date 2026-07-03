@@ -589,7 +589,7 @@ ALL_SKILLS_DATA: list[EO1SkillData] = [
 SKILL_DATA_BY_ID: dict[int, EO1SkillData] = {skill_data.id:skill_data for skill_data in ALL_SKILLS_DATA}
 SKILL_DATA_BY_ITEM_ID: dict[int, EO1SkillData] = {skill_data.ap_item_id:skill_data for skill_data in ALL_SKILLS_DATA}
 
-SKILL_HARD_DEPENDENCIES: dict[int, int] = {
+SKILL_USAGE_DEPENDENCIES: dict[int, int] = {
     EO1Skills.RONIN_ZAMBA: EO1Skills.RONIN_OVERHEAD,
     EO1Skills.RONIN_OROCHI: EO1Skills.RONIN_OVERHEAD,
     EO1Skills.RONIN_MIDAREBA: EO1Skills.RONIN_OVERHEAD,
