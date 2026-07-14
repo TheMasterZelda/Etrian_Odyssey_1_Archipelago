@@ -88,28 +88,28 @@ class ClassProcessor:
 
         return changed
 
-    def initialize_data(self, class_data: ClassLogicData, remove_skills_requirements: bool):
-        class_data.landsknecht = self.__initialize_class_data(EO1Class.LANDSKNECHT, LANDSKNECHT_SKILLS, remove_skills_requirements)
+    def initialize_data(self, class_data: ClassLogicData):
+        class_data.landsknecht = self.__initialize_class_data(EO1Class.LANDSKNECHT, LANDSKNECHT_SKILLS)
         #class_data.classes.append(self.__initialize_class_data(EO1Class.LANDSKNECHT, LANDSKNECHT_SKILLS, remove_skills_requirements))
-        class_data.survivalist = self.__initialize_class_data(EO1Class.SURVIVALIST, SURVIVALIST_SKILLS, remove_skills_requirements)
+        class_data.survivalist = self.__initialize_class_data(EO1Class.SURVIVALIST, SURVIVALIST_SKILLS)
         #class_data.classes.append(self.__initialize_class_data(EO1Class.SURVIVALIST, SURVIVALIST_SKILLS, remove_skills_requirements))
-        class_data.protector = self.__initialize_class_data(EO1Class.PROTECTOR, PROTECTOR_SKILLS, remove_skills_requirements)
+        class_data.protector = self.__initialize_class_data(EO1Class.PROTECTOR, PROTECTOR_SKILLS)
         #class_data.classes.append(self.__initialize_class_data(EO1Class.PROTECTOR, PROTECTOR_SKILLS, remove_skills_requirements))
-        class_data.dark_hunter = self.__initialize_class_data(EO1Class.DARK_HUNTER, DARK_HUNTER_SKILLS, remove_skills_requirements)
+        class_data.dark_hunter = self.__initialize_class_data(EO1Class.DARK_HUNTER, DARK_HUNTER_SKILLS)
         #class_data.classes.append(self.__initialize_class_data(EO1Class.DARK_HUNTER, DARK_HUNTER_SKILLS, remove_skills_requirements))
-        class_data.medic = self.__initialize_class_data(EO1Class.MEDIC, MEDIC_SKILLS, remove_skills_requirements)
+        class_data.medic = self.__initialize_class_data(EO1Class.MEDIC, MEDIC_SKILLS)
         #class_data.classes.append(self.__initialize_class_data(EO1Class.MEDIC, MEDIC_SKILLS, remove_skills_requirements))
-        class_data.alchemist = self.__initialize_class_data(EO1Class.ALCHEMIST, ALCHEMIST_SKILLS, remove_skills_requirements)
+        class_data.alchemist = self.__initialize_class_data(EO1Class.ALCHEMIST, ALCHEMIST_SKILLS)
         #class_data.classes.append(self.__initialize_class_data(EO1Class.ALCHEMIST, ALCHEMIST_SKILLS, remove_skills_requirements))
-        class_data.troubadour = self.__initialize_class_data(EO1Class.TROUBADOUR, TROUBADOUR_SKILLS, remove_skills_requirements)
+        class_data.troubadour = self.__initialize_class_data(EO1Class.TROUBADOUR, TROUBADOUR_SKILLS)
         #class_data.classes.append(self.__initialize_class_data(EO1Class.TROUBADOUR, TROUBADOUR_SKILLS, remove_skills_requirements))
-        class_data.ronin = self.__initialize_class_data(EO1Class.RONIN, RONIN_SKILLS, remove_skills_requirements)
+        class_data.ronin = self.__initialize_class_data(EO1Class.RONIN, RONIN_SKILLS)
         #class_data.classes.append(self.__initialize_class_data(EO1Class.RONIN, RONIN_SKILLS, remove_skills_requirements))
-        class_data.hexer = self.__initialize_class_data(EO1Class.HEXER, HEXER_SKILLS, remove_skills_requirements)
+        class_data.hexer = self.__initialize_class_data(EO1Class.HEXER, HEXER_SKILLS)
         #class_data.classes.append(self.__initialize_class_data(EO1Class.HEXER, HEXER_SKILLS, remove_skills_requirements))
         class_data.set_stale(True)
 
-    def __initialize_class_data(self, class_name: str, class_skill_data: list[EO1SkillData], remove_skills_requirements: bool) -> SingleClassLogicData:
+    def __initialize_class_data(self, class_name: str, class_skill_data: list[EO1SkillData]) -> SingleClassLogicData:
         new_class_data = SingleClassLogicData()
         new_class_data.class_name = class_name
         new_class_data.class_unlocked = False
@@ -131,9 +131,6 @@ class ClassProcessor:
             return result
 
         def add_all_required_skills(result_requirements: dict[int, int], skill_id: int) -> None:
-            if remove_skills_requirements:
-                return
-
             for required_skill in get_required_skills(skill_id):
                 required_skill_id = required_skill[0]
                 required_level = required_skill[1]

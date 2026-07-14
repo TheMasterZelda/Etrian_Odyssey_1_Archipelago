@@ -31,7 +31,10 @@ from rule_builder.rules import *
 
 
 def initialize_logic_proxy(world: EtrianOdysseyWorld) -> LogicProxy:
-    world.generate_randomized_game_data()
+    if world.is_ut:
+        world.initialize_ut()
+    else:
+        world.generate_randomized_game_data()
     return LogicProxy(world.options, world.randomized_game_data)
 
 class EtrianOdysseyLogic(LogicMixin):
@@ -405,6 +408,8 @@ def resolve_entrance_rule(world: EtrianOdysseyWorld, source_region: EO1RegionDat
     elif exit_data.entrance_type == EntranceType.EventLockedShortcut:
         event_info = EVENT_BY_NAME[exit_data.event_name]
         entrance_rule = Has(event_info.item_name)
+    elif exit_data.entrance_type == EntranceType.QuestLockedShortcut:
+        entrance_rule = CanStartQuest(exit_data.quest_id)
     elif exit_data.entrance_type == EntranceType.MandatoryFight:
         entrance_rule = CanDefeatEncounter(tuple(exit_data.enemies))
     elif exit_data.entrance_type == EntranceType.OneWayFightOrEscape:

@@ -43,6 +43,16 @@ class SkillSanityType(IntEnum):
     shuffle_individually = 1
     shuffle_group = 2
 
+class SkillRequirementShuffleType(IntEnum):
+    vanilla = 0
+    remove = 1
+    level_shuffle = 2
+    non_root_shuffle_with_mastery_retention = 3
+    non_root_shuffle = 4
+    full_shuffle_with_mastery_retention = 5
+    full_shuffle = 6
+    chaos = 7
+
 class ItemGroupNames:
     MONEY = "Money"
     PROGRESSIVE_LEVEL_CAP = "Progression Level Cap"

@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from .EnemyData import EO1Enemies
 from .Entrances import *
 from .Events import *
+#from .QuestData import EO1QuestID Cannot import this because of circular import.
 
 class EO1Regions:
     ETRIA = "Etria"
@@ -490,7 +491,7 @@ ALL_REGION_DATA: list[EO1RegionData] = [
     # B16F
     EO1RegionData(EO1Regions.B16F_MAIN, 16, 400, [
         StairsDown(EO1Regions.B17F_MAIN),
-        EventLockedShortcut(EO1Regions.B16F_SECRET_AREA, EventNames.AZURE_COLOSSUS_QUEST_ACCEPTED, 6, "West"),
+        QuestLockedShortcut(EO1Regions.B16F_SECRET_AREA, 90, 6, "West"), # TODO use constant for quest id.
         EventLockedShortcut(EO1Regions.B16F_EAST_SECRET_AREA, EventNames.DISCOVER_CLAW_MARK, 4, "East")
     ], [0x6D, 0x6E, 0x6F, 0x70, 0x71], [EO1Enemies.SICKWOOD]),
     EO1RegionData(EO1Regions.B16F_SECRET_AREA, 16, 800, [

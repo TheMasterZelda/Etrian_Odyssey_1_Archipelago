@@ -1,53 +1,52 @@
-from abc import ABC, abstractmethod
+from random import Random
 from typing import Any
 
-class IRandomizedGameDataEntry(ABC):
-    @abstractmethod
-    def serialize(self) -> dict[str, Any]:
-        pass
-    @abstractmethod
-    def deserialize(self, data: dict[str, Any]):
-        pass
+from .Constant import SkillRequirementShuffleType, get_max_level_for_goal, EO1Goal, get_max_floor_for_goal
+from .Options import EtrianOdysseyOptions
+from .data.MaxLevelByFloor import MAX_LEVEL_BY_FLOOR
+from .random.DataStructure import SingleSkillRequirementData
 
-class SingleSkillRequirementData(IRandomizedGameDataEntry):
-    skill_id: int
-    required_skill_1_id: int
-    required_skill_1_level: int
-    required_skill_2_id: int
-    required_skill_2_level: int
-
-    def serialize(self) -> dict[str, Any]:
-        return {
-            "skill_id": self.skill_id,
-            "required_skill_1_id": self.required_skill_1_id,
-            "required_skill_1_level": self.required_skill_1_level,
-            "required_skill_2_id": self.required_skill_2_id,
-            "required_skill_2_level": self.required_skill_2_level
-        }
-
-    def deserialize(self, data: dict[str, Any]):
-        self.skill_id = data["skill_id"]
-        self.required_skill_1_id = data["required_skill_1_id"]
-        self.required_skill_1_level = data["required_skill_1_level"]
-        self.required_skill_2_id = data["required_skill_2_id"]
-        self.required_skill_2_level = data["required_skill_2_level"]
 
 class RandomizedGameData:
-    skill_requirements: list[SingleSkillRequirementData]
-    #initial_floor_limit: int
-    #initial_level_cap: int
-    test: str
+    initialized: bool
+    skill_requirements: list[SingleSkillRequirementData] | None
+
+    def __init__(self):
+        self.initialized = False
+        self.skill_requirements = None
+
+    def generate_randomized_game_data(self, random: Random, options: EtrianOdysseyOptions):
+        # Only initialize once.
+        if self.initialized:
+            return
+
+        self.__generate_skill_requirements(random, options)
+
+        self.initialized = True
 
     def serialize(self) -> dict[str, Any]:
-        pass
+        result: dict[str, Any] = {}
+        if self.skill_requirements is not None:
+            result["skill_requirements"] = []
+            for single_skill_requirement_data in self.skill_requirements:
+                result["skill_requirements"].append(single_skill_requirement_data.serialize())
+
+        return result
 
     def deserialize(self, data: dict[str, Any]):
-        pass
+        if "skill_requirements" in data:
+            self.skill_requirements = []
+            for serialized_data in data["skill_requirements"]:
+                single_skill_requirement_data = SingleSkillRequirementData()
+                single_skill_requirement_data.deserialize(serialized_data)
+                self.skill_requirements.append(single_skill_requirement_data)
 
-#t = SingleSkillRequirementData()
-#t.skill_id = 1
-#t.required_skill_1_id = 2
-#t.required_skill_1_level = 3
-#t.required_skill_2_id = 4
-#t.required_skill_2_level = 5
-#print(vars(t))
+        self.initialized = True
+
+    def __generate_skill_requirements(self, random: Random, options: EtrianOdysseyOptions):
+        max_level = get_max_level_for_goal(EO1Goal(options.goal.value))
+        max_floor = get_max_floor_for_goal(EO1Goal(options.goal.value))
+        max_level = min(max_level, MAX_LEVEL_BY_FLOOR[min(max_floor, 30)])
+        skill_requirement_shuffle = SkillRequirementShuffleType(options.skill_requirement_shuffle.value)
+        from .random.SkillRequirement import generate_skill_requirements
+        self.skill_requirements = generate_skill_requirements(skill_requirement_shuffle, True, random, max_level)

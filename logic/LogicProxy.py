@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from .DataSource import SingleDataSource
 from .LogicCacheData import AllLogicCacheData
 from .LogicManager import LogicManager, EO1ExecutionContext
 from .StateInterface import StateInterface
@@ -30,6 +31,18 @@ from .ShopUnlockProcessor import *
 from .QuestProcessor import *
 from .simplified_logic.SimplifiedSingleEnemyBattleProcessor import SimplifiedSingleEnemyBattleProcessor
 
+def build_skill_requirements_source(randomized_game_data: RandomizedGameData) -> dict[int, EO1Class2SkillData]:
+    skill_requirement_source: dict[int, EO1Class2SkillData] = {}
+
+    for skill_requirement in randomized_game_data.skill_requirements:
+        skill_requirement_source[skill_requirement.skill_id] = EO1Class2SkillData(
+            skill_requirement.skill_id,
+            skill_requirement.required_skill_1_id,
+            skill_requirement.required_skill_1_level,
+            skill_requirement.required_skill_2_id,
+            skill_requirement.required_skill_2_level)
+    return skill_requirement_source
+
 class LogicProxy:
     logic_data: AllLogicData
     logic_cache_data: AllLogicCacheData
@@ -38,6 +51,9 @@ class LogicProxy:
     randomized_game_data: RandomizedGameData
 
     def __init__(self, options: EtrianOdysseyOptions, randomized_game_data: RandomizedGameData, initialize=True) -> None:
+        if not randomized_game_data.initialized:
+            raise Exception("RandomizedGameData was not initialized.")
+
         self.options = options
         self.randomized_game_data = randomized_game_data
 
@@ -46,30 +62,17 @@ class LogicProxy:
 
         self.logic_data = AllLogicData()
         self.logic_cache_data = AllLogicCacheData()
-        self.logic_data.current_level_cap = options.get_effective_initial_level_cap()
-        self.logic_data.current_floor_limit = options.get_effective_initial_floor_limit()
 
-        max_stratum = get_max_stratum_for_goal(EO1Goal(options.goal.value))
-
-        self.logic_manager = LogicManager()
         data_source = EtrianOdysseyDataSource()
-        self.logic_manager.class_processor = ClassProcessor(data_source)
-        self.logic_manager.enemy_battle_processor = self.__create_single_enemy_battle_processor_from_options(options)
-        self.logic_manager.encounter_battle_processor = self.__create_encounter_battle_processor_from_options(options)
-        self.logic_manager.encounter_group_battle_processor = self.__create_encounter_group_battle_processor_from_options(options)
-        self.logic_manager.quest_processor = QuestProcessor()
-        self.logic_manager.codex_processor = CodexProcessor(max_stratum)
-        self.logic_manager.conditional_drop_processor = ConditionalDropProcessor(self.logic_manager.enemy_battle_processor)
-        self.logic_manager.compendium_processor = CompendiumProcessor(max_stratum, self.logic_manager.conditional_drop_processor)
-        self.logic_manager.shop_unlock_processor = ShopUnlockProcessor()
-        self.logic_manager.sustain_processor = SustainProcessor()
 
-        # Initialize class data
-        self.logic_manager.class_processor.initialize_data(self.logic_data.class_data, bool(options.remove_skills_requirements))
+        if self.randomized_game_data.skill_requirements:
+            data_source.skill_requirements_data_source = SingleDataSource(build_skill_requirements_source(self.randomized_game_data))
+        #else:
+        #    raise Exception("No rando?")
+
+        self.logic_manager = LogicManager(self.options, data_source)
+        self.logic_manager.initialize_data(self.logic_data, self.options)
         self.logic_manager.initialize_cache(self.logic_cache_data)
-
-        #if self.randomized_game_data.test != "123":
-        #    raise Exception("no")
 
     def __make_execution_context(self, state: StateInterface) -> EO1ExecutionContext:
         context = EO1ExecutionContext()
@@ -86,27 +89,6 @@ class LogicProxy:
         new_copy.logic_manager = self.logic_manager # Copy reference only
         return new_copy
 
-# todo move the processor creation to a dedicated file.
-    @staticmethod
-    def __create_single_enemy_battle_processor_from_options(options: EtrianOdysseyOptions) -> SingleEnemyBattleProcessor:
-        battle_logic_mode_type = BattleLogicModeType(options.battle_logic_mode.value)
-        if battle_logic_mode_type == BattleLogicModeType.no_logic:
-            return NoLogicSingleEnemyBattleProcessor()
-        elif battle_logic_mode_type == BattleLogicModeType.level_only:
-            return LevelOnlySingleEnemyBattleProcessor()
-        elif battle_logic_mode_type == BattleLogicModeType.simplified:
-            return SimplifiedSingleEnemyBattleProcessor()
-
-        raise Exception("Not implemented")
-
-    @staticmethod
-    def __create_encounter_battle_processor_from_options(options: EtrianOdysseyOptions) -> EncounterBattleProcessor:
-        return SimpleEncounterBattleProcessor()
-
-    @staticmethod
-    def __create_encounter_group_battle_processor_from_options(options: EtrianOdysseyOptions) -> EncounterGroupBattleProcessor:
-        return SimpleEncounterGroupBattleProcessor()
-
     def collect(self, state: StateInterface, item: EtrianOdysseyItem) -> None:
         if item.name == UT_GLITCH_LOGIC_ITEM_NAME:
             self.logic_manager.on_ut_glitch_logic(self.__make_execution_context(state))
@@ -122,6 +104,9 @@ class LogicProxy:
             raise Exception(f"Expected an item_type to be defined for {item.name}")
 
         self.logic_manager.on_item_remove(item.code, item.item_type, self.__make_execution_context(state))
+
+    def reached_region(self, state: StateInterface, region: Region):
+        self.logic_manager.on_reached_region(region.name, self.__make_execution_context(state))
 
     def get_current_floor_limit(self) -> int:
         return self.logic_data.current_floor_limit
@@ -161,9 +146,12 @@ class LogicProxy:
     def can_fully_complete_codex_and_compendium(self, state: StateInterface) -> bool:
         context = self.__make_execution_context(state)
         if self.logic_manager.get_fillable_codex_entry_count(context) != 131:
+            #print(self.logic_cache_data.codex_entry.unaccessible)
             return False
         if self.logic_manager.get_fillable_compendium_entry_count(context) != 196:
+            #print(self.logic_cache_data.compendium_entry.unaccessible)
             return False
+        #print("Full Codex & Compendium")
         return True
 
     def can_start_quest(self, state: StateInterface, quest_id: int) -> bool:

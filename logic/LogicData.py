@@ -10,6 +10,7 @@ from ..data.CompendiumData import *
 from ..data.InventoryItemData import EO1ItemNames, EO1ItemID, CONSUMABLE_DATA
 from ..data.ItemCompoundData import ITEM_COMPOUND_TABLE
 from ..data.MaxLevelByFloor import MAX_LEVEL_BY_FLOOR
+from ..data.SkillData import SKILL_DATA_BY_ID
 
 
 class LogicData(ABC):
@@ -45,6 +46,9 @@ class SkillLogicData(LogicData):
         new_copy.stale = self.stale
 
         return new_copy
+
+    def __repr__(self) -> str:
+        return f"{SKILL_DATA_BY_ID[self.skill_id].name} - requires {[SKILL_DATA_BY_ID[skill_id].name for skill_id in self.required_skills]} - required lvl: {self.required_level} - unlocked: {self.skill_unlocked} - usable: {self.skill_usable}"
 
 class SingleClassLogicData(LogicData):
     class_name: str

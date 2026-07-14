@@ -111,7 +111,6 @@ def generate_output(world: EtrianOdysseyWorld):
     if world.options.floor_limit_mode != 0:
         output_data["InitialValues"]["floor_limit"] = world.initial_floor_limit
 
-    output_data["RemoveSkillsRequirements"] = bool(world.options.remove_skills_requirements)
     output_data["MinimizeQuestMaterialGrind"] = bool(world.options.minimize_quest_material_grind)
     output_data["ShopUnlockMaterialCostDivider"] = int(world.options.shop_unlock_material_cost_divider.value)
     output_data["MaterialSellValueMultiplier"] = int(world.options.material_sell_value_multiplier.value)
@@ -145,6 +144,9 @@ def generate_output(world: EtrianOdysseyWorld):
     # Handle location item patching.
     for location in multiworld.get_locations(player):
         __patch_individual_location(location, player, multiworld.player_name, hint_quest_rewards, output_data)
+
+    # Handle randomized game data.
+    output_data["RandomizedGameData"] = world.randomized_game_data.serialize()
 
     return output_data
 

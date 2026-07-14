@@ -92,8 +92,9 @@ class EtrianOdysseyWorld(World):
     origin_region_name = EO1Regions.ETRIA
 
     glitches_item_name = UT_GLITCH_LOGIC_ITEM_NAME
-    #ut_can_gen_without_yaml = True
+    ut_can_gen_without_yaml = True
     is_ut: bool
+    ut_initialized: bool
     starting_classes: list[str]
     starting_skills: list[SkillItem]
     initial_floor_limit: int
@@ -108,6 +109,7 @@ class EtrianOdysseyWorld(World):
         self.starting_skills = []
         self.randomized_game_data = RandomizedGameData()
         self.is_ut = getattr(self.multiworld, "generation_is_fake", False)
+        self.ut_initialized = False
 
     def collect(self, state: "CollectionState", item: "Item") -> bool:
         change = super().collect(state, item)
@@ -123,12 +125,18 @@ class EtrianOdysseyWorld(World):
             state.etrianodyssey_logic_data[self.player].remove(state_interface, item)
         return change
 
-    def generate_randomized_game_data(self) -> None:
-        self.randomized_game_data.test = "123"
-        pass
+    def reached_region(self, state: "CollectionState", region: "Region"):
+        super().reached_region(state, region)
+        state_interface = get_ap_state_interface(state, self.player)
+        state.etrianodyssey_logic_data[self.player].reached_region(state_interface, region)
 
-    def generate_early(self) -> None:
-        # UT check.
+    def initialize_ut(self) -> None:
+        if not self.is_ut:
+            raise Exception("Cannot initialize for UT, this isn't Universal Tracker.")
+
+        if self.ut_initialized:
+            return
+
         re_gen_passthrough = getattr(self.multiworld, "re_gen_passthrough", {})
         if re_gen_passthrough and self.game in re_gen_passthrough:
             # TODO handle UT with options.
@@ -150,6 +158,17 @@ class EtrianOdysseyWorld(World):
             self.options.shop_unlock_sanity.value = True
 
             self.randomized_game_data.deserialize(slot_data[SlotDataKeys.RANDOMIZED_GAME_DATA])
+
+            self.ut_initialized = True
+
+    def generate_randomized_game_data(self) -> None:
+        self.randomized_game_data.generate_randomized_game_data(self.random, self.options)
+
+    def generate_early(self) -> None:
+        # UT check.
+        re_gen_passthrough = getattr(self.multiworld, "re_gen_passthrough", {})
+        if re_gen_passthrough and self.game in re_gen_passthrough:
+            self.initialize_ut()
 
         # TODO Options validation.
         starting_classes = get_starting_classes(self)

@@ -252,3 +252,8 @@ class SustainProcessor:
             sustain_score += 100
 
         return sustain_score
+
+class NoSustainProcessor(SustainProcessor):
+    def get_current_sustain_score(self, context: ExecutionContext) -> int:
+        return 9999
+

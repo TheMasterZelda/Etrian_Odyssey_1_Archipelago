@@ -2,7 +2,7 @@ from .ILogicManager import ILogicManager, ExecutionContext
 from .ClassProcessor import *
 from .LogicCacheData import LogicCacheData, AllLogicCacheData
 from .LogicCacheDataManager import DualIntSetLogicCacheDataManager
-from .SustainProcessor import SustainProcessor
+from .SustainProcessor import SustainProcessor, NoSustainProcessor
 from .SingleEnemyBattleProcessor import *
 from .EncounterBattleProcessor import *
 from .EncounterGroupBattleProcessor import *
@@ -11,6 +11,7 @@ from .CompendiumProcessor import *
 from .ConditionalDropProcessor import *
 from .ShopUnlockProcessor import *
 from .QuestProcessor import QuestProcessor
+from .simplified_logic.SimplifiedSingleEnemyBattleProcessor import SimplifiedSingleEnemyBattleProcessor
 from ..Items import EtrianOdysseyItemType
 from ..data.ItemData import ALL_PROGRESSIVE_LEVEL_CAP_BY_ITEM_ID, ALL_PROGRESSIVE_FLOOR_BY_ITEM_ID
 
@@ -30,6 +31,46 @@ class LogicManager(ILogicManager):
     shop_unlock_processor: ShopUnlockProcessor
     sustain_processor: SustainProcessor
     quest_processor: QuestProcessor
+
+    def __init__(self, options: EtrianOdysseyOptions, data_source: EtrianOdysseyDataSource):
+        max_stratum = get_max_stratum_for_goal(EO1Goal(options.goal.value))
+
+        self.class_processor = ClassProcessor(data_source)
+        self.enemy_battle_processor = self.__create_single_enemy_battle_processor_from_options(options)
+        self.encounter_battle_processor = self.__create_encounter_battle_processor_from_options(options)
+        self.encounter_group_battle_processor = self.__create_encounter_group_battle_processor_from_options(options)
+        self.quest_processor = QuestProcessor()
+        self.codex_processor = CodexProcessor(max_stratum)
+        self.conditional_drop_processor = ConditionalDropProcessor(self.enemy_battle_processor)
+        self.compendium_processor = CompendiumProcessor(max_stratum, self.conditional_drop_processor)
+        self.shop_unlock_processor = ShopUnlockProcessor()
+        self.sustain_processor = SustainProcessor()
+
+    # todo move the processor creation to a dedicated file.
+    @staticmethod
+    def __create_single_enemy_battle_processor_from_options(options: EtrianOdysseyOptions) -> SingleEnemyBattleProcessor:
+        battle_logic_mode_type = BattleLogicModeType(options.battle_logic_mode.value)
+        if battle_logic_mode_type == BattleLogicModeType.no_logic:
+            return NoLogicSingleEnemyBattleProcessor()
+        elif battle_logic_mode_type == BattleLogicModeType.level_only:
+            return LevelOnlySingleEnemyBattleProcessor()
+        elif battle_logic_mode_type == BattleLogicModeType.simplified:
+            return SimplifiedSingleEnemyBattleProcessor()
+
+        raise Exception("Not implemented")
+
+    @staticmethod
+    def __create_encounter_battle_processor_from_options(options: EtrianOdysseyOptions) -> EncounterBattleProcessor:
+        return SimpleEncounterBattleProcessor()
+
+    @staticmethod
+    def __create_encounter_group_battle_processor_from_options(options: EtrianOdysseyOptions) -> EncounterGroupBattleProcessor:
+        return SimpleEncounterGroupBattleProcessor()
+
+    def initialize_data(self, logic_data: AllLogicData, options: EtrianOdysseyOptions):
+        logic_data.current_level_cap = options.get_effective_initial_level_cap()
+        logic_data.current_floor_limit = options.get_effective_initial_floor_limit()
+        self.class_processor.initialize_data(logic_data.class_data)
 
     def initialize_cache(self, cache_data: AllLogicCacheData):
         for enemy_data in ALL_ENEMIES:
@@ -157,8 +198,12 @@ class LogicManager(ILogicManager):
         elif item_type == EtrianOdysseyItemType.EVENT:
             recalculate_location()
 
+    def on_reached_region(self, region_name: str, context: EO1ExecutionContext):
+        context.cache_data.sustain_score.set_stale(True)
+
     def on_ut_glitch_logic(self, context: EO1ExecutionContext):
         self.enemy_battle_processor = NoLogicSingleEnemyBattleProcessor()
+        self.sustain_processor = NoSustainProcessor()
 
     def __get_defeatable_enemy_cache_manager(self, context: EO1ExecutionContext) -> DualIntSetLogicCacheDataManager:
         return DualIntSetLogicCacheDataManager(context.cache_data.defeatable_enemy, self.enemy_battle_processor.can_defeat_enemy)
