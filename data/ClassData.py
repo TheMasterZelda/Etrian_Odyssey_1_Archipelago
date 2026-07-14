@@ -1,4 +1,3 @@
-from typing import TYPE_CHECKING, NamedTuple, Optional
 from dataclasses import dataclass
 
 class EO1Class:
@@ -12,7 +11,8 @@ class EO1Class:
     TROUBADOUR = "Troubadour"
     HEXER = "Hexer"
 
-class EO1Class2SkillData(NamedTuple):
+@dataclass(frozen=True)
+class EO1Class2SkillData:
     skill_id: int
     required_skill_1_id: int
     required_skill_1_level: int
@@ -35,7 +35,7 @@ class EO1ClassData:
     class_order_id: int # The game doesn't use the id for the class order, which is relevant for class unlock.
     name: str
     ap_item_id: int
-    class2skills: dict[int, EO1Class2SkillData]
+    #class2skills: dict[int, EO1Class2SkillData]
     #skills: list[EO1SkillData]
 
 
@@ -44,9 +44,9 @@ class EO1ClassData:
         self.class_order_id = class_order_id
         self.name = name
         self.ap_item_id = ap_item_id
-        self.class2skills = {class2skill.skill_id:class2skill
-                             for class2skill in
-                             CLASS_2_SKILLS[(class_id * 21):(class_id * 21) + 21]}
+        #self.class2skills = {class2skill.skill_id:class2skill
+        #                     for class2skill in
+        #                     CLASS_2_SKILLS[(class_id * 21):(class_id * 21) + 21]}
         #self.skills = [SKILL_DATA_BY_ID[class2skill.skill_id] for class2skill in self.class2skills]
 
 CLASS_2_SKILLS: list[EO1Class2SkillData] = [
@@ -266,3 +266,4 @@ ALL_CLASS_DATA: list[EO1ClassData] = [
 ALL_CLASS_BY_ITEM_ID: dict[int, EO1ClassData] = {class_data.ap_item_id:class_data for class_data in ALL_CLASS_DATA}
 
 CLASS_DATA_BY_NAME: dict[str, EO1ClassData] = {class_data.name:class_data for class_data in ALL_CLASS_DATA}
+SKILL_REQUIREMENTS_BY_ID: dict[int, EO1Class2SkillData] = {skill_data.skill_id:skill_data for skill_data in CLASS_2_SKILLS}

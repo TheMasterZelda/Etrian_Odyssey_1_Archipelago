@@ -1148,4 +1148,4 @@ ITEM_PER_NAME: dict[str, EO1ItemData] = {item_data.name:item_data for item_data 
 KEY_ITEM_DATA_BY_ITEM_ID: dict[int, EO1KeyItem] = {key_item_data.item_id:key_item_data for key_item_data in KEY_ITEM_DATA}
 
 # For the client.
-KEY_ITEMS_WITH_FLAG: list[EO1KeyItem] = [key_item_data for key_item_data in KEY_ITEM_DATA if key_item_data.associated_flag != 0]
+KEY_ITEMS_WITH_FLAG: set[int] = {key_item_data.item_id for key_item_data in KEY_ITEM_DATA if key_item_data.associated_flag != 0}

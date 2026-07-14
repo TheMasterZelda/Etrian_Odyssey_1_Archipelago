@@ -390,9 +390,6 @@ def create_events(world: EtrianOdysseyWorld) -> None:
     # Discover Claw Mark on B18F
     create_event(EVENT_DISCOVER_CLAW_MARK, EO1Regions.B18F_MAIN, True_())
 
-    # The Azure Colossus quest accepted
-    create_event(EVENT_AZURE_COLOSSUS_QUEST_ACCEPTED, EO1Regions.PUB, CanStartQuest(EO1QuestID.THE_AZURE_COLOSSUS))
-
     # Mission 7 Completed
     create_event(EVENT_MISSION_7_COMPLETED, EO1Regions.B20F_MAIN, get_mission_access_rule(world, MISSION_7_DATA.mission_id))
 

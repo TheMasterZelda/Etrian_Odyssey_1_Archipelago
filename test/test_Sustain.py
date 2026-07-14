@@ -21,7 +21,7 @@ def get_score(logic_data: AllLogicData, items: list[int], level = None) -> int:
 
 def get_skill_score(logic_data: AllLogicData, skills: list[int], level = None) -> int:
     data = logic_data.copy()
-    class_processor = ClassProcessor(1)
+    class_processor = ClassProcessor()
     for class_data in data.class_data.class_as_list:
         class_data.class_unlocked = True
 
@@ -50,7 +50,7 @@ def get_skill_score_plus(logic_data: AllLogicData, skills: list[int]) -> str:
 
 def test():
     logic_data = AllLogicData(fill_default=True)
-    class_processor = ClassProcessor(1)
+    class_processor = ClassProcessor()
     class_processor.initialize_data(logic_data.class_data, remove_skills_requirements=True)
 
     print(get_score(logic_data, [EO1ItemID.MEDICA, EO1ItemID.AMRITA]))

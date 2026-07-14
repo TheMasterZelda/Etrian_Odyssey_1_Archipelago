@@ -14,6 +14,7 @@ from worlds.AutoWorld import World
 from .Constant import *
 
 from .Options import EtrianOdysseyOptions
+from .RandomizedGameData import RandomizedGameData
 from .data.InventoryItemData import *
 from .data.TreasureData import *
 from .Items import *
@@ -62,7 +63,7 @@ class EtrianOdysseyWorld(World):
     options_dataclass = EtrianOdysseyOptions
     options: EtrianOdysseyOptions
     settings: typing.ClassVar[EtrianOdysseySettings]
-    topology_present = True
+    topology_present = False # Keep to False, Topology data is quite heavy due to the structure of etrian odyssey.
     explicit_indirect_conditions = False
 
     location_name_to_id = ALL_LOCATIONS_ID_BY_NAME
@@ -90,10 +91,15 @@ class EtrianOdysseyWorld(World):
 
     origin_region_name = EO1Regions.ETRIA
 
+    glitches_item_name = UT_GLITCH_LOGIC_ITEM_NAME
+    ut_can_gen_without_yaml = True
+    is_ut: bool
+    ut_initialized: bool
     starting_classes: list[str]
     starting_skills: list[SkillItem]
     initial_floor_limit: int
     initial_level_cap: int
+    randomized_game_data: RandomizedGameData
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
@@ -101,22 +107,70 @@ class EtrianOdysseyWorld(World):
         self.initial_level_cap = MAX_LEVEL
         self.starting_classes = []
         self.starting_skills = []
+        self.randomized_game_data = RandomizedGameData()
+        self.is_ut = getattr(self.multiworld, "generation_is_fake", False)
+        self.ut_initialized = False
 
     def collect(self, state: "CollectionState", item: "Item") -> bool:
         change = super().collect(state, item)
         if change:
-            state.etrianodyssey_logic_data[self.player].collect(state, item)
+            state_interface = get_ap_state_interface(state, self.player)
+            state.etrianodyssey_logic_data[self.player].collect(state_interface, item)
         return change
 
     def remove(self, state: "CollectionState", item: "Item") -> bool:
         change = super().remove(state, item)
         if change:
-            state.etrianodyssey_logic_data[self.player].remove(state, item)
+            state_interface = get_ap_state_interface(state, self.player)
+            state.etrianodyssey_logic_data[self.player].remove(state_interface, item)
         return change
 
-    def generate_early(self) -> None:
-        # TODO Options validation.
+    def reached_region(self, state: "CollectionState", region: "Region"):
+        super().reached_region(state, region)
+        state_interface = get_ap_state_interface(state, self.player)
+        state.etrianodyssey_logic_data[self.player].reached_region(state_interface, region)
 
+    def initialize_ut(self) -> None:
+        if not self.is_ut:
+            raise Exception("Cannot initialize for UT, this isn't Universal Tracker.")
+
+        if self.ut_initialized:
+            return
+
+        re_gen_passthrough = getattr(self.multiworld, "re_gen_passthrough", {})
+        if re_gen_passthrough and self.game in re_gen_passthrough:
+            # TODO handle UT with options.
+            # TODO make option class for internal use?
+            slot_data: dict[str, Any] = re_gen_passthrough[self.game]
+            slot_options: dict[str, Any] = slot_data.get("options", {})
+            for key, value in slot_options.items():
+                opt = getattr(self.options, key, None)
+                if opt is not None:
+                    # You can also set .value directly but that won't work if you have OptionSets
+                    setattr(self.options, key, opt.from_any(value))
+
+            # With UT, generate every location.
+            self.options.codex_sanity.value = True
+            self.options.codex_sanity_include_quest_monsters.value = True
+            self.options.compendium_sanity.value = True
+            self.options.compendium_sanity_include_conditional_drops.value = True
+            self.options.quest_sanity.value = True
+            self.options.shop_unlock_sanity.value = True
+
+            self.randomized_game_data.deserialize(slot_data[SlotDataKeys.RANDOMIZED_GAME_DATA])
+
+            self.ut_initialized = True
+
+    def generate_randomized_game_data(self) -> None:
+        self.randomized_game_data.generate_randomized_game_data(self.random, self.options)
+
+    def generate_early(self) -> None:
+        # UT check.
+        re_gen_passthrough = getattr(self.multiworld, "re_gen_passthrough", {})
+        if re_gen_passthrough and self.game in re_gen_passthrough:
+            self.initialize_ut()
+
+        # TODO Options validation.
         starting_classes = get_starting_classes(self)
         self.starting_classes = [class_data.name for class_data in starting_classes]
 
@@ -142,6 +196,11 @@ class EtrianOdysseyWorld(World):
         create_events(self)
 
     def create_item(self, name: str) -> Items.EtrianOdysseyItem:
+        if name == UT_GLITCH_LOGIC_ITEM_NAME:
+            item = EtrianOdysseyItem(UT_GLITCH_LOGIC_ITEM_NAME, ItemClassification.progression, None, self.player)
+            item.item_type = EtrianOdysseyItemType.EVENT
+            return item
+
         return Items.create_item_from_name(self, name)
 
     def get_filler_item_name(self) -> str:
@@ -153,6 +212,31 @@ class EtrianOdysseyWorld(World):
             SlotDataKeys.QUEST_SANITY,
             SlotDataKeys.QUEST_COMPLETION_REWARD_HINT,
         )
+
+        options = [
+            "goal",
+            "battle_logic_mode", "battle_logic_difficulty",
+            "sustain_logic_enabled",
+
+            "level_cap_mode", "initial_level_cap", #"level_cap_increase_value", "extra_progressive_level_cap_items",
+
+            "floor_limit_mode", "initial_floor_limit", #"floor_limit_increase_value", "extra_progressive_floor_limit",
+
+            #"class_sanity_mode", "starting_class_count",
+
+            #"skill_sanity_mode", "shuffle_generic_stats_increase_skills", "shuffle_mastery_skills",
+            #"shuffle_gathering_skills",
+            #"remove_skills_requirements", "starting_skill_item_count",
+
+            "codex_sanity", "codex_sanity_include_quest_monsters",
+
+            # Radha note affect the logic by replacing an event.
+            "shuffle_radha_note"
+        ]
+
+        slot_data["options"] = self.options.as_dict(*options)
+
+        slot_data[SlotDataKeys.RANDOMIZED_GAME_DATA] = self.randomized_game_data.serialize()
         return slot_data
 
     def generate_output(self, output_directory: str) -> None:
@@ -171,6 +255,11 @@ class EtrianOdysseyWorld(World):
 
         # Uncomment to print region diagram (and validate region accessibility).
         #self.output_region_diagram()
+
+    # UT function
+    @staticmethod
+    def interpret_slot_data(slot_data: dict[str, Any]) -> dict[str, Any]:
+        return slot_data
 
     def output_region_diagram(self):
         from Utils import visualize_regions

@@ -21,7 +21,7 @@ class OptionKeys:
     SHUFFLE_GENERIC_STATS_INCREASE_SKILLS = "shuffle_generic_stats_increase_skills"
     SHUFFLE_MASTERY_SKILLS = "shuffle_mastery_skills"
     SHUFFLE_GATHERING_SKILLS = "shuffle_gathering_skills"
-    REMOVE_SKILLS_REQUIREMENTS = "remove_skills_requirements"
+    SKILL_REQUIREMENT_SHUFFLE = "skill_requirement_shuffle"
     STARTING_SKILL_ITEM_COUNT = "starting_skill_item_count"
     CODEX_SANITY = "codex_sanity"
     CODEX_SANITY_INCLUDE_QUEST_MONSTERS = "codex_sanity_include_quest_monsters"

@@ -17,6 +17,7 @@ class EntranceType(IntEnum):
     MandatoryFight = 10
     OneWayFightOrEscape = 11
     DragonDoor = 12
+    QuestLockedShortcut = 13
 
 
 class EO1Entrance(ABC):
@@ -129,3 +130,14 @@ class DragonDoor(EO1Entrance):
         super().__init__(destination, name_prefix, name_suffix)
         self.enemy_id = enemy_id
 
+
+class QuestLockedShortcut(EO1Entrance):
+    name = "Quest Locked Shortcut"
+    entrance_type = EntranceType.QuestLockedShortcut
+    quest_id: int
+    stratum_required: int
+
+    def __init__(self, destination: str, quest_id: int, stratum_required: int, name_prefix: Optional[str] = ""):
+        super().__init__(destination, name_prefix)
+        self.quest_id = quest_id
+        self.stratum_required = stratum_required

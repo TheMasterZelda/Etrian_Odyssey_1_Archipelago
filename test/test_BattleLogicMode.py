@@ -83,7 +83,7 @@ class BattleLogicModeSimplifiedSkillShufflingNoSkillsRequirementsTest(EtrianOdys
 
         # Skill
         OptionKeys.SKILL_SANITY_MODE: SkillSanityType.shuffle_individually.value,
-        OptionKeys.REMOVE_SKILLS_REQUIREMENTS: True,
+        OptionKeys.SKILL_REQUIREMENT_SHUFFLE: SkillRequirementShuffleType.remove.value,
         OptionKeys.SHUFFLE_GENERIC_STATS_INCREASE_SKILLS: True,
         OptionKeys.SHUFFLE_GATHERING_SKILLS: True,
 

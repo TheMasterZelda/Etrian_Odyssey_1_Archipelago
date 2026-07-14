@@ -1,5 +1,7 @@
 from __future__ import annotations
-from .LogicData import AllLogicData, ShopUnlockLogicData, ClassLogicData, SkillLogicData, SingleClassLogicData
+
+from .ILogicManager import ExecutionContext
+from .LogicData import AllLogicData, ClassLogicData, SkillLogicData, SingleClassLogicData
 from ..data.SustainData import *
 from ..data.SkillData import *
 
@@ -52,10 +54,10 @@ class Sustain:
 
 
 class SustainProcessor:
-    def __get_sustain_items(self, logic_data: ShopUnlockLogicData) -> Sustain:
+    def __get_sustain_items(self, context: ExecutionContext) -> Sustain:
         sustain_result = Sustain()
         for sustain_item in SUSTAIN_ITEMS:
-            if sustain_item.related_id not in logic_data.unlockable_shop_items:
+            if not context.logic_manager.can_unlock_shop_item(sustain_item.related_id, context):
                 continue
 
             if sustain_item.use_type != SustainUseType.ANYWHERE:
@@ -187,10 +189,10 @@ class SustainProcessor:
         effectiveness = current_level_cap - 10
         return effectiveness * 1.8 + 10
 
-    def get_current_sustain_score(self, logic_data: AllLogicData) -> int:
-        current_level_cap = logic_data.get_effective_level_cap()
-        item_sustains = self.__get_sustain_items(logic_data.shop_unlock_logic_data)
-        skill_sustains = self.__get_sustain_skills(logic_data.class_data, current_level_cap)
+    def get_current_sustain_score(self, context: ExecutionContext) -> int:
+        current_level_cap = context.logic_data.get_effective_level_cap()
+        item_sustains = self.__get_sustain_items(context)
+        skill_sustains = self.__get_sustain_skills(context.logic_data.class_data, current_level_cap)
 
         percentage_effectiveness = self.__get_percentage_effectiveness(current_level_cap)
 
@@ -250,3 +252,8 @@ class SustainProcessor:
             sustain_score += 100
 
         return sustain_score
+
+class NoSustainProcessor(SustainProcessor):
+    def get_current_sustain_score(self, context: ExecutionContext) -> int:
+        return 9999
+

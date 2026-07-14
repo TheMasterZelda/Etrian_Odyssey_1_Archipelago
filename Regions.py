@@ -16,7 +16,7 @@ def _is_entrance_valid_for_goal(world: EtrianOdysseyWorld, exit_data: EO1Entranc
         if destination_data.floor_number > max_floor:
             return False
 
-    if exit_data.entrance_type == EntranceType.EventLockedShortcut:
+    if exit_data.entrance_type in [EntranceType.EventLockedShortcut, EntranceType.QuestLockedShortcut]:
         max_stratum = get_max_stratum_for_goal(EO1Goal(world.options.goal.value))
         event_shortcut_data = exit_data
         # If required stratum is above the max, skip it.

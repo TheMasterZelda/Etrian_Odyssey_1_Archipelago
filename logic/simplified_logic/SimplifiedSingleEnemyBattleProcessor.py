@@ -1,5 +1,3 @@
-from BaseClasses import CollectionState
-
 from ..LogicData import *
 
 from ...data.EnemyData import *
@@ -34,9 +32,9 @@ class SimplifiedSingleEnemyBattleProcessor(SingleEnemyBattleProcessor):
             raise Exception()
         return original_criteria
 
-    def can_survive_enemy(self, enemy_id: int, state: CollectionState, logic_data: AllLogicData) -> bool:
+    def can_survive_enemy(self, enemy_id: int, context: ExecutionContext) -> bool:
         enemy_data = self.get_enemy_data(enemy_id)
-        if not self.__survive_level_requirement_met(enemy_data, logic_data):
+        if not self.__survive_level_requirement_met(enemy_data, context.logic_data):
             return False
 
         # TODO Temporary
@@ -46,17 +44,17 @@ class SimplifiedSingleEnemyBattleProcessor(SingleEnemyBattleProcessor):
         sv_enemy = SIMPLIFIED_ENEMY_VALUES_BY_ID[enemy_id]
 
         # If player has more than double the level, bypass other checks.
-        if enemy_data.level * 2 < logic_data.get_effective_level_cap():
+        if enemy_data.level * 2 < context.logic_data.get_effective_level_cap():
             return True
 
         if sv_enemy.survive_criteria is None:
             return True
 
-        return sv_enemy.survive_criteria.evaluate_criteria(sv_enemy.attributes, logic_data.class_data.unlocked_classes, logic_data)
+        return sv_enemy.survive_criteria.evaluate_criteria(sv_enemy.attributes, context.logic_data.class_data.unlocked_classes, context.logic_data)
 
-    def can_defeat_enemy(self, enemy_id: int, state: CollectionState, logic_data: AllLogicData) -> bool:
+    def can_defeat_enemy(self, enemy_id: int, context: ExecutionContext) -> bool:
         enemy_data = self.get_enemy_data(enemy_id)
-        if not self.__defeat_level_requirement_met(enemy_data, logic_data):
+        if not self.__defeat_level_requirement_met(enemy_data, context.logic_data):
             return False
 
         sv_enemy = SIMPLIFIED_ENEMY_VALUES_BY_ID[enemy_id]
@@ -69,11 +67,11 @@ class SimplifiedSingleEnemyBattleProcessor(SingleEnemyBattleProcessor):
         if sv_enemy.defeat_criteria is None:
             return True
 
-        return sv_enemy.defeat_criteria.evaluate_criteria(sv_enemy.attributes, logic_data.class_data.unlocked_classes, logic_data)
+        return sv_enemy.defeat_criteria.evaluate_criteria(sv_enemy.attributes, context.logic_data.class_data.unlocked_classes, context.logic_data)
 
-    def can_defeat_with_condition(self, enemy_id: int, condition: DropCondition, state: CollectionState, logic_data: AllLogicData) -> bool:
+    def can_defeat_with_condition(self, enemy_id: int, condition: DropCondition, context: ExecutionContext) -> bool:
         enemy_data = self.get_enemy_data(enemy_id)
-        if not self.__defeat_level_requirement_met(enemy_data, logic_data):
+        if not self.__defeat_level_requirement_met(enemy_data, context.logic_data):
             return False
 
         sv_enemy = SIMPLIFIED_ENEMY_VALUES_BY_ID[enemy_id]
@@ -105,11 +103,11 @@ class SimplifiedSingleEnemyBattleProcessor(SingleEnemyBattleProcessor):
         elif condition == DropCondition.KILL_1_TURNS:
             # Stalker
             if enemy_id == EO1Enemies.STALKER:
-                if logic_data.get_effective_level_cap() < 50:
+                if context.logic_data.get_effective_level_cap() < 50:
                     return False
             # Mantis
             elif enemy_id == EO1Enemies.MANTIS:
-                if logic_data.get_effective_level_cap() < 45:
+                if context.logic_data.get_effective_level_cap() < 45:
                     return False
             else:
                 raise Exception(f"Unknown Enemy {enemy_id} for DropCondition Kill in 1 turn")
@@ -117,17 +115,17 @@ class SimplifiedSingleEnemyBattleProcessor(SingleEnemyBattleProcessor):
             # Ogre
             # Hunter
             # Similarly hard to kill enemies.
-            if logic_data.get_effective_level_cap() < 65:
+            if context.logic_data.get_effective_level_cap() < 65:
                 return False
             sv_criteria = self.__copy_and_inject_criteria(sv_criteria, CanUseSpecificActiveSkill(skill_id=[EO1Skills.TROUBADOUR_BRAVERY, EO1Skills.HEXER_FRAILTY]))
         elif condition == DropCondition.KILL_3_TURNS:
             # Wyvern
-            if logic_data.get_effective_level_cap() < 70:
+            if context.logic_data.get_effective_level_cap() < 70:
                 return False
             sv_criteria = self.__copy_and_inject_criteria(sv_criteria, CanUseSpecificActiveSkill(skill_id=[EO1Skills.TROUBADOUR_BRAVERY, EO1Skills.HEXER_FRAILTY]))
         elif condition == DropCondition.KILL_7_TURNS:
             # Manticor
-            if logic_data.get_effective_level_cap() < 55:
+            if context.logic_data.get_effective_level_cap() < 55:
                 return False
         elif condition == DropCondition.FULL_BIND:
             # Cruella
@@ -140,4 +138,4 @@ class SimplifiedSingleEnemyBattleProcessor(SingleEnemyBattleProcessor):
         else:
             raise Exception(f"Unknown DropCondition {condition}")
 
-        return sv_criteria.evaluate_criteria(enemy_attributes, logic_data.class_data.unlocked_classes, logic_data)
+        return sv_criteria.evaluate_criteria(enemy_attributes, context.logic_data.class_data.unlocked_classes, context.logic_data)

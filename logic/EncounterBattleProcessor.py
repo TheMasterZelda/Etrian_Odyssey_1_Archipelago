@@ -1,12 +1,12 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 from abc import ABC, abstractmethod
+
+from .ILogicManager import ExecutionContext
+from .StateInterface import StateInterface
 from ..Options import *
 from ..Constant import *
 from .LogicData import *
-
-from BaseClasses import CollectionState
-
 from ..data.EnemyData import *
 from ..data.EncounterData import *
 
@@ -33,33 +33,33 @@ class EncounterBattleProcessor(ABC):
         return enemy_list
 
     @abstractmethod
-    def can_defeat_enemy_group(self, enemies: list[int], state: CollectionState, logic_data: AllLogicData) -> bool:
+    def can_defeat_enemy_group(self, enemies: list[int], context: ExecutionContext) -> bool:
         pass
 
-    def can_defeat_encounter(self, encounter_id: int, state: CollectionState, logic_data: AllLogicData) -> bool:
+    def can_defeat_encounter(self, encounter_id: int, context: ExecutionContext) -> bool:
         encounter_data = self.get_encounter_data(encounter_id)
         enemy_list = self.get_all_encounter_enemies(encounter_data)
 
-        return self.can_defeat_enemy_group(enemy_list, state, logic_data)
+        return self.can_defeat_enemy_group(enemy_list, context)
 
     @abstractmethod
-    def can_survive_encounter(self, encounter_id: int, state: CollectionState, logic_data: AllLogicData) -> bool:
+    def can_survive_encounter(self, encounter_id: int, context: ExecutionContext) -> bool:
         pass
 
 class SimpleEncounterBattleProcessor(EncounterBattleProcessor):
-    def can_defeat_enemy_group(self, enemies: list[int], state: CollectionState, logic_data: AllLogicData) -> bool:
+    def can_defeat_enemy_group(self, enemies: list[int], context: ExecutionContext) -> bool:
         for enemy_id in enemies:
-            if enemy_id in logic_data.defeatable_enemy.undefeatable_enemies:
+            if not context.logic_manager.can_defeat_enemy(enemy_id, context):
                 return False
 
         return True
 
-    def can_survive_encounter(self, encounter_id: int, state: CollectionState, logic_data: AllLogicData) -> bool:
+    def can_survive_encounter(self, encounter_id: int, context: ExecutionContext) -> bool:
         encounter_data = self.get_encounter_data(encounter_id)
         enemy_list = self.get_all_encounter_enemies(encounter_data)
 
         for enemy_id in enemy_list:
-            if enemy_id in logic_data.survivable_enemy.unsurvivable_enemies:
+            if not context.logic_manager.can_survive_enemy(enemy_id, context):
                 return False
 
         return True

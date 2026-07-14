@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING, Callable, cast
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod, ABCMeta
 
-from BaseClasses import CollectionState
 from .EnemyAttributes import EnemyAttributes
 from ..LogicData import SingleClassLogicData, AllLogicData, SkillLogicData
 from ...data.Generic import *

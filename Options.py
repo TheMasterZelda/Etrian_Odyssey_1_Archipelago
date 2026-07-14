@@ -305,19 +305,6 @@ class ShuffleGatheringSkills(Toggle):
 
     display_name = "Shuffle Gathering Skills"
 
-class RemoveSkillsRequirements(Toggle):
-    """
-    This option removes the skills requirement from the game. This mean that every skill are learnable by themselves
-    from level 1 (if unlocked). This affects Logic.
-
-    This option is experimental and is recommended to make early game faster/smoother.
-
-    Note: Most Ronin skills still need their respective Stance skills to be usable. Logic accounts for this.
-    Note: Hexer Paralyze, Betrayal and Suicide skills still need Evil Eye to be usable. Logic accounts for this.
-    """
-
-    display_name = "Remove Skills Requirements"
-
 class StartingSkillItemCount(Range):
     """
     Define how many skill items each character class start with unlocked.
@@ -332,6 +319,63 @@ class StartingSkillItemCount(Range):
     range_start = 0
     range_end = 21
     default = 0
+
+class SkillRequirementShuffle(Choice):
+    """
+    Randomize Skill Requirements. Logic is affected by every option.
+
+    - **Vanilla:** Vanilla Requirements. Nothing is changed.
+    - **Remove:** Removes the skills requirement from the game. This mean that every skill are learnable by themselves
+    from level 1 (if unlocked).
+    - **Level Shuffle:** The required skills are kept the same, but the level requirement are randomized.
+    - **Non-Root Shuffle with Mastery retention:** All non-base skills requirements are randomized, retaining the mastery trees.
+    - **Non-Root Shuffle:** All non-base skills requirements are randomized without retaining the mastery trees.
+    - **Full Shuffle with Mastery retention:** All skills requirements are randomized, retaining the mastery trees.
+    - **Full Shuffle:** All skills requirements are randomized without retaining the mastery trees.**
+    - **Chaos:** All skills requirements are randomized. Mastery are not prioritized as primary requirement. No chain dependency limit.
+    WARNING: This can make very messed up seeds that are borderline impossibles, use at your own risk.**
+
+    Note: Root Skills refer to any skills that can has no vanilla requirements.
+    Note: Full Shuffle and Chaos Shuffle makes shuffle_generic_stats_increase_skills, shuffle_mastery_skills and shuffle_gathering_skills
+    less meaningful, but are still supported.
+    Note: Mastery retention mean that skills that are part of a mastery tree will remain with that mastery tree. The mastery
+    trees in this context are:
+    - Landsknecht Axes
+    - Landsknecht Swords
+    - Survivalist Bows
+    - Survivalist AGI Up
+    - Protector Shields
+    - Protector DEF Up
+    - Dark Hunter Whips
+    - Dark Hunter Swords
+    - Medic Healer
+    - Alchemist Fire Up
+    - Alchemist Ice Up
+    - Alchemist Volt Up
+    - Alchemist Toxins
+    - Troubadour Songs
+    - Ronin Katanas
+    - Hexer Curses
+
+    Note: Most Ronin skills still need their respective Stance skills to be usable. Logic accounts for this.
+    Note: Hexer Paralyze, Betrayal and Suicide skills still need Evil Eye to be usable. Logic accounts for this.
+    About Randomization: The level requirements randomization is distributed to be similar to vanilla, so most skills
+    requirement are expected to be between lv1 and lv5.
+
+    Primary requirements prioritize skills without requirements. Secondary requirements are randomly determined based on a
+    distribution similar to vanilla per class (in quantity)
+    """
+
+    display_name = "Skill Requirement Shuffle"
+    option_vanilla = SkillRequirementShuffleType.vanilla.value
+    option_remove = SkillRequirementShuffleType.remove.value
+    option_level_shuffle = SkillRequirementShuffleType.level_shuffle.value
+    option_non_root_shuffle_with_mastery_retention = SkillRequirementShuffleType.non_root_shuffle_with_mastery_retention.value
+    option_non_root_shuffle = SkillRequirementShuffleType.non_root_shuffle.value
+    option_full_shuffle_with_mastery_retention = SkillRequirementShuffleType.full_shuffle_with_mastery_retention.value
+    option_full_shuffle = SkillRequirementShuffleType.full_shuffle.value
+    option_chaos = SkillRequirementShuffleType.chaos.value
+    default = SkillRequirementShuffleType.vanilla.value
 
 # Codexsanity
 class CodexSanity(DefaultOnToggle):
@@ -385,8 +429,8 @@ class CompendiumSanityIncludeConditionalDrops(DefaultOnToggle):
 class QuestSanity(Toggle):
     """
     Shuffles Quest completions as Locations. See the Quest Document for more information.
-    TODO Link to Quest Document.
     """
+    # TODO Link to Quest Document.
 
     display_name = "Quest Sanity"
 
@@ -467,7 +511,6 @@ class MaterialSellValueMultiplier(Range):
 # Tilesanity
 
 # todo Rest option
-# todo Shop balancing
 
 @dataclass
 class EtrianOdysseyOptions(PerGameCommonOptions):
@@ -494,8 +537,8 @@ class EtrianOdysseyOptions(PerGameCommonOptions):
     shuffle_generic_stats_increase_skills: ShuffleGenericStatsIncreaseSkills
     shuffle_mastery_skills: ShuffleMasterySkills
     shuffle_gathering_skills: ShuffleGatheringSkills
-    remove_skills_requirements: RemoveSkillsRequirements
     starting_skill_item_count: StartingSkillItemCount
+    skill_requirement_shuffle: SkillRequirementShuffle
     codex_sanity: CodexSanity
     codex_sanity_include_quest_monsters: CodexSanityIncludeQuestMonsters
     compendium_sanity: CompendiumSanity

@@ -5,6 +5,7 @@ GAME_NAME = "Etrian Odyssey"
 GAME_VERSION = "0.1.0"
 MAX_LEVEL = 70
 MAX_FLOOR = 30
+UT_GLITCH_LOGIC_ITEM_NAME = "ut_glitch_logic"
 
 #class BattleLogicModeType(IntEnum):
 #    generous = 1
@@ -41,6 +42,16 @@ class SkillSanityType(IntEnum):
     none = 0
     shuffle_individually = 1
     shuffle_group = 2
+
+class SkillRequirementShuffleType(IntEnum):
+    vanilla = 0
+    remove = 1
+    level_shuffle = 2
+    non_root_shuffle_with_mastery_retention = 3
+    non_root_shuffle = 4
+    full_shuffle_with_mastery_retention = 5
+    full_shuffle = 6
+    chaos = 7
 
 class ItemGroupNames:
     MONEY = "Money"
@@ -113,6 +124,7 @@ class SlotDataKeys:
     GOAL = "goal"
     QUEST_SANITY = "quest_sanity"
     QUEST_COMPLETION_REWARD_HINT = "quest_completion_reward_hint"
+    RANDOMIZED_GAME_DATA = "randomized_game_data"
 #    PROGRESSIVE_LEVEL_CAP_VALUE = "level_cap_increase_value"
 #    PROGRESSIVE_FLOOR_LIMIT_VALUE = "floor_limit_increase_value"
 

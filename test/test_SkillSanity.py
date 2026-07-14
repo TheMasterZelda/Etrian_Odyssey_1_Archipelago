@@ -119,7 +119,7 @@ class SkillSanityNoSkillsRequirementsTest(EtrianOdysseyTestBase):
 
         # Skills
         OptionKeys.SKILL_SANITY_MODE: SkillSanityType.shuffle_individually.value,
-        OptionKeys.REMOVE_SKILLS_REQUIREMENTS: True,
+        OptionKeys.SKILL_REQUIREMENT_SHUFFLE: SkillRequirementShuffleType.remove.value,
         OptionKeys.SHUFFLE_GENERIC_STATS_INCREASE_SKILLS: True,
         OptionKeys.SHUFFLE_MASTERY_SKILLS: True,
         OptionKeys.SHUFFLE_GATHERING_SKILLS: True,
