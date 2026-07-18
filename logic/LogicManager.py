@@ -178,6 +178,8 @@ class LogicManager(ILogicManager):
             __recalculate_class_data()
             __recalculate_sustain_score()
 
+        context.cache_data.set_update_suspended(True)
+
         # Do the remove recalculations directly here.
         # If this become too costly, split the stale variable into positive and negative recalculation.
         if item_type == EtrianOdysseyItemType.PROGRESSIVE_LEVEL_CAP:
@@ -197,6 +199,8 @@ class LogicManager(ILogicManager):
             recalculate_location()
         elif item_type == EtrianOdysseyItemType.EVENT:
             recalculate_location()
+
+        context.cache_data.set_update_suspended(False)
 
     def on_reached_region(self, region_name: str, context: EO1ExecutionContext):
         context.cache_data.sustain_score.set_stale(True)

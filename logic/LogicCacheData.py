@@ -88,6 +88,17 @@ class AllLogicCacheData:
         new_copy.sustain_score = self.sustain_score.copy()
         return new_copy
 
+    def set_update_suspended(self, update_suspended: bool) -> None:
+        self.defeatable_enemy.update_suspended = update_suspended
+        self.survivable_enemy.update_suspended = update_suspended
+        self.defeatable_encounter.update_suspended = update_suspended
+        self.survivable_encounter.update_suspended = update_suspended
+        self.encounter_group.update_suspended = update_suspended
+        self.codex_entry.update_suspended = update_suspended
+        self.compendium_entry.update_suspended = update_suspended
+        self.shop_unlock_entry.update_suspended = update_suspended
+        #self.sustain_score.update_suspended = update_suspended
+
     #def set_skill_stale(self):
         #self.class_data.set_stale(True)
 
