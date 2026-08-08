@@ -6,7 +6,7 @@
 - [Bizhawk 2.10+](https://github.com/TASEmulators/BizHawk/releases)
 - A North American copy of Etrian Odyssey for the Nintendo DS. The Archipelago community cannot provide this.
 - [Latest etrian_odyssey.apworld](https://github.com/TheMasterZelda/Etrian_Odyssey_1_Archipelago/releases)
-- [Latest Etrian Odyssey Patcher](https://github.com/TheMasterZelda/etrian-odyssey-1-archipelago-patcher/releases) At the moment, the patcher also requires [.Net Runtime 8.0+](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
+- [Latest Etrian Odyssey Patcher](https://github.com/TheMasterZelda/etrian-odyssey-1-archipelago-patcher/releases) At the moment, the patcher also requires [.Net Runtime 8.0+](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) (Note: Latest used to work until recently, but does not anymore, so make sure you have 8.0 installed or a compatible version)
 
 ## Recommended Software
 
